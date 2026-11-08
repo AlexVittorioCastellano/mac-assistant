@@ -76,6 +76,15 @@ public enum ProcessKind: Sendable, Equatable {
         return (displayName(ofBundleAt: bundlePath), isMain)
     }
 
+    /// Il percorso del primo bundle `.app` che contiene l'eseguibile
+    /// (es. l'app di cui un Helper fa parte). Serve per mostrarne l'icona.
+    public static func outermostAppBundlePath(in path: String?) -> String? {
+        guard let path, path.hasPrefix("/") else { return nil }
+        let parts = path.split(separator: "/", omittingEmptySubsequences: true)
+        guard let i = parts.firstIndex(where: { $0.hasSuffix(".app") }) else { return nil }
+        return "/" + parts[...i].joined(separator: "/")
+    }
+
     /// Nome leggibile dell'app (es. "Visual Studio Code" invece di "Electron").
     static func displayName(ofBundleAt path: String) -> String {
         let info = Bundle(path: path)?.infoDictionary

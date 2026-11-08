@@ -92,10 +92,16 @@ struct ContentView: View {
             }
             if !model.choices.isEmpty {
                 // Processi tra cui scegliere: un clic fa la domanda.
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 6) {
                     ForEach(model.choices, id: \.self) { choice in
-                        Button(choice.label) { model.ask(choice.question) }
-                            .buttonStyle(.link)
+                        Button { model.ask(choice.question) } label: {
+                            HStack(spacing: 8) {
+                                ProcessIcon(choice: choice)
+                                Text(choice.label).foregroundStyle(.link)
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
                 .padding(.leading, 24)
@@ -158,5 +164,27 @@ private struct FindingRow: View {
         case .warning: .orange
         case .critical: .red
         }
+    }
+}
+
+/// Icona di un processo: quella dell'app (o dell'app di cui fa parte),
+/// altrimenti un simbolo (ingranaggio per macOS, riquadro per il resto).
+private struct ProcessIcon: View {
+    let choice: Choice
+
+    var body: some View {
+        Group {
+            if let path = choice.iconBundlePath {
+                Image(nsImage: NSWorkspace.shared.icon(forFile: path))
+                    .resizable()
+            } else {
+                Image(systemName: choice.isSystem ? "gearshape.fill" : "app.dashed")
+                    .resizable()
+                    .scaledToFit()
+                    .padding(2)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(width: 20, height: 20)
     }
 }

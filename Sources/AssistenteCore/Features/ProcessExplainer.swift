@@ -52,14 +52,14 @@ public enum ProcessExplainer {
 
     /// Processi da proporre quando l'utente non ha indicato un nome:
     /// quelli che pesano di più adesso, senza doppioni.
-    public static func suggestions(from samples: [ProcessSample], limit: Int = 8) -> [String] {
+    public static func suggestions(from samples: [ProcessSample], limit: Int = 8) -> [ProcessGroup] {
         // Non proponiamo l'assistente stesso.
         let me = ProcessInfo.processInfo.processIdentifier
         let groups = ProcessLister.group(samples).filter { !$0.pids.contains(me) }
         let byCPU = groups.sorted { $0.cpuPercent > $1.cpuPercent }.prefix(limit / 2)
         let byMem = groups.sorted { $0.residentBytes > $1.residentBytes }.prefix(limit)
         var seen = Set<String>()
-        return (byCPU + byMem).map(\.name).filter { seen.insert($0).inserted }.prefix(limit).map { $0 }
+        return Array((byCPU + byMem).filter { seen.insert($0.name).inserted }.prefix(limit))
     }
 
     // MARK: Cosa mostrare (deciso dal codice)
