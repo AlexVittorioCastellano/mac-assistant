@@ -39,9 +39,9 @@ public enum HealthCheck {
 
     static func headline(problems: Int, worst: Finding.Severity) -> Finding {
         let title = switch problems {
-            case 0: "Il tuo Mac sta bene"
-            case 1: "C'è 1 cosa da sistemare"
-            default: "Ci sono \(problems) cose da sistemare"
+            case 0: L.t("health.overall.ok")
+            case 1: L.t("health.overall.one")
+            default: L.t("health.overall.many", problems)
         }
         let symbol = problems == 0 ? "checkmark.circle.fill" : "exclamationmark.circle.fill"
         return Finding(id: "overall", severity: problems == 0 ? .ok : worst, title: title, symbol: symbol)
@@ -54,10 +54,10 @@ public enum HealthCheck {
         // Velocità: riusa le regole di "Mac lento" (senza il riavvio, che è a parte).
         let slow = SlowMacDiagnosis.findings(for: input.snapshot).filter { $0.id != "uptime" && $0.id != "ok" }
         if let worst = slow.max(by: { $0.severity < $1.severity }), worst.severity >= .warning {
-            result.append(.init(id: "speed", severity: .warning, title: "Il Mac è sotto sforzo: \(worst.title.lowercasedFirst)",
-                                advice: "Premi «Mac lento» per vedere cosa lo rallenta.", symbol: "speedometer"))
+            result.append(.init(id: "speed", severity: .warning, title: L.t("health.speed.bad", worst.title.lowercasedFirst),
+                                advice: L.t("health.speed.bad.advice"), symbol: "speedometer"))
         } else {
-            result.append(.init(id: "speed", severity: .ok, title: "Il Mac non è sotto sforzo", symbol: "speedometer"))
+            result.append(.init(id: "speed", severity: .ok, title: L.t("health.speed.ok"), symbol: "speedometer"))
         }
 
         // Spazio
@@ -65,30 +65,30 @@ public enum HealthCheck {
                               macOSBytes: 0, items: [], localSnapshotCount: 0)
         switch DiskSpaceAnalysis.level(usage) {
         case .ok:
-            result.append(.init(id: "disk", severity: .ok, title: "Spazio libero: \(Fmt.size(input.disk.free))", symbol: "internaldrive"))
+            result.append(.init(id: "disk", severity: .ok, title: L.t("health.disk.ok", Fmt.size(input.disk.free)), symbol: "internaldrive"))
         case let level:
-            result.append(.init(id: "disk", severity: level, title: "Lo spazio sta finendo: \(Fmt.size(input.disk.free)) liberi",
-                                advice: "Premi «Spazio disco» per vedere cosa occupa più spazio.", symbol: "internaldrive"))
+            result.append(.init(id: "disk", severity: level, title: L.t("health.disk.low", Fmt.size(input.disk.free)),
+                                advice: L.t("health.disk.low.advice"), symbol: "internaldrive"))
         }
 
         // Backup
         switch s.backup {
         case .notConfigured:
-            result.append(.init(id: "backup", severity: .warning, title: "Nessun backup configurato",
-                                advice: "Collega un disco esterno e attiva Time Machine in Impostazioni di Sistema → Generali → Time Machine: se il Mac si rompe, non perdi i tuoi file.",
+            result.append(.init(id: "backup", severity: .warning, title: L.t("health.backup.none"),
+                                advice: L.t("health.backup.none.advice"),
                                 symbol: "clock.arrow.circlepath"))
         case .configured(let last?):
             let days = Int(input.now.timeIntervalSince(last) / 86_400)
             if days > 7 {
-                result.append(.init(id: "backup", severity: .warning, title: "Ultimo backup \(days) giorni fa",
-                                    advice: "Collega il disco di Time Machine per fare un backup aggiornato.",
+                result.append(.init(id: "backup", severity: .warning, title: L.t("health.backup.old", days),
+                                    advice: L.t("health.backup.old.advice"),
                                     symbol: "clock.arrow.circlepath"))
             } else {
-                let when = days == 0 ? "oggi" : days == 1 ? "ieri" : "\(days) giorni fa"
-                result.append(.init(id: "backup", severity: .ok, title: "Ultimo backup: \(when)", symbol: "clock.arrow.circlepath"))
+                let when = days == 0 ? L.t("health.backup.today") : days == 1 ? L.t("health.backup.yesterday") : L.t("health.backup.daysAgo", days)
+                result.append(.init(id: "backup", severity: .ok, title: L.t("health.backup.last", when), symbol: "clock.arrow.circlepath"))
             }
         case .configured(nil):
-            result.append(.init(id: "backup", severity: .ok, title: "Time Machine è configurato", symbol: "clock.arrow.circlepath"))
+            result.append(.init(id: "backup", severity: .ok, title: L.t("health.backup.configured"), symbol: "clock.arrow.circlepath"))
         case .unknown:
             break
         }
@@ -96,78 +96,78 @@ public enum HealthCheck {
         // Sicurezza
         if let on = s.fileVaultOn {
             result.append(on
-                ? .init(id: "filevault", severity: .ok, title: "Il disco è cifrato (FileVault)", symbol: "lock.fill")
-                : .init(id: "filevault", severity: .warning, title: "Il disco non è cifrato",
-                        advice: "Attiva FileVault in Impostazioni di Sistema → Privacy e sicurezza: se perdi il Mac, nessuno potrà leggere i tuoi file.",
+                ? .init(id: "filevault", severity: .ok, title: L.t("health.filevault.on"), symbol: "lock.fill")
+                : .init(id: "filevault", severity: .warning, title: L.t("health.filevault.off"),
+                        advice: L.t("health.filevault.off.advice"),
                         symbol: "lock.open.fill"))
         }
         if s.gatekeeperOn == false {
             result.append(.init(id: "gatekeeper", severity: .critical,
-                                title: "Il controllo di sicurezza delle app scaricate (Gatekeeper) è disattivato",
-                                advice: "Gatekeeper si può riattivare solo con un comando nel Terminale: se non l'hai disattivato tu, fatti aiutare da un tecnico.",
+                                title: L.t("health.gatekeeper.off"),
+                                advice: L.t("health.gatekeeper.off.advice"),
                                 symbol: "shield.slash.fill"))
         } else if s.gatekeeperOn == true {
-            result.append(.init(id: "gatekeeper", severity: .ok, title: "Le app scaricate vengono controllate (Gatekeeper)", symbol: "checkmark.shield.fill"))
+            result.append(.init(id: "gatekeeper", severity: .ok, title: L.t("health.gatekeeper.on"), symbol: "checkmark.shield.fill"))
         }
         if s.sipOn == false {
             result.append(.init(id: "sip", severity: .critical,
-                                title: "La protezione dei file di sistema (SIP) è disattivata",
-                                advice: "SIP si riattiva solo dalla modalità di ripristino del Mac: se non l'hai disattivata tu, fatti aiutare da un tecnico.",
+                                title: L.t("health.sip.off"),
+                                advice: L.t("health.sip.off.advice"),
                                 symbol: "shield.slash.fill"))
         } else if s.sipOn == true {
-            result.append(.init(id: "sip", severity: .ok, title: "I file di sistema sono protetti (SIP)", symbol: "checkmark.shield.fill"))
+            result.append(.init(id: "sip", severity: .ok, title: L.t("health.sip.on"), symbol: "checkmark.shield.fill"))
         }
         if s.firewallOn == false {
             // Apple lo spedisce spento: è un'informazione, non un problema.
-            result.append(.init(id: "firewall", severity: .info, title: "Il firewall è spento (impostazione iniziale di macOS)",
-                                advice: "Se usi spesso reti Wi‑Fi pubbliche, puoi accenderlo in Impostazioni di Sistema → Rete → Firewall.",
+            result.append(.init(id: "firewall", severity: .info, title: L.t("health.firewall.off"),
+                                advice: L.t("health.firewall.off.advice"),
                                 symbol: "flame"))
         } else if s.firewallOn == true {
-            result.append(.init(id: "firewall", severity: .ok, title: "Il firewall è acceso", symbol: "flame"))
+            result.append(.init(id: "firewall", severity: .ok, title: L.t("health.firewall.on"), symbol: "flame"))
         }
 
         // App sospette
         if let n = input.suspicious {
             result.append(n == 0
-                ? .init(id: "apps", severity: .ok, title: "Nessuna app sospetta", symbol: "checkmark.shield.fill")
+                ? .init(id: "apps", severity: .ok, title: L.t("health.apps.ok"), symbol: "checkmark.shield.fill")
                 : .init(id: "apps", severity: .warning,
-                        title: n == 1 ? "C'è 1 app o programma da controllare" : "Ci sono \(n) app o programmi da controllare",
-                        advice: "Premi «App sospette» per vedere cosa sono e come toglierli.",
+                        title: n == 1 ? L.t("health.apps.one") : L.t("health.apps.many", n),
+                        advice: L.t("health.apps.advice"),
                         symbol: "exclamationmark.shield.fill"))
         }
 
         // Aggiornamenti
         if let pending = s.pendingUpdates, pending > 0 {
             result.append(.init(id: "updates", severity: .warning,
-                                title: pending == 1 ? "C'è 1 aggiornamento da installare" : "Ci sono \(pending) aggiornamenti da installare",
-                                advice: "Installa gli aggiornamenti in Impostazioni di Sistema → Generali → Aggiornamento Software: correggono problemi di sicurezza.",
+                                title: pending == 1 ? L.t("health.updates.one") : L.t("health.updates.many", pending),
+                                advice: L.t("health.updates.pending.advice"),
                                 symbol: "arrow.down.circle"))
         } else if s.automaticUpdatesOn == false {
-            result.append(.init(id: "updates", severity: .warning, title: "Gli aggiornamenti automatici sono spenti",
-                                advice: "Attivali in Impostazioni di Sistema → Generali → Aggiornamento Software → Aggiornamenti automatici.",
+            result.append(.init(id: "updates", severity: .warning, title: L.t("health.updates.auto.off"),
+                                advice: L.t("health.updates.auto.off.advice"),
                                 symbol: "arrow.down.circle"))
         } else if s.automaticUpdatesOn == true {
-            result.append(.init(id: "updates", severity: .ok, title: "Gli aggiornamenti automatici sono attivi", symbol: "arrow.down.circle"))
+            result.append(.init(id: "updates", severity: .ok, title: L.t("health.updates.auto.on"), symbol: "arrow.down.circle"))
         }
 
         // Batteria
         if let b = s.battery {
             if b.healthPercent < 80 {
                 result.append(.init(id: "battery", severity: .warning,
-                                    title: "La batteria è consumata (\(b.healthPercent)% della capacità iniziale)",
-                                    advice: "Sotto l'80% Apple consiglia di farla controllare in assistenza.",
+                                    title: L.t("health.battery.worn", b.healthPercent),
+                                    advice: L.t("health.battery.worn.advice"),
                                     symbol: "battery.25percent"))
             } else {
                 result.append(.init(id: "battery", severity: .ok,
-                                    title: "Batteria in salute (\(b.healthPercent)%, \(b.cycleCount) cicli)", symbol: "battery.100percent"))
+                                    title: L.t("health.battery.ok", b.healthPercent, b.cycleCount), symbol: "battery.100percent"))
             }
         }
 
         // Riavvio
         let days = Fmt.days(input.snapshot.uptime)
         if days >= 14 {
-            result.append(.init(id: "uptime", severity: .info, title: "Non riavvii il Mac da \(days) giorni",
-                                advice: "Riavvia il Mac ogni tanto: installa gli aggiornamenti e libera la memoria.",
+            result.append(.init(id: "uptime", severity: .info, title: L.t("health.uptime", days),
+                                advice: L.t("health.uptime.advice"),
                                 symbol: "arrow.clockwise"))
         }
         return result

@@ -34,9 +34,9 @@ public enum SecurityScan {
     }
 
     /// Una firma rotta non prova cattive intenzioni: lo diciamo con onestà.
-    static let brokenExplanation = "Succede quando un file viene cambiato dopo la firma: a volte è innocuo (app create da altri programmi, come gli strumenti per sviluppatori), a volte no."
+    static var brokenExplanation: String { L.t("security.broken") }
 
-    static let removeBackground = "Puoi disattivarlo in Impostazioni di Sistema → Generali → Elementi login ed estensioni (sezione «Consenti in background»). Se viene da un'app che non usi, disinstalla l'app."
+    static var removeBackground: String { L.t("security.remove") }
 
     /// Verdetto su un programma in background.
     public static func verdict(for item: BackgroundItem, trust: CodeTrust) -> Verdict {
@@ -45,53 +45,53 @@ public enum SecurityScan {
         let isApple = item.label.hasPrefix("com.apple.") && trust == .apple
 
         if isKnownUnwanted(item.label) || isKnownUnwanted(program) {
-            return Verdict(severity: .critical, title: "«\(name)» è un software noto come indesiderato",
-                           advice: "È un programma che mostra pubblicità o finti allarmi. " + removeBackground)
+            return Verdict(severity: .critical, title: L.t("security.bg.unwanted", name),
+                           advice: L.t("security.bg.unwanted.advice", removeBackground))
         }
         if trust == .broken {
-            return Verdict(severity: .warning, title: "«\(name)» ha una firma digitale che non corrisponde più al programma",
-                           advice: brokenExplanation + " Se non lo riconosci: " + removeBackground)
+            return Verdict(severity: .warning, title: L.t("security.bg.broken", name),
+                           advice: L.t("security.bg.broken.advice", brokenExplanation, removeBackground))
         }
         let base = URL(fileURLWithPath: program).lastPathComponent
         if !isApple, scriptRunners.contains(base), item.arguments.count > 1 {
-            return Verdict(severity: .warning, title: "«\(name)» parte da solo ed esegue uno script",
-                           advice: "Gli script avviati in background sono un trucco usato dagli adware. Se non sai cos'è: " + removeBackground)
+            return Verdict(severity: .warning, title: L.t("security.bg.script", name),
+                           advice: L.t("security.bg.script.advice", removeBackground))
         }
         if oddLocations.contains(where: program.hasPrefix) || URL(fileURLWithPath: program).lastPathComponent.hasPrefix(".") {
-            return Verdict(severity: .warning, title: "«\(name)» parte da solo da una cartella nascosta o temporanea",
-                           advice: "I programmi seri non si installano lì. " + removeBackground)
+            return Verdict(severity: .warning, title: L.t("security.bg.hidden", name),
+                           advice: L.t("security.bg.hidden.advice", removeBackground))
         }
         switch trust {
         case .missing:
-            return Verdict(severity: .info, title: "«\(name)» punta a un programma che non esiste più",
-                           advice: "È un resto di un'app disinstallata: non fa danni, ma puoi toglierlo. " + removeBackground)
+            return Verdict(severity: .info, title: L.t("security.bg.missing", name),
+                           advice: L.t("security.bg.missing.advice", removeBackground))
         case .unsigned, .unverified:
-            return Verdict(severity: .warning, title: "«\(name)» parte da solo e nessuno sviluppatore verificato lo firma",
-                           advice: "Se non sai da dove viene: " + removeBackground)
+            return Verdict(severity: .warning, title: L.t("security.bg.unverified", name),
+                           advice: L.t("security.bg.unverified.advice", removeBackground))
         case .apple:
-            return Verdict(severity: .ok, title: "«\(name)» (di Apple)", advice: nil)
+            return Verdict(severity: .ok, title: L.t("security.bg.apple", name), advice: nil)
         case .appStore:
-            return Verdict(severity: .ok, title: "«\(name)» (dall'App Store)", advice: nil)
+            return Verdict(severity: .ok, title: L.t("security.bg.appstore", name), advice: nil)
         case .identifiedDeveloper(let dev):
-            return Verdict(severity: .ok, title: "«\(name)» di \(dev)", advice: nil)
+            return Verdict(severity: .ok, title: L.t("security.bg.developer", name, dev), advice: nil)
         case .broken:
-            return Verdict(severity: .critical, title: "«\(name)»", advice: nil)  // gestito sopra
+            return Verdict(severity: .critical, title: L.t("security.bg.generic", name), advice: nil)  // gestito sopra
         }
     }
 
     /// Verdetto su un'app installata (`nil` = tutto a posto, non serve mostrarla).
     public static func verdict(for app: InstalledApp) -> Verdict? {
         if isKnownUnwanted(app.name) {
-            return Verdict(severity: .critical, title: "«\(app.name)» è un software noto come indesiderato",
-                           advice: "Mostra finti allarmi per farti pagare. Disinstallala: trascinala dalla cartella Applicazioni al Cestino e svuotalo.")
+            return Verdict(severity: .critical, title: L.t("security.app.unwanted", app.name),
+                           advice: L.t("security.app.unwanted.advice"))
         }
         switch app.trust {
         case .broken:
-            return Verdict(severity: .warning, title: "«\(app.name)» ha una firma digitale che non corrisponde più all'app",
-                           advice: brokenExplanation + " Se non la riconosci, eliminala; se ti serve, scaricala di nuovo dal sito ufficiale.")
+            return Verdict(severity: .warning, title: L.t("security.app.broken", app.name),
+                           advice: L.t("security.app.broken.advice", brokenExplanation))
         case .unsigned, .unverified:
-            return Verdict(severity: .warning, title: "«\(app.name)» non è firmata da uno sviluppatore verificato",
-                           advice: "Se l'hai scaricata tu da un sito ufficiale (alcuni programmi gratuiti non sono firmati), va bene. Se non sai da dove viene, eliminala.")
+            return Verdict(severity: .warning, title: L.t("security.app.unverified", app.name),
+                           advice: L.t("security.app.unverified.advice"))
         default:
             return nil
         }
@@ -137,20 +137,19 @@ public enum SecurityScan {
 
         let headline = Finding(
             id: "overall", severity: problems == 0 ? .ok : worst,
-            title: problems == 0 ? "Nessuna app sospetta"
-                : problems == 1 ? "C'è 1 cosa da controllare" : "Ci sono \(problems) cose da controllare",
+            title: problems == 0 ? L.t("security.overall.ok")
+                : problems == 1 ? L.t("security.overall.one") : L.t("security.overall.many", problems),
             symbol: problems == 0 ? "checkmark.shield.fill" : "exclamationmark.shield.fill")
 
         var summary: [Finding] = []
         let background = rows.filter { $0.id.hasPrefix("bg") }.count
         summary.append(Finding(id: "bgcount", severity: .info,
-                               title: background == 0 ? "Nessun programma di altre aziende parte da solo in background"
-                                   : "Programmi che partono da soli in background: \(background)",
+                               title: background == 0 ? L.t("security.bgcount.none") : L.t("security.bgcount", background),
                                symbol: "gearshape.2"))
         if !result.apps.isEmpty {
             let ok = result.apps.count - appProblems.count
             summary.append(Finding(id: "appcount", severity: .info,
-                                   title: "App controllate: \(result.apps.count), firmate da sviluppatori verificati: \(ok)",
+                                   title: L.t("security.appcount", result.apps.count, ok),
                                    symbol: "app.badge.checkmark"))
         }
         return [headline] + sorted + summary

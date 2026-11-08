@@ -46,7 +46,7 @@ public enum CodeTrust: Sendable, Equatable {
         if satisfies("anchor apple") { return .apple }
         if satisfies("anchor apple generic and certificate leaf[field.1.2.840.113635.100.6.1.9]") { return .appStore }
         if satisfies("anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] and certificate leaf[field.1.2.840.113635.100.6.1.13]") {
-            return .identifiedDeveloper(developerName(code) ?? "sviluppatore registrato")
+            return .identifiedDeveloper(developerName(code) ?? L.t("security.developer.registered"))
         }
         return .unverified
     }

@@ -27,7 +27,8 @@ public enum TextRecognizer {
     static func makeRequest() -> VNRecognizeTextRequest {
         let request = VNRecognizeTextRequest()
         request.recognitionLevel = .accurate
-        request.recognitionLanguages = ["it-IT", "en-US"]
+        // La lingua dell'utente per prima, poi l'inglese (molti messaggi lo sono).
+        request.recognitionLanguages = Array(Set([L.current.locale.replacingOccurrences(of: "_", with: "-"), "en-US"]))
         request.usesLanguageCorrection = true
         return request
     }
@@ -35,7 +36,7 @@ public enum TextRecognizer {
     public static func text(inImageAt url: URL) async throws -> String {
         guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
               let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
-            throw AIError("Non riesco ad aprire questa immagine.")
+            throw AIError(L.t("error.image.cantOpen"))
         }
         return try await text(in: image)
     }
@@ -43,7 +44,7 @@ public enum TextRecognizer {
     public static func text(inImageData data: Data) async throws -> String {
         guard let source = CGImageSourceCreateWithData(data as CFData, nil),
               let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
-            throw AIError("Non riesco ad aprire questa immagine.")
+            throw AIError(L.t("error.image.cantOpen"))
         }
         return try await text(in: image)
     }
@@ -57,7 +58,7 @@ public enum TextRecognizer {
                     let lines = (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
                     continuation.resume(returning: lines.joined(separator: "\n"))
                 } catch {
-                    continuation.resume(throwing: AIError("Non sono riuscito a leggere il testo nell'immagine."))
+                    continuation.resume(throwing: AIError(L.t("error.image.cantRead")))
                 }
             }
         }

@@ -49,12 +49,12 @@ public struct Assistant: Sendable {
         self.status = status
     }
 
-    public static let slowMacQuestion = "Perché il Mac è lento?"
-    public static let processQuestion = "Cos'è questo processo?"
-    public static let diskQuestion = "Dove è finito lo spazio?"
-    public static let healthQuestion = "Controlla il mio Mac"
-    public static let securityQuestion = "Ci sono app sospette?"
-    public static let cleanupQuestion = "Fai un po' di pulizia"
+    public static var slowMacQuestion: String { L.t("question.slow") }
+    public static var processQuestion: String { L.t("question.process") }
+    public static var diskQuestion: String { L.t("question.disk") }
+    public static var healthQuestion: String { L.t("question.health") }
+    public static var securityQuestion: String { L.t("question.security") }
+    public static var cleanupQuestion: String { L.t("question.cleanup") }
 
     /// - Parameter conversationGuides: guide usate nel turno precedente della
     ///   chat. Una domanda di seguito ("E se non compare?") senza guide proprie
@@ -103,12 +103,11 @@ public struct Assistant: Sendable {
 
         case .process(nil):
             let options = ProcessExplainer.suggestions(from: samples).map {
-                Choice(label: $0.name, question: "Cos'è «\($0.name)»?",
+                Choice(label: $0.name, question: L.t("question.processNamed", $0.name),
                        iconPath: ProcessKind.outermostAppBundlePath(in: $0.path),
                        symbol: ProcessExplainer.symbol(for: $0))
             }
-            return .choices(message: "Quale processo vuoi capire? Ecco quelli che lavorano di più adesso. "
-                                + "Puoi anche scrivere il nome, ad esempio: Cos'è mds_stores?",
+            return .choices(message: L.t("process.choose"),
                             options: options)
 
         case .process(let name?):
@@ -142,13 +141,13 @@ public struct Assistant: Sendable {
 
     // MARK: Spiegami questo messaggio
 
-    public static let messageQuestion = "Spiegami questo messaggio"
+    public static var messageQuestion: String { L.t("question.message") }
 
     /// Spiega il testo di un avviso o di un errore.
     public func explainMessage(_ text: String) -> AssistantReply {
         let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !t.isEmpty else {
-            return .message("Non ho trovato testo da spiegare. Fai uno screenshot del messaggio con ⌃⇧⌘4 (va negli appunti) e riprova.")
+            return .message(L.t("message.empty"))
         }
         return .result(findings: MessageExplainer.findings(for: t), aiRequest: MessageExplainer.request(for: t))
     }

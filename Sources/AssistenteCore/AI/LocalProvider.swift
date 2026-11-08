@@ -8,25 +8,25 @@ import FoundationModels
 public struct LocalProvider: AIProvider {
     public init() {}
 
-    public var displayName: String { "Sul tuo Mac" }
+    public var displayName: String { L.t("error.provider.name") }
     public var isOnDevice: Bool { true }
 
     public var availability: ProviderAvailability {
         let model = SystemLanguageModel.default
         switch model.availability {
         case .available:
-            guard model.supportsLocale(Locale(identifier: "it_IT")) else {
-                return .unavailable("Il modello sul Mac non supporta l'italiano.")
+            guard model.supportsLocale(L.locale) else {
+                return .unavailable(L.t("error.ai.noLanguage"))
             }
             return .available
         case .unavailable(.deviceNotEligible):
-            return .unavailable("Questo Mac non supporta Apple Intelligence.")
+            return .unavailable(L.t("error.ai.notEligible"))
         case .unavailable(.appleIntelligenceNotEnabled):
-            return .unavailable("Attiva Apple Intelligence in Impostazioni di Sistema per avere le spiegazioni.")
+            return .unavailable(L.t("error.ai.notEnabled"))
         case .unavailable(.modelNotReady):
-            return .unavailable("Il modello di Apple Intelligence si sta ancora scaricando. Riprova tra poco.")
+            return .unavailable(L.t("error.ai.notReady"))
         case .unavailable:
-            return .unavailable("Apple Intelligence non è disponibile in questo momento.")
+            return .unavailable(L.t("error.ai.unavailable"))
         }
     }
 
@@ -70,22 +70,22 @@ public struct LocalProvider: AIProvider {
     /// Traduce gli errori del framework in messaggi semplici.
     static func friendly(_ error: Error) -> Error {
         if error is SystemLanguageModel.Error {
-            return AIError("Il modello non è ancora pronto. Riprova tra poco.")
+            return AIError(L.t("error.ai.notReadyShort"))
         }
         guard let error = error as? LanguageModelError else { return error }
         switch error {
         case .contextSizeExceeded:
-            return AIError("La richiesta è troppo lunga per il modello sul Mac.")
+            return AIError(L.t("error.ai.tooLong"))
         case .guardrailViolation, .refusal:
-            return AIError("Questa volta non sono riuscito a scrivere una spiegazione, ma qui sopra trovi cosa ho controllato.")
+            return AIError(L.t("error.ai.refused"))
         case .unsupportedLanguageOrLocale:
-            return AIError("Il modello non supporta la lingua impostata sul Mac.")
+            return AIError(L.t("error.ai.unsupportedLanguage"))
         case .rateLimited:
-            return AIError("Il modello è occupato. Riprova tra qualche secondo.")
+            return AIError(L.t("error.ai.busy"))
         case .timeout:
-            return AIError("Il modello ci sta mettendo troppo. Riprova.")
+            return AIError(L.t("error.ai.timeout"))
         default:
-            return AIError("Non sono riuscito a generare una risposta.")
+            return AIError(L.t("error.ai.failed"))
         }
     }
 }
@@ -123,7 +123,7 @@ actor LocalChatSession: AIChatSession {
             // Conversazione troppo lunga: ripartiamo da zero.
             session = LocalProvider.makeSession(instructions: instructions)
             continuation.finish(throwing: AIError(
-                "La conversazione è diventata troppo lunga per il modello sul Mac, quindi ne ho iniziata una nuova. Ripeti pure la domanda."))
+                L.t("error.ai.chatTooLong")))
         } catch {
             continuation.finish(throwing: LocalProvider.friendly(error))
         }

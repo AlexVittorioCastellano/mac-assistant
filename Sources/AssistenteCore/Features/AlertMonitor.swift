@@ -56,10 +56,10 @@ public struct AlertMonitor: Sendable {
         func elapsed(_ id: String) -> String {
             let minutes = Int(now.timeIntervalSince(since[id] ?? now) / 60)
             switch minutes {
-            case ..<2: return "da qualche minuto"
-            case ..<60: return "da \(minutes) minuti"
-            case ..<120: return "da più di un'ora"
-            default: return "da più di \(minutes / 60) ore"
+            case ..<2: return L.t("alert.elapsed.few")
+            case ..<60: return L.t("alert.elapsed.minutes", minutes)
+            case ..<120: return L.t("alert.elapsed.hour")
+            default: return L.t("alert.elapsed.hours", minutes / 60)
             }
         }
 
@@ -75,26 +75,26 @@ public struct AlertMonitor: Sendable {
         for p in s.processes where !p.isSystem && p.cpuPercent >= rules.cpuThreshold {
             let id = "cpuHog:\(p.name)"
             check({ MacAlert(id: id, kind: .cpuHog,
-                             title: "«\(p.name)» lavora molto \(elapsed(id))",
-                             body: "Può rallentare il Mac e scaricare la batteria. Se non ti serve, chiudila (salva prima il lavoro).",
-                             question: "Cos'è «\(p.name)»?") },
+                             title: L.t("alert.cpu.title", p.name, elapsed(id)),
+                             body: L.t("alert.cpu.body"),
+                             question: L.t("question.processNamed", p.name)) },
                   id: id, isTrue: true, duration: rules.cpuDuration)
         }
 
-        check({ MacAlert(id: "memory", kind: .memory, title: "La memoria del Mac è esaurita \(elapsed("memory"))",
-                         body: "Chiudi le app e le schede del browser che non usi: il Mac tornerà più veloce.",
+        check({ MacAlert(id: "memory", kind: .memory, title: L.t("alert.memory.title", elapsed("memory")),
+                         body: L.t("alert.memory.body"),
                          question: Assistant.slowMacQuestion) },
               id: "memory", isTrue: s.memory.pressure == .critical, duration: rules.memoryDuration)
 
-        check({ MacAlert(id: "heat", kind: .heat, title: "Il Mac è molto caldo \(elapsed("heat"))",
-                         body: "Si sta rallentando per raffreddarsi. Appoggialo su una superficie rigida e lascia libere le prese d'aria.",
+        check({ MacAlert(id: "heat", kind: .heat, title: L.t("alert.heat.title", elapsed("heat")),
+                         body: L.t("alert.heat.body"),
                          question: Assistant.slowMacQuestion) },
               id: "heat", isTrue: s.thermal == .serious || s.thermal == .critical, duration: rules.heatDuration)
 
         let lowDisk = diskTotal > 0 && (Double(diskFree) / Double(diskTotal) < rules.diskFreeRatio
                                         || diskFree < rules.diskFreeBytes)
-        check({ MacAlert(id: "disk", kind: .disk, title: "Lo spazio sul disco sta finendo",
-                         body: "Restano \(Fmt.size(diskFree)) liberi. Quando il disco è pieno, il Mac rallenta e non salva più i file.",
+        check({ MacAlert(id: "disk", kind: .disk, title: L.t("alert.disk.title"),
+                         body: L.t("alert.disk.body", Fmt.size(diskFree)),
                          question: Assistant.diskQuestion) },
               id: "disk", isTrue: lowDisk, duration: 0)
 

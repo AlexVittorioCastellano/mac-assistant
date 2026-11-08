@@ -18,24 +18,7 @@ public enum DiskSpaceAnalysis {
     }
 
     static func label(_ c: DiskCategory) -> String {
-        switch c {
-        case .appleAI: "Modelli di Apple Intelligence e Siri"
-        case .systemAssets: "Risorse scaricate da macOS (voci, font, dizionari…)"
-        case .applications: "Applicazioni"
-        case .downloads: "Download"
-        case .desktop: "Scrivania"
-        case .documents: "Documenti"
-        case .pictures: "Immagini e libreria di Foto"
-        case .movies: "Filmati"
-        case .music: "Musica"
-        case .trash: "Cestino"
-        case .caches: "Cache e file temporanei"
-        case .appData: "Dati delle app"
-        case .iosBackups: "Backup di iPhone e iPad"
-        case .otherAIModels: "Modelli AI di altre app (es. Ollama, LM Studio)"
-        case .developer: "Strumenti per sviluppatori (Xcode, simulatori)"
-        case .swap: "Memoria virtuale e stop"
-        }
+        L.t("disk.label." + c.rawValue)
     }
 
     static func symbol(_ c: DiskCategory) -> String {
@@ -56,28 +39,10 @@ public enum DiskSpaceAnalysis {
     /// Consigli: solo azioni sicure che fa l'utente, mai cancellazioni automatiche.
     static func advice(_ c: DiskCategory) -> String? {
         switch c {
-        case .appleAI:
-            "Se non usi Apple Intelligence, puoi disattivarla in Impostazioni di Sistema → Apple Intelligence e Siri: macOS potrà liberare parte di questo spazio (questa app però la usa per le spiegazioni)."
-        case .downloads:
-            "Guarda nella cartella Download: spesso ci sono installer e archivi che non servono più."
-        case .trash:
-            "Svuota il Cestino: clic destro sull'icona del Cestino nel Dock → Svuota il Cestino."
-        case .applications:
-            "Elimina le app che non usi più: trascinale dalla cartella Applicazioni al Cestino."
-        case .pictures:
-            "Se usi Foto di iCloud, puoi attivare «Ottimizza spazio Mac» in Foto → Impostazioni → iCloud."
+        case .appleAI, .downloads, .trash, .applications, .pictures, .caches, .iosBackups, .otherAIModels, .developer, .swap:
+            L.t("disk.advice." + c.rawValue)
         case .movies, .music, .documents, .desktop:
-            "I file grandi che usi poco puoi spostarli su un disco esterno o su iCloud Drive."
-        case .caches:
-            "Le cache non vanno cancellate a mano: macOS le libera da solo quando lo spazio scarseggia."
-        case .iosBackups:
-            "Puoi eliminare i backup vecchi dal Finder: seleziona il dispositivo → Gestisci backup."
-        case .otherAIModels:
-            "Sono modelli scaricati da app come Ollama o LM Studio: elimina quelli che non usi dall'app stessa."
-        case .developer:
-            "Se usi Xcode: simulatori e file di build vecchi si possono eliminare da Xcode → Impostazioni → Componenti."
-        case .swap:
-            "La memoria virtuale si riduce da sola riavviando il Mac."
+            L.t("disk.advice.files")
         case .systemAssets, .appData:
             nil
         }
@@ -89,9 +54,9 @@ public enum DiskSpaceAnalysis {
             Entry(id: $0.category.rawValue, label: label($0.category), bytes: $0.bytes,
                   iconPath: $0.path, symbol: symbol($0.category), advice: advice($0.category))
         }
-        list.append(Entry(id: "macos", label: "macOS", bytes: u.macOSBytes, symbol: "apple.logo"))
+        list.append(Entry(id: "macos", label: L.t("disk.label.macos"), bytes: u.macOSBytes, symbol: "apple.logo"))
         // Non chiamarlo "Altro": si confonderebbe con "Il resto" del grafico.
-        list.append(Entry(id: "other", label: "Dati di altre app e file sparsi",
+        list.append(Entry(id: "other", label: L.t("disk.label.other"),
                           bytes: u.otherBytes, symbol: "ellipsis.circle"))
         return list.sorted { $0.bytes > $1.bytes }
     }
@@ -132,7 +97,7 @@ public enum DiskSpaceAnalysis {
         }
         let restBytes = rest.reduce(0) { $0 + $1.bytes }
         if restBytes > 0 {
-            segments.append(.init(id: "rest", label: "Il resto", bytes: restBytes, swatch: .rest))
+            segments.append(.init(id: "rest", label: L.t("disk.label.rest"), bytes: restBytes, swatch: .rest))
         }
         return SegmentedChart(totalBytes: segments.reduce(0) { $0 + $1.bytes }, segments: segments,
                               capacityBytes: u.totalBytes, level: level(u))
@@ -142,26 +107,25 @@ public enum DiskSpaceAnalysis {
         var result: [Finding] = []
         let gb: UInt64 = 1_073_741_824
 
-        let summary = "Spazio libero: \(Fmt.size(u.freeBytes)) su \(Fmt.size(u.totalBytes))"
+        let summary = L.t("disk.free", Fmt.size(u.freeBytes), Fmt.size(u.totalBytes))
         let severity = level(u)
         // Con tanto spazio libero, i consigli di pulizia sarebbero inutili:
         // lo diciamo chiaramente e mostriamo solo le informazioni.
         let plenty = severity == .ok
         result.append(.init(id: "free", severity: severity, title: summary,
-                            advice: plenty ? "Hai ancora molto spazio libero: non serve liberarne adesso."
-                                : "Premi «Pulizia» per scegliere i file da togliere (vanno nel Cestino, recuperabili).",
+                            advice: plenty ? L.t("disk.free.plenty") : L.t("disk.free.low"),
                             symbol: "internaldrive"))
 
         if u.purgeableBytes >= gb {
             result.append(.init(id: "purgeable", severity: .info,
-                                title: "Altri \(Fmt.size(u.purgeableBytes)) macOS li libera da solo quando servono",
+                                title: L.t("disk.purgeable", Fmt.size(u.purgeableBytes)),
                                 symbol: "arrow.3.trianglepath"))
         }
 
         // Le righe hanno lo stesso ordine e lo stesso colore dei blocchi della barra.
         let (top, rest) = split(u)
         for (i, e) in top.enumerated() {
-            result.append(.init(id: e.id, severity: .info, title: "\(e.label): \(Fmt.size(e.bytes))",
+            result.append(.init(id: e.id, severity: .info, title: L.t("disk.row", e.label, Fmt.size(e.bytes)),
                                 advice: plenty ? nil : e.advice, iconPath: e.iconPath, symbol: e.symbol,
                                 swatch: .series(i)))
         }
@@ -170,7 +134,7 @@ public enum DiskSpaceAnalysis {
             // Nomino le voci raggruppate più grandi, così "il resto" non è un mistero.
             let names = rest.filter { $0.bytes >= gb }.prefix(3).map(\.label)
             let detail = names.isEmpty ? "" : " (\(names.joined(separator: ", ")))"
-            var row = Finding(id: "rest", severity: .info, title: "Il resto\(detail): \(Fmt.size(restBytes))",
+            var row = Finding(id: "rest", severity: .info, title: L.t("disk.rest", detail, Fmt.size(restBytes)),
                               symbol: "square.grid.2x2", swatch: .rest)
             // Consigli delle voci raggruppate, se lo spazio scarseggia (es. un Cestino pieno).
             if !plenty {
@@ -182,17 +146,17 @@ public enum DiskSpaceAnalysis {
         let systemData = systemDataBytes(u)
         if systemData >= gb {
             let biggest = u.items.filter { $0.category.isSystemData }.max { $0.bytes < $1.bytes }
-            var title = "In Impostazioni, «Dati di sistema» è circa \(Fmt.size(systemData))"
+            var title = L.t("disk.systemdata", Fmt.size(systemData))
             if let biggest, biggest.bytes >= gb {
-                title += ". La voce più grande: «\(label(biggest.category))»"
+                title += L.t("disk.systemdata.biggest", label(biggest.category))
             }
             result.append(.init(id: "systemdata", severity: .info, title: title, symbol: "questionmark.folder"))
         }
 
         if u.localSnapshotCount > 0 {
             result.append(.init(id: "snapshots", severity: .info,
-                                title: "\(u.localSnapshotCount) istantanee locali di Time Machine",
-                                advice: "Le istantanee le elimina macOS da solo dopo circa 24 ore o quando serve spazio.",
+                                title: L.t("disk.snapshots", u.localSnapshotCount),
+                                advice: L.t("disk.snapshots.advice"),
                                 symbol: "clock.arrow.circlepath"))
         }
         return result
@@ -204,25 +168,9 @@ public enum DiskSpaceAnalysis {
         let gb: UInt64 = 1_073_741_824
         let list = entries(u).filter { $0.bytes >= gb }.prefix(8)
             .map { "- \($0.label): \(Fmt.size($0.bytes))" }.joined(separator: "\n")
-        let prompt = """
-        Domanda dell'utente: \(question)
-
-        Disco: \(Fmt.size(u.freeBytes)) liberi su \(Fmt.size(u.totalBytes)) \
-        (\(level(u) == .ok ? "lo spazio libero è abbondante" : "lo spazio libero sta finendo")).
-        Voci più grandi (misurate dall'app):
-        \(list)
-
-        Informazioni sicure:
-        - In Impostazioni di Sistema → Generali → Spazio, «Dati di sistema» raccoglie tutto ciò che non è \
-        nelle altre categorie: modelli di Apple Intelligence, cache, memoria virtuale, istantanee \
-        di Time Machine, dati delle app. In questo Mac sono circa \(Fmt.size(systemDataBytes(u))).
-        - I modelli di Apple Intelligence servono per le funzioni AI che lavorano sul Mac.
-        - Le cache e le istantanee macOS le libera da solo quando serve spazio.
-
-        Spiega in 2 o 3 frasi semplici dove è finito lo spazio, partendo dalle voci più grandi.
-        Se i «Dati di sistema» sono tanti, spiega cosa sono.
-        Non dare consigli e non fare elenchi: i consigli li mostra già l'app.
-        """
+        let state = level(u) == .ok ? L.t("disk.prompt.plenty") : L.t("disk.prompt.low")
+        let prompt = L.t("disk.prompt", question, Fmt.size(u.freeBytes), Fmt.size(u.totalBytes), state, list,
+                         Fmt.size(systemDataBytes(u)))
         return AIRequest(instructions: Prompts.base, prompt: prompt)
     }
 }

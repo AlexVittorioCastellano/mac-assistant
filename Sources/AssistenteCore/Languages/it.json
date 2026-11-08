@@ -4,11 +4,815 @@
  "locale": "it_IT",
  "strings": {
   "router.processWord": "process",
-  "prompt.base": "Sei un assistente che aiuta persone non esperte a capire il proprio Mac.\nRispondi sempre in italiano, con frasi brevi, chiare e senza gergo tecnico.\nBasati solo sui dati forniti: non inventare numeri, programmi o cause.\nSe non sei sicuro di qualcosa, dillo chiaramente invece di inventare.\nNon dire mai di aver chiuso programmi o cambiato impostazioni: puoi solo spiegare.\nLe attività di macOS fanno parte del sistema: non suggerire mai di chiuderle."
+  "prompt.base": "Sei un assistente che aiuta persone non esperte a capire il proprio Mac.\nRispondi sempre in italiano, con frasi brevi, chiare e senza gergo tecnico.\nBasati solo sui dati forniti: non inventare numeri, programmi o cause.\nSe non sei sicuro di qualcosa, dillo chiaramente invece di inventare.\nNon dire mai di aver chiuso programmi o cambiato impostazioni: puoi solo spiegare.\nLe attività di macOS fanno parte del sistema: non suggerire mai di chiuderle.",
+  "slow.cpu.critical": "Il processore è al limite ({0})",
+  "slow.cpu.warning": "Il processore è molto impegnato ({0})",
+  "slow.topcpu.info": "«{0}» lavora molto, ma il Mac ha ancora potenza libera",
+  "slow.topcpu.system": "macOS sta facendo un lavoro in background («{0}»)",
+  "slow.topcpu.system.advice": "Aspetta qualche minuto: di solito finisce da solo. Se dura per ore, riavvia il Mac.",
+  "slow.topcpu.app": "«{0}» sta usando molto il processore",
+  "slow.topcpu.app.advice": "Se in questo momento non ti serve, chiudi «{0}» (salva prima il lavoro).",
+  "slow.mem.critical": "La memoria è esaurita",
+  "slow.mem.warning": "La memoria è quasi piena",
+  "slow.mem.advice": "Chiudi le app e le schede del browser che non stai usando.",
+  "slow.swap": "Il Mac usa il disco come memoria extra ({0})",
+  "slow.swap.advice": "Quando puoi, riavvia il Mac: libera la memoria.",
+  "slow.topmem": "«{0}» occupa molta memoria ({1})",
+  "slow.topmem.advice": "Se non ti serve, chiudi «{0}» per liberare memoria.",
+  "slow.heat.critical": "Il Mac è molto caldo e si sta rallentando per protezione",
+  "slow.heat.warning": "Il Mac è caldo e potrebbe rallentare per raffreddarsi",
+  "slow.heat.advice": "Appoggia il Mac su una superficie rigida e lascia libere le prese d'aria.",
+  "slow.uptime": "Il Mac non viene riavviato da {0} giorni",
+  "slow.uptime.advice": "Riavvia il Mac: spesso basta per tornare veloce.",
+  "slow.ok": "Nessun problema evidente in questo momento",
+  "common.none": "nessuna",
+  "level.pressure.normal": "normale",
+  "level.pressure.warning": "alta",
+  "level.pressure.critical": "critica",
+  "level.thermal.normal": "normale",
+  "level.thermal.serious": "alta",
+  "level.thermal.critical": "molto alta",
+  "slow.prompt.ok": "Domanda dell'utente: {0}\n\nL'app ha controllato il Mac e non ha trovato problemi: processore al {1}, memoria con pressione {2}, temperatura {3}.\n\nRassicura l'utente in 2 frasi semplici. Spiega che se il Mac era lento poco fa, potrebbe essere stato un rallentamento momentaneo ormai passato.",
+  "slow.prompt": "Domanda dell'utente: {0}\n\nProblemi individuati dall'app (sono la causa da spiegare):\n{1}\n\nDati misurati adesso sul Mac:\n- Processore: {2} in uso in totale\n- Memoria: {3} usati su {4}; pressione {5}\n- Temperatura: {6}\n- App aperte che usano più processore: {7}\n- App aperte che usano più memoria: {8}\n- Attività di macOS (non vanno chiuse): {9}",
+  "slow.prompt.notes": "Cosa sono alcune attività di macOS:",
+  "slow.prompt.end": "Spiega in 2 o 3 frasi semplici cosa sta succedendo, partendo dai problemi individuati.\nParla solo dei programmi nominati sopra. Se non ci sono problemi, rassicura l'utente.\nNon dare consigli e non fare elenchi: i consigli li mostra già l'app.",
+  "process.kind.macos": "Fa parte di macOS",
+  "process.close.macos": "Non chiuderlo: serve al sistema",
+  "process.close.macos.advice": "Se continua a usare tanto processore per ore, riavvia il Mac.",
+  "process.kind.app": "È l'app «{0}»",
+  "process.close.app": "Puoi chiuderla quando vuoi",
+  "process.close.app.advice": "Per chiuderla: salva il lavoro, poi premi ⌘Q mentre sei nell'app.",
+  "process.kind.component": "Fa parte dell'app «{0}»",
+  "process.close.component": "Non chiuderlo da solo: se serve, chiudi «{0}»",
+  "process.close.component.advice": "Per chiudere «{0}»: salva il lavoro, poi premi ⌘Q mentre sei nell'app.",
+  "process.kind.background": "È un programma in background installato da un'altra app",
+  "process.close.background": "Chiudilo solo se sai a cosa serve: spesso si riavvia da solo",
+  "process.close.background.advice": "Puoi vedere e disattivare i programmi in background in Impostazioni di Sistema → Generali → Elementi login ed estensioni.",
+  "process.kind.unknown": "Non riesco a capire da dove viene",
+  "process.close.unknown": "Meglio non chiuderlo se non sai cos'è",
+  "process.usage": "Adesso usa {0} del processore e {1} di memoria",
+  "process.usage.copies": " ({0} copie)",
+  "process.prompt.kind.macos": "fa parte di macOS",
+  "process.prompt.kind.app": "è l'app «{0}»",
+  "process.prompt.kind.component": "è un componente interno dell'app «{0}»",
+  "process.prompt.kind.background": "è un programma in background installato da terzi",
+  "process.prompt.kind.unknown": "sconosciuto",
+  "process.prompt": "Domanda dell'utente: {0}\n\nProcesso: «{1}»\nTipo (deciso dall'app): {2}\nSi può chiudere? (deciso dall'app): {3}",
+  "process.prompt.note": "Cosa fa (informazione sicura): {0}",
+  "process.prompt.path": "Percorso (solo per capire, non citarlo): {0}",
+  "process.prompt.end": "Spiega in 2 o 3 frasi semplici a cosa serve questo processo.\nUsa l'informazione sicura se c'è; altrimenti deducilo dal nome e, se non sei sicuro, dillo.\nNon dire se si può chiudere: lo mostra già l'app. Non fare elenchi.",
+  "process.notfound.known": "«{0}» fa parte di macOS: {1}. Non chiuderlo.",
+  "process.notfound": "Non trovo «{0}» tra i processi attivi. Controlla il nome: puoi copiarlo da Monitoraggio Attività.",
+  "disk.label.appleAI": "Modelli di Apple Intelligence e Siri",
+  "disk.label.systemAssets": "Risorse scaricate da macOS (voci, font, dizionari…)",
+  "disk.label.applications": "Applicazioni",
+  "disk.label.downloads": "Download",
+  "disk.label.desktop": "Scrivania",
+  "disk.label.documents": "Documenti",
+  "disk.label.pictures": "Immagini e libreria di Foto",
+  "disk.label.movies": "Filmati",
+  "disk.label.music": "Musica",
+  "disk.label.trash": "Cestino",
+  "disk.label.caches": "Cache e file temporanei",
+  "disk.label.appData": "Dati delle app",
+  "disk.label.iosBackups": "Backup di iPhone e iPad",
+  "disk.label.otherAIModels": "Modelli AI di altre app (es. Ollama, LM Studio)",
+  "disk.label.developer": "Strumenti per sviluppatori (Xcode, simulatori)",
+  "disk.label.swap": "Memoria virtuale e stop",
+  "disk.label.macos": "macOS",
+  "disk.label.other": "Dati di altre app e file sparsi",
+  "disk.label.rest": "Il resto",
+  "disk.advice.appleAI": "Se non usi Apple Intelligence, puoi disattivarla in Impostazioni di Sistema → Apple Intelligence e Siri: macOS potrà liberare parte di questo spazio (questa app però la usa per le spiegazioni).",
+  "disk.advice.downloads": "Guarda nella cartella Download: spesso ci sono installer e archivi che non servono più.",
+  "disk.advice.trash": "Svuota il Cestino: clic destro sull'icona del Cestino nel Dock → Svuota il Cestino.",
+  "disk.advice.applications": "Elimina le app che non usi più: trascinale dalla cartella Applicazioni al Cestino.",
+  "disk.advice.pictures": "Se usi Foto di iCloud, puoi attivare «Ottimizza spazio Mac» in Foto → Impostazioni → iCloud.",
+  "disk.advice.files": "I file grandi che usi poco puoi spostarli su un disco esterno o su iCloud Drive.",
+  "disk.advice.caches": "Le cache non vanno cancellate a mano: macOS le libera da solo quando lo spazio scarseggia.",
+  "disk.advice.iosBackups": "Puoi eliminare i backup vecchi dal Finder: seleziona il dispositivo → Gestisci backup.",
+  "disk.advice.otherAIModels": "Sono modelli scaricati da app come Ollama o LM Studio: elimina quelli che non usi dall'app stessa.",
+  "disk.advice.developer": "Se usi Xcode: simulatori e file di build vecchi si possono eliminare da Xcode → Impostazioni → Componenti.",
+  "disk.advice.swap": "La memoria virtuale si riduce da sola riavviando il Mac.",
+  "disk.free": "Spazio libero: {0} su {1}",
+  "disk.free.plenty": "Hai ancora molto spazio libero: non serve liberarne adesso.",
+  "disk.free.low": "Premi «Pulizia» per scegliere i file da togliere (vanno nel Cestino, recuperabili).",
+  "disk.purgeable": "Altri {0} macOS li libera da solo quando servono",
+  "disk.rest": "Il resto{0}: {1}",
+  "disk.row": "{0}: {1}",
+  "disk.systemdata": "In Impostazioni, «Dati di sistema» è circa {0}",
+  "disk.systemdata.biggest": ". La voce più grande: «{0}»",
+  "disk.snapshots": "{0} istantanee locali di Time Machine",
+  "disk.snapshots.advice": "Le istantanee le elimina macOS da solo dopo circa 24 ore o quando serve spazio.",
+  "disk.prompt.plenty": "lo spazio libero è abbondante",
+  "disk.prompt.low": "lo spazio libero sta finendo",
+  "disk.prompt": "Domanda dell'utente: {0}\n\nDisco: {1} liberi su {2} ({3}).\nVoci più grandi (misurate dall'app):\n{4}\n\nInformazioni sicure:\n- In Impostazioni di Sistema → Generali → Spazio, «Dati di sistema» raccoglie tutto ciò che non è nelle altre categorie: modelli di Apple Intelligence, cache, memoria virtuale, istantanee di Time Machine, dati delle app. In questo Mac sono circa {5}.\n- I modelli di Apple Intelligence servono per le funzioni AI che lavorano sul Mac.\n- Le cache e le istantanee macOS le libera da solo quando serve spazio.\n\nSpiega in 2 o 3 frasi semplici dove è finito lo spazio, partendo dalle voci più grandi.\nSe i «Dati di sistema» sono tanti, spiega cosa sono.\nNon dare consigli e non fare elenchi: i consigli li mostra già l'app.",
+  "health.overall.ok": "Il tuo Mac sta bene",
+  "health.overall.one": "C'è 1 cosa da sistemare",
+  "health.overall.many": "Ci sono {0} cose da sistemare",
+  "health.speed.bad": "Il Mac è sotto sforzo: {0}",
+  "health.speed.bad.advice": "Premi «Mac lento» per vedere cosa lo rallenta.",
+  "health.speed.ok": "Il Mac non è sotto sforzo",
+  "health.disk.ok": "Spazio libero: {0}",
+  "health.disk.low": "Lo spazio sta finendo: {0} liberi",
+  "health.disk.low.advice": "Premi «Spazio disco» per vedere cosa occupa più spazio.",
+  "health.backup.none": "Nessun backup configurato",
+  "health.backup.none.advice": "Collega un disco esterno e attiva Time Machine in Impostazioni di Sistema → Generali → Time Machine: se il Mac si rompe, non perdi i tuoi file.",
+  "health.backup.old": "Ultimo backup {0} giorni fa",
+  "health.backup.old.advice": "Collega il disco di Time Machine per fare un backup aggiornato.",
+  "health.backup.today": "oggi",
+  "health.backup.yesterday": "ieri",
+  "health.backup.daysAgo": "{0} giorni fa",
+  "health.backup.last": "Ultimo backup: {0}",
+  "health.backup.configured": "Time Machine è configurato",
+  "health.filevault.on": "Il disco è cifrato (FileVault)",
+  "health.filevault.off": "Il disco non è cifrato",
+  "health.filevault.off.advice": "Attiva FileVault in Impostazioni di Sistema → Privacy e sicurezza: se perdi il Mac, nessuno potrà leggere i tuoi file.",
+  "health.gatekeeper.off": "Il controllo di sicurezza delle app scaricate (Gatekeeper) è disattivato",
+  "health.gatekeeper.off.advice": "Gatekeeper si può riattivare solo con un comando nel Terminale: se non l'hai disattivato tu, fatti aiutare da un tecnico.",
+  "health.gatekeeper.on": "Le app scaricate vengono controllate (Gatekeeper)",
+  "health.sip.off": "La protezione dei file di sistema (SIP) è disattivata",
+  "health.sip.off.advice": "SIP si riattiva solo dalla modalità di ripristino del Mac: se non l'hai disattivata tu, fatti aiutare da un tecnico.",
+  "health.sip.on": "I file di sistema sono protetti (SIP)",
+  "health.firewall.off": "Il firewall è spento (impostazione iniziale di macOS)",
+  "health.firewall.off.advice": "Se usi spesso reti Wi‑Fi pubbliche, puoi accenderlo in Impostazioni di Sistema → Rete → Firewall.",
+  "health.firewall.on": "Il firewall è acceso",
+  "health.apps.ok": "Nessuna app sospetta",
+  "health.apps.one": "C'è 1 app o programma da controllare",
+  "health.apps.many": "Ci sono {0} app o programmi da controllare",
+  "health.apps.advice": "Premi «App sospette» per vedere cosa sono e come toglierli.",
+  "health.updates.one": "C'è 1 aggiornamento da installare",
+  "health.updates.many": "Ci sono {0} aggiornamenti da installare",
+  "health.updates.pending.advice": "Installa gli aggiornamenti in Impostazioni di Sistema → Generali → Aggiornamento Software: correggono problemi di sicurezza.",
+  "health.updates.auto.off": "Gli aggiornamenti automatici sono spenti",
+  "health.updates.auto.off.advice": "Attivali in Impostazioni di Sistema → Generali → Aggiornamento Software → Aggiornamenti automatici.",
+  "health.updates.auto.on": "Gli aggiornamenti automatici sono attivi",
+  "health.battery.worn": "La batteria è consumata ({0}% della capacità iniziale)",
+  "health.battery.worn.advice": "Sotto l'80% Apple consiglia di farla controllare in assistenza.",
+  "health.battery.ok": "Batteria in salute ({0}%, {1} cicli)",
+  "health.uptime": "Non riavvii il Mac da {0} giorni",
+  "health.uptime.advice": "Riavvia il Mac ogni tanto: installa gli aggiornamenti e libera la memoria.",
+  "chat.instructions": "Aiuti a usare il Mac (macOS {0}). Rispondi a domande su come fare le cose.\nQuando servono più azioni, usa passi numerati brevi (al massimo 5).\nUsa i nomi italiani di menu, tasti e impostazioni (es. Impostazioni di Sistema, Finder, Cestino).\nSe ricevi una «guida verificata», seguila: è corretta.\nCopia le scorciatoie da tastiera ESATTAMENTE come sono scritte nella guida, con tutti i simboli (⌘ ⇧ ⌥ ⌃).\nSe non sei sicuro di dove si trova un'impostazione, dillo e suggerisci di cercarla nel campo di ricerca di Impostazioni di Sistema o con Spotlight (⌘ Spazio).\nRispondi direttamente, senza premesse.\nSolo se la domanda non ha niente a che fare con computer e tecnologia, rispondi in una frase che puoi aiutare solo con il Mac.",
+  "chat.guideHeader": "Guida verificata (usala se è pertinente):",
+  "chat.noGuide": "(Nota: per questa domanda non c'è una guida verificata. Non inventare nomi di menu, pulsanti o icone. Se non conosci con certezza i passaggi, spiega in una frase dove cercare: il campo di ricerca in alto in Impostazioni di Sistema, oppure il menu Aiuto dell'app.)",
+  "chat.spaceKey": "Spazio",
+  "message.read": "Testo letto: «{0}»",
+  "message.prompt": "L'utente ha ricevuto questo messaggio sul Mac e chiede cosa significa:\n«{0}»",
+  "message.prompt.verified": "Informazione verificata: {0}. {1}",
+  "message.prompt.scam": "È una truffa: dillo chiaramente all'utente e non dare nessuna istruzione per seguire il messaggio.",
+  "message.prompt.end": "Spiega in 2 o 3 frasi semplici cosa significa il messaggio. Non dare consigli in elenco: li mostra già l'app. Non suggerire mai comandi nel Terminale e non suggerire di disattivare protezioni di sicurezza. Se il testo è incomprensibile o non è un messaggio del Mac, dillo.",
+  "message.empty": "Non ho trovato testo da spiegare. Fai uno screenshot del messaggio con ⌃⇧⌘4 (va negli appunti) e riprova.",
+  "security.broken": "Succede quando un file viene cambiato dopo la firma: a volte è innocuo (app create da altri programmi, come gli strumenti per sviluppatori), a volte no.",
+  "security.remove": "Puoi disattivarlo in Impostazioni di Sistema → Generali → Elementi login ed estensioni (sezione «Consenti in background»). Se viene da un'app che non usi, disinstalla l'app.",
+  "security.bg.unwanted": "«{0}» è un software noto come indesiderato",
+  "security.bg.unwanted.advice": "È un programma che mostra pubblicità o finti allarmi. {0}",
+  "security.bg.broken": "«{0}» ha una firma digitale che non corrisponde più al programma",
+  "security.bg.broken.advice": "{0} Se non lo riconosci: {1}",
+  "security.bg.script": "«{0}» parte da solo ed esegue uno script",
+  "security.bg.script.advice": "Gli script avviati in background sono un trucco usato dagli adware. Se non sai cos'è: {0}",
+  "security.bg.hidden": "«{0}» parte da solo da una cartella nascosta o temporanea",
+  "security.bg.hidden.advice": "I programmi seri non si installano lì. {0}",
+  "security.bg.missing": "«{0}» punta a un programma che non esiste più",
+  "security.bg.missing.advice": "È un resto di un'app disinstallata: non fa danni, ma puoi toglierlo. {0}",
+  "security.bg.unverified": "«{0}» parte da solo e nessuno sviluppatore verificato lo firma",
+  "security.bg.unverified.advice": "Se non sai da dove viene: {0}",
+  "security.bg.apple": "«{0}» (di Apple)",
+  "security.bg.appstore": "«{0}» (dall'App Store)",
+  "security.bg.developer": "«{0}» di {1}",
+  "security.bg.generic": "«{0}»",
+  "security.developer.registered": "sviluppatore registrato",
+  "security.app.unwanted": "«{0}» è un software noto come indesiderato",
+  "security.app.unwanted.advice": "Mostra finti allarmi per farti pagare. Disinstallala: trascinala dalla cartella Applicazioni al Cestino e svuotalo.",
+  "security.app.broken": "«{0}» ha una firma digitale che non corrisponde più all'app",
+  "security.app.broken.advice": "{0} Se non la riconosci, eliminala; se ti serve, scaricala di nuovo dal sito ufficiale.",
+  "security.app.unverified": "«{0}» non è firmata da uno sviluppatore verificato",
+  "security.app.unverified.advice": "Se l'hai scaricata tu da un sito ufficiale (alcuni programmi gratuiti non sono firmati), va bene. Se non sai da dove viene, eliminala.",
+  "security.overall.ok": "Nessuna app sospetta",
+  "security.overall.one": "C'è 1 cosa da controllare",
+  "security.overall.many": "Ci sono {0} cose da controllare",
+  "security.bgcount.none": "Nessun programma di altre aziende parte da solo in background",
+  "security.bgcount": "Programmi che partono da soli in background: {0}",
+  "security.appcount": "App controllate: {0}, firmate da sviluppatori verificati: {1}",
+  "alert.elapsed.few": "da qualche minuto",
+  "alert.elapsed.minutes": "da {0} minuti",
+  "alert.elapsed.hour": "da più di un'ora",
+  "alert.elapsed.hours": "da più di {0} ore",
+  "alert.cpu.title": "«{0}» lavora molto {1}",
+  "alert.cpu.body": "Può rallentare il Mac e scaricare la batteria. Se non ti serve, chiudila (salva prima il lavoro).",
+  "alert.memory.title": "La memoria del Mac è esaurita {0}",
+  "alert.memory.body": "Chiudi le app e le schede del browser che non usi: il Mac tornerà più veloce.",
+  "alert.heat.title": "Il Mac è molto caldo {0}",
+  "alert.heat.body": "Si sta rallentando per raffreddarsi. Appoggialo su una superficie rigida e lascia libere le prese d'aria.",
+  "alert.disk.title": "Lo spazio sul disco sta finendo",
+  "alert.disk.body": "Restano {0} liberi. Quando il disco è pieno, il Mac rallenta e non salva più i file.",
+  "cleanup.reason.installer": "Installer già scaricato: dopo l'installazione non serve più",
+  "cleanup.reason.year": "Nei Download, non lo apri da più di un anno",
+  "cleanup.reason.months": "Nei Download, non lo apri da {0} mesi",
+  "cleanup.reason.large": "File molto grande",
+  "question.slow": "Perché il Mac è lento?",
+  "question.process": "Cos'è questo processo?",
+  "question.processNamed": "Cos'è «{0}»?",
+  "question.disk": "Dove è finito lo spazio?",
+  "question.health": "Controlla il mio Mac",
+  "question.security": "Ci sono app sospette?",
+  "question.cleanup": "Fai un po' di pulizia",
+  "question.message": "Spiegami questo messaggio",
+  "process.choose": "Quale processo vuoi capire? Ecco quelli che lavorano di più adesso. Puoi anche scrivere il nome, ad esempio: Cos'è mds_stores?",
+  "error.provider.name": "Sul tuo Mac",
+  "error.ai.noLanguage": "Il modello sul Mac non supporta questa lingua.",
+  "error.ai.notEligible": "Questo Mac non supporta Apple Intelligence.",
+  "error.ai.notEnabled": "Attiva Apple Intelligence in Impostazioni di Sistema per avere le spiegazioni.",
+  "error.ai.notReady": "Il modello di Apple Intelligence si sta ancora scaricando. Riprova tra poco.",
+  "error.ai.unavailable": "Apple Intelligence non è disponibile in questo momento.",
+  "error.ai.notReadyShort": "Il modello non è ancora pronto. Riprova tra poco.",
+  "error.ai.tooLong": "La richiesta è troppo lunga per il modello sul Mac.",
+  "error.ai.refused": "Questa volta non sono riuscito a scrivere una spiegazione, ma qui sopra trovi cosa ho controllato.",
+  "error.ai.unsupportedLanguage": "Il modello non supporta la lingua impostata sul Mac.",
+  "error.ai.busy": "Il modello è occupato. Riprova tra qualche secondo.",
+  "error.ai.timeout": "Il modello ci sta mettendo troppo. Riprova.",
+  "error.ai.failed": "Non sono riuscito a generare una risposta.",
+  "error.ai.chatTooLong": "La conversazione è diventata troppo lunga per il modello sul Mac, quindi ne ho iniziata una nuova. Ripeti pure la domanda.",
+  "error.image.cantOpen": "Non riesco ad aprire questa immagine.",
+  "error.image.cantRead": "Non sono riuscito a leggere il testo nell'immagine.",
+  "error.voice.unavailable": "Il riconoscimento vocale non è disponibile su questo Mac.",
+  "error.voice.noMic": "Non riesco a usare il microfono."
  },
- "guides": [],
- "processes": {},
- "messages": [],
+ "guides": [
+  {
+   "keywords": [
+    "screenshot",
+    "screen",
+    "schermat",
+    "cattur",
+    "foto+schermo",
+    "fotograf+schermo"
+   ],
+   "text": "Screenshot: ⌘⇧3 cattura tutto lo schermo; ⌘⇧4 una parte (trascina per selezionare); ⌘⇧4 e poi Spazio cattura una finestra; ⌘⇧5 apre il pannello con tutte le opzioni. Le immagini vanno sulla Scrivania."
+  },
+  {
+   "keywords": [
+    "registr+schermo",
+    "video dello schermo"
+   ],
+   "text": "Registrare lo schermo: premi ⌘⇧5 e scegli «Registra tutto lo schermo» o «Registra parte selezionata». Per fermare, clicca il pulsante di stop nella barra dei menu."
+  },
+  {
+   "keywords": [
+    "non risponde",
+    "non si chiud",
+    "uscita forzata",
+    "forza",
+    "bloccat+app",
+    "bloccat+programma",
+    "impallat"
+   ],
+   "text": "App che non risponde: premi ⌥⌘Esc, scegli l'app e clicca «Uscita forzata». Le modifiche non salvate in quell'app si perdono."
+  },
+  {
+   "keywords": [
+    "spotlight",
+    "cerc+file",
+    "trov+file",
+    "pers+file",
+    "ritrov+file",
+    "non trovo",
+    "trovare un'app"
+   ],
+   "text": "Cercare: premi ⌘ Spazio per aprire Spotlight e scrivi il nome del file, dell'app o dell'impostazione."
+  },
+  {
+   "keywords": [
+    "disinstall",
+    "elimin+app",
+    "rimuov+app",
+    "cancell+app",
+    "togl+app",
+    "tolg+app",
+    "elimin+programma",
+    "rimuov+programma",
+    "cancell+programma",
+    "togl+programma",
+    "tolg+programma"
+   ],
+   "text": "Disinstallare un'app: apri la cartella Applicazioni nel Finder e trascina l'app nel Cestino (o clic destro → Sposta nel Cestino), poi svuota il Cestino."
+  },
+  {
+   "keywords": [
+    "file nascost",
+    "cartelle nascost"
+   ],
+   "text": "File nascosti: nel Finder premi ⌘⇧. (punto) per mostrarli o nasconderli."
+  },
+  {
+   "keywords": [
+    "copia e incolla",
+    "copi+testo",
+    "incoll",
+    "spost+file",
+    "copi+file"
+   ],
+   "text": "Copia e incolla: ⌘C copia, ⌘X taglia (nel testo), ⌘V incolla. Per spostare un file nel Finder: ⌘C sul file, poi ⌥⌘V nella cartella di destinazione."
+  },
+  {
+   "keywords": [
+    "emoji",
+    "faccine"
+   ],
+   "text": "Emoji: premi il tasto 🌐 (Fn) + E, oppure ⌃⌘Spazio."
+  },
+  {
+   "keywords": [
+    "rinomin+file",
+    "rinomin+cartell",
+    "cambiare nome+file"
+   ],
+   "text": "Rinominare un file: selezionalo nel Finder, premi Invio, scrivi il nuovo nome e premi di nuovo Invio."
+  },
+  {
+   "keywords": [
+    "comprim",
+    "zip",
+    "archivio compresso"
+   ],
+   "text": "Comprimere: clic destro sul file o sulla cartella → «Comprimi». Per aprire uno .zip basta un doppio clic."
+  },
+  {
+   "keywords": [
+    "aggiorn+mac",
+    "aggiorn+app",
+    "aggiornament"
+   ],
+   "text": "Aggiornare macOS: Impostazioni di Sistema → Generali → Aggiornamento Software. Le app dell'App Store si aggiornano dall'App Store."
+  },
+  {
+   "keywords": [
+    "backup",
+    "time machine"
+   ],
+   "text": "Backup con Time Machine: collega un disco esterno, poi Impostazioni di Sistema → Generali → Time Machine → «Aggiungi disco di backup»."
+  },
+  {
+   "keywords": [
+    "batteria",
+    "autonomia"
+   ],
+   "text": "Batteria: Impostazioni di Sistema → Batteria mostra lo stato di salute della batteria e quanto consumano le app."
+  },
+  {
+   "keywords": [
+    "password del wi",
+    "password wifi",
+    "password wi-fi",
+    "password della rete"
+   ],
+   "text": "Vedere la password del Wi‑Fi: Impostazioni di Sistema → Wi‑Fi → «Dettagli…» accanto alla rete → «Copia password»."
+  },
+  {
+   "keywords": [
+    "modalita scura",
+    "tema scuro",
+    "dark mode",
+    "modalita chiara"
+   ],
+   "text": "Modalità scura: Impostazioni di Sistema → Aspetto → Chiaro, Scuro o Automatico."
+  },
+  {
+   "keywords": [
+    "ingrand+testo",
+    "ingrand+scritt",
+    "ingrandi+caratter",
+    "scritte piccole",
+    "testo piccolo",
+    "piu grand+testo",
+    "piu grand+scritt"
+   ],
+   "text": "Testo più grande: Impostazioni di Sistema → Monitor → scegli una risoluzione «più grande». Nel browser e in molte app premi ⌘+ (Comando e più) per ingrandire e ⌘− (Comando e meno) per rimpicciolire."
+  },
+  {
+   "keywords": [
+    "affianc",
+    "dividere lo schermo",
+    "split view",
+    "due finestre",
+    "meta schermo"
+   ],
+   "text": "Affiancare finestre: passa il mouse sul pulsante verde in alto a sinistra della finestra e scegli una disposizione, oppure trascina la finestra verso il bordo dello schermo."
+  },
+  {
+   "keywords": [
+    "elementi login",
+    "app+avvio",
+    "app+accension",
+    "programm+avvio",
+    "programm+accension",
+    "si apre da sola",
+    "si aprono da sole",
+    "partono da sole"
+   ],
+   "text": "App all'avvio: Impostazioni di Sistema → Generali → Elementi login ed estensioni; togli con «−» le app che non vuoi all'accensione."
+  },
+  {
+   "keywords": [
+    "predefinit",
+    "aprire sempre con",
+    "apri con",
+    "app che apre",
+    "programma che apre",
+    "apr+pdf"
+   ],
+   "text": "Cambiare l'app che apre un tipo di file: clic destro sul file → Ottieni informazioni → «Apri con» → scegli l'app → «Cambia tutto…»."
+  },
+  {
+   "keywords": [
+    "airdrop",
+    "iphone+file",
+    "iphone+foto",
+    "iphone+video",
+    "iphone+document",
+    "ipad+file",
+    "ipad+foto",
+    "ipad+video",
+    "ipad+document",
+    "telefon+file",
+    "telefon+foto",
+    "telefon+video",
+    "telefon+document",
+    "telefon+pdf",
+    "iphone+pdf",
+    "ipad+pdf",
+    "cellular+pdf",
+    "cellular+file",
+    "cellular+foto",
+    "cellular+video",
+    "cellular+document"
+   ],
+   "text": "AirDrop: clic destro sul file → Condividi → AirDrop, poi scegli il dispositivo. Sul dispositivo vicino servono Wi‑Fi e Bluetooth attivi."
+  },
+  {
+   "keywords": [
+    "bluetooth",
+    "cuffie",
+    "airpods",
+    "collegare il mouse",
+    "collegare la tastiera"
+   ],
+   "text": "Collegare un dispositivo Bluetooth: mettilo in modalità di abbinamento, poi Impostazioni di Sistema → Bluetooth → «Collega» accanto al dispositivo."
+  },
+  {
+   "keywords": [
+    "dettatura",
+    "dettare",
+    "dett+voce",
+    "scriv+voce",
+    "scriv+parlando"
+   ],
+   "text": "Dettatura: attivala in Impostazioni di Sistema → Tastiera → Dettatura; poi premi il tasto microfono (o due volte Fn) e parla."
+  },
+  {
+   "keywords": [
+    "mission control",
+    "scrivanie",
+    "desktop multipl"
+   ],
+   "text": "Più scrivanie: apri Mission Control (F3 o scorri in alto con tre dita) e clicca «+» in alto a destra."
+  },
+  {
+   "keywords": [
+    "stamp"
+   ],
+   "text": "Stampare: ⌘P. Aggiungere una stampante: Impostazioni di Sistema → Stampanti e scanner → «Aggiungi stampante, scanner o fax…»."
+  },
+  {
+   "keywords": [
+    "sfondo",
+    "immagine+scrivania",
+    "immagine+desktop",
+    "wallpaper"
+   ],
+   "text": "Cambiare lo sfondo: Impostazioni di Sistema → Sfondo, poi scegli un'immagine. Puoi anche fare clic destro su una foto nel Finder → «Imposta immagine scrivania»."
+  },
+  {
+   "keywords": [
+    "salvaschermo",
+    "screensaver",
+    "salva schermo"
+   ],
+   "text": "Salvaschermo: Impostazioni di Sistema → Salvaschermo."
+  },
+  {
+   "keywords": [
+    "notifiche"
+   ],
+   "text": "Notifiche: Impostazioni di Sistema → Notifiche, poi scegli l'app per decidere se e come mostrare le sue notifiche."
+  },
+  {
+   "keywords": [
+    "volume",
+    "audio",
+    "altoparlant",
+    "suono",
+    "suoni",
+    "avvisi sonori"
+   ],
+   "text": "Audio: Impostazioni di Sistema → Suono per scegliere uscita, ingresso e volume; il suono degli avvisi si sceglie nella sezione «Effetti sonori» della stessa pagina. Il volume si cambia anche dal Centro di Controllo nella barra dei menu."
+  },
+  {
+   "keywords": [
+    "scaricat",
+    "download"
+   ],
+   "text": "File scaricati: sono nella cartella Download. Nel Finder clicca «Download» nella barra laterale, oppure premi ⌥⌘L."
+  },
+  {
+   "keywords": [
+    "nome del mac",
+    "nome del computer",
+    "rinominare il mac"
+   ],
+   "text": "Nome del Mac: Impostazioni di Sistema → Generali → Info, poi modifica il campo «Nome»."
+  },
+  {
+   "keywords": [
+    "monitor",
+    "secondo schermo",
+    "schermo esterno",
+    "proiettore"
+   ],
+   "text": "Secondo monitor: collega il cavo (USB‑C/Thunderbolt o HDMI) e il Mac lo riconosce da solo. Per disporre gli schermi o scegliere quello principale: Impostazioni di Sistema → Monitor."
+  },
+  {
+   "keywords": [
+    "wi-fi",
+    "wifi",
+    "wi‑fi",
+    "rete wireless",
+    "collegar+internet",
+    "connett+internet"
+   ],
+   "text": "Collegarsi al Wi‑Fi: clicca l'icona del Wi‑Fi nella barra dei menu (o nel Centro di Controllo), scegli la rete e inserisci la password. Le reti si gestiscono in Impostazioni di Sistema → Wi‑Fi."
+  },
+  {
+   "keywords": [
+    "password del mac",
+    "password di accesso",
+    "password+utente",
+    "cambi+password+mac"
+   ],
+   "text": "Password del Mac: Impostazioni di Sistema → Utenti e gruppi → clicca il pulsante «i» accanto al tuo nome, poi usa il pulsante accanto a «Password». Serve la password attuale."
+  },
+  {
+   "keywords": [
+    "blocc+schermo",
+    "blocco il mac",
+    "bloccare il mac",
+    "allontan"
+   ],
+   "text": "Bloccare lo schermo: premi ⌃⌘Q, oppure menu Apple () in alto a sinistra → «Blocca schermo». Per rientrare serve la password."
+  },
+  {
+   "keywords": [
+    "speg",
+    "spen",
+    "stop",
+    "riavvi",
+    "sospension"
+   ],
+   "text": "Spegnere, riavviare o mettere in stop: menu Apple () in alto a sinistra → «Spegni…», «Riavvia…» o «Stop»."
+  },
+  {
+   "keywords": [
+    "chiocciola",
+    "@",
+    "cancellett",
+    "#",
+    "simbolo dell'euro",
+    "euro",
+    "tilde",
+    "simboli+tastiera"
+   ],
+   "text": "Simboli sulla tastiera italiana del Mac: tieni premuto il tasto Opzione (⌥) e premi un secondo tasto. Chiocciola @: Opzione e ò (⌥ò). Cancelletto #: Opzione e à (⌥à). Euro €: Opzione ed e (⌥e). Tilde ~: Opzione e 5 (⌥5)."
+  },
+  {
+   "keywords": [
+    "annull",
+    "torna+indietro",
+    "errore di scrittura",
+    "selezion+tutto",
+    "chiud+finestr",
+    "app all'altra",
+    "tra le app",
+    "passa+app",
+    "scorciatoi"
+   ],
+   "text": "Scorciatoie essenziali: ⌘Z annulla l'ultima azione (⌘⇧Z la ripete); ⌘A seleziona tutto; ⌘W chiude la finestra; ⌘Q chiude l'app; ⌘Tab passa da un'app all'altra (tieni premuto ⌘ e premi Tab più volte). Il pulsante rosso per chiudere una finestra è in alto a sinistra."
+  },
+  {
+   "keywords": [
+    "luminosit"
+   ],
+   "text": "Luminosità dello schermo: usa i tasti con il sole sulla tastiera (F1 e F2), oppure Centro di Controllo nella barra dei menu → Schermo, oppure Impostazioni di Sistema → Monitor."
+  },
+  {
+   "keywords": [
+    "lingua"
+   ],
+   "text": "Lingua del Mac: Impostazioni di Sistema → Generali → Lingua e Zona; aggiungi la lingua con «+» e trascinala in cima alla lista. Serve un riavvio per applicarla ovunque."
+  },
+  {
+   "keywords": [
+    "svuot+cestino"
+   ],
+   "text": "Svuotare il Cestino: clic destro sull'icona del Cestino nel Dock → «Svuota il Cestino»."
+  }
+ ],
+ "processes": {
+  "kernel_task": "il cuore di macOS; se usa molto processore spesso sta rallentando il Mac apposta per raffreddarlo",
+  "launchd": "avvia e controlla tutti gli altri processi di macOS",
+  "loginwindow": "gestisce l'accesso e la sessione dell'utente; chiuderlo fa uscire dalla sessione",
+  "WindowServer": "disegna tutto ciò che si vede sullo schermo; lavora di più con tanti monitor o finestre",
+  "logd": "raccoglie i messaggi di registro del sistema",
+  "configd": "gestisce la rete e la configurazione del sistema",
+  "powerd": "gestisce l'energia, la batteria e lo stop",
+  "runningboardd": "decide quante risorse dare a ogni app",
+  "cfprefsd": "legge e salva le impostazioni delle app",
+  "distnoted": "fa passare messaggi interni tra i programmi",
+  "UserEventAgent": "reagisce a eventi del sistema (es. collegare un dispositivo)",
+  "fseventsd": "tiene traccia delle modifiche ai file, per Time Machine e Spotlight",
+  "diskarbitrationd": "gestisce dischi e chiavette collegati",
+  "Finder": "l'app per sfogliare file e cartelle; se la chiudi si riapre da sola",
+  "Dock": "il Dock e la gestione delle finestre a tutto schermo",
+  "SystemUIServer": "alcune icone della barra dei menu",
+  "ControlCenter": "Centro di Controllo e alcune icone della barra dei menu",
+  "NotificationCenter": "le notifiche",
+  "mds": "Spotlight che indicizza i file; di solito si calma da solo dopo un po'",
+  "mds_stores": "Spotlight che indicizza i file; di solito si calma da solo dopo un po'",
+  "mdworker_shared": "Spotlight che legge i file per la ricerca; temporaneo",
+  "corespotlightd": "Spotlight che indicizza i contenuti delle app",
+  "photoanalysisd": "Foto che analizza le immagini (volti, oggetti); lavora quando il Mac è inattivo",
+  "mediaanalysisd": "analizza foto e video per la ricerca; lavora quando il Mac è inattivo",
+  "suggestd": "prepara suggerimenti (es. contatti ed eventi trovati in Mail e Messaggi)",
+  "bird": "sincronizzazione di iCloud Drive",
+  "cloudd": "sincronizzazione di iCloud",
+  "cloudphotod": "sincronizzazione di Foto con iCloud",
+  "photolibraryd": "gestisce la libreria di Foto",
+  "nsurlsessiond": "download e upload in background per app e sistema",
+  "sharingd": "AirDrop, Handoff e condivisione",
+  "rapportd": "comunicazione tra i tuoi dispositivi Apple (Handoff, Continuità)",
+  "bluetoothd": "il Bluetooth",
+  "airportd": "il Wi-Fi",
+  "locationd": "i servizi di localizzazione",
+  "coreaudiod": "l'audio del Mac",
+  "akd": "l'account Apple",
+  "backupd": "Time Machine che sta facendo un backup",
+  "softwareupdated": "controllo o download degli aggiornamenti di macOS",
+  "trustd": "verifica i certificati di sicurezza di siti e app",
+  "securityd": "gestisce password e portachiavi",
+  "syspolicyd": "controllo di sicurezza delle app appena aperte o scaricate",
+  "XProtect": "antivirus integrato di macOS",
+  "xprotectd": "antivirus integrato di macOS",
+  "modelmanagerd": "gestisce i modelli di intelligenza artificiale di Apple Intelligence",
+  "TGOnDeviceInferenceProviderService": "fa funzionare il modello di Apple Intelligence sul Mac (lo usa anche questa app)",
+  "com.apple.WebKit.WebContent": "le pagine web aperte in Safari o in altre app",
+  "Spotlight": "la ricerca di Spotlight"
+ },
+ "messages": [
+  {
+   "id": "scam",
+   "patterns": [
+    "il tuo mac e infetto",
+    "il tuo computer e infetto",
+    "your mac is infected",
+    "your computer is infected",
+    "virus rilevat",
+    "virus detected",
+    "chiama il supporto",
+    "call apple support",
+    "call support",
+    "contatta il supporto apple al",
+    "numero verde",
+    "toll free",
+    "il tuo mac e bloccato",
+    "your mac is locked",
+    "il tuo iphone e stato hackerato",
+    "il tuo mac e stato hackerato",
+    "hacked"
+   ],
+   "title": "Quasi certamente è una TRUFFA",
+   "advice": "macOS non mostra mai avvisi di virus dentro il browser e Apple non ti chiede di chiamare un numero. Non chiamare, non scaricare nulla e non dare password: chiudi la scheda con ⌘W (se non si chiude, esci dal browser con ⌥⌘Esc)."
+  },
+  {
+   "id": "unverified",
+   "patterns": [
+    "sviluppatore non puo essere verificato",
+    "developer cannot be verified",
+    "non puo verificare",
+    "could not verify",
+    "apple cannot check it for malicious",
+    "non e possibile verificare la presenza di malware",
+    "free of malware",
+    "privo di malware"
+   ],
+   "title": "È un controllo di sicurezza di macOS sulle app scaricate da Internet",
+   "advice": "Se l'app viene da un sito ufficiale di cui ti fidi, puoi aprirla da Impostazioni di Sistema → Privacy e sicurezza: scorri in basso e premi «Apri comunque». Se non sai da dove viene, eliminala."
+  },
+  {
+   "id": "damaged",
+   "patterns": [
+    "e danneggiat",
+    "is damaged and can",
+    "danneggiato e non puo essere aperto"
+   ],
+   "title": "macOS blocca un'app che risulta danneggiata o modificata",
+   "advice": "Elimina l'app e scaricala di nuovo dal sito ufficiale o dall'App Store. Non usare comandi trovati online per forzarne l'apertura."
+  },
+  {
+   "id": "diskfull",
+   "patterns": [
+    "disco di avvio e quasi pieno",
+    "startup disk is almost full",
+    "disco di avvio e pieno",
+    "spazio su disco insufficiente",
+    "not enough disk space",
+    "spazio di archiviazione insufficiente"
+   ],
+   "title": "Lo spazio sul disco sta finendo",
+   "advice": "Premi «Spazio disco» in questa app per vedere cosa occupa più spazio."
+  },
+  {
+   "id": "memory",
+   "patterns": [
+    "esaurito la memoria",
+    "run out of application memory",
+    "memoria delle applicazioni"
+   ],
+   "title": "Il Mac ha finito la memoria per le app",
+   "advice": "Chiudi le app e le schede del browser che non usi. Se succede spesso, premi «Mac lento» in questa app."
+  },
+  {
+   "id": "notresponding",
+   "patterns": [
+    "non risponde",
+    "not responding",
+    "uscita forzata"
+   ],
+   "title": "Un'app si è bloccata",
+   "advice": "Premi ⌥⌘Esc, scegli l'app e clicca «Uscita forzata». Le modifiche non salvate in quell'app si perdono."
+  },
+  {
+   "id": "panic",
+   "patterns": [
+    "riavviato a causa di un problema",
+    "restarted because of a problem",
+    "si e riavviato perche si e verificato un problema"
+   ],
+   "title": "Il Mac si è riavviato da solo per un errore",
+   "advice": "Se è successo una volta sola, non preoccuparti. Se si ripete: installa gli aggiornamenti di macOS e delle app, scollega gli accessori e, se continua, rivolgiti all'assistenza Apple."
+  },
+  {
+   "id": "permission",
+   "patterns": [
+    "vorrebbe accedere",
+    "would like to access",
+    "desidera accedere",
+    "vorrebbe registrare",
+    "would like to record",
+    "vorrebbe controllare",
+    "would like to control",
+    "vuole accedere"
+   ],
+   "title": "Un'app ti chiede un permesso",
+   "advice": "Consenti solo se conosci l'app e il permesso ha senso per quello che fa (es. una app per videochiamate e la fotocamera). Puoi cambiare idea in Impostazioni di Sistema → Privacy e sicurezza."
+  },
+  {
+   "id": "keychain",
+   "patterns": [
+    "portachiavi",
+    "keychain"
+   ],
+   "title": "Il portachiavi chiede la password",
+   "advice": "Il portachiavi custodisce le tue password: di solito chiede la stessa password che usi per accedere al Mac. Inseriscila solo se la richiesta arriva da un'app che stai usando."
+  },
+  {
+   "id": "accessory",
+   "patterns": [
+    "consentire all'accessorio",
+    "allow accessory to connect",
+    "accessorio di connettersi"
+   ],
+   "title": "macOS chiede se fidarsi di un accessorio collegato",
+   "advice": "Consenti se hai appena collegato tu quell'accessorio (chiavetta, disco, adattatore). Se non hai collegato nulla, rifiuta."
+  },
+  {
+   "id": "icloudfull",
+   "patterns": [
+    "spazio icloud",
+    "icloud storage is full",
+    "archiviazione icloud",
+    "icloud e pieno"
+   ],
+   "title": "Lo spazio di iCloud è pieno (è online, non sul Mac)",
+   "advice": "Puoi vedere cosa occupa iCloud in Impostazioni di Sistema → il tuo nome → iCloud. Liberare spazio sul Mac non risolve questo messaggio."
+  }
+ ],
  "router": {
   "slow": [
    "lent",

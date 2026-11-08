@@ -2,14 +2,15 @@ import AVFoundation
 import Foundation
 import Speech
 
-/// Trasforma la voce in testo, in italiano, interamente sul Mac
+/// Trasforma la voce in testo, nella lingua dell'utente, interamente sul Mac
 /// (SpeechAnalyzer di Apple: l'audio non viene mai inviato in rete).
 ///
-/// Solo la prima volta, se il modello della lingua italiana non è ancora sul
+/// Solo la prima volta, se il modello della lingua non è ancora sul
 /// Mac, macOS lo scarica da Apple (è un componente del sistema, come una voce:
 /// non contiene dati dell'utente).
 public enum VoiceTranscriber {
-    static let locale = Locale(identifier: "it_IT")
+    /// La lingua dell'utente (quella dell'app).
+    static var locale: Locale { L.locale }
 
     static func makeTranscriber() -> DictationTranscriber {
         // "Dettatura breve": pensata per frasi corte con punteggiatura, come
@@ -17,7 +18,7 @@ public enum VoiceTranscriber {
         DictationTranscriber(locale: locale, preset: .progressiveShortDictation)
     }
 
-    /// `true` se il riconoscimento dell'italiano è disponibile su questo Mac.
+    /// `true` se il riconoscimento della lingua corrente è disponibile su questo Mac.
     public static func isAvailable() async -> Bool {
         await DictationTranscriber.supportedLocales.contains { $0.identifier == locale.identifier }
     }
@@ -72,7 +73,7 @@ public final class LiveDictation: @unchecked Sendable {
         let transcriber = VoiceTranscriber.makeTranscriber()
         try await VoiceTranscriber.ensureModel(for: transcriber)
         guard let format = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [transcriber]) else {
-            throw AIError("Il riconoscimento vocale non è disponibile su questo Mac.")
+            throw AIError(L.t("error.voice.unavailable"))
         }
 
         let (stream, continuation) = AsyncStream.makeStream(of: AnalyzerInput.self)
@@ -103,7 +104,7 @@ public final class LiveDictation: @unchecked Sendable {
         let mic = engine.inputNode
         let micFormat = mic.outputFormat(forBus: 0)
         guard let converter = AVAudioConverter(from: micFormat, to: format) else {
-            throw AIError("Non riesco a usare il microfono.")
+            throw AIError(L.t("error.voice.noMic"))
         }
         mic.installTap(onBus: 0, bufferSize: 4096, format: micFormat) { buffer, _ in
             let ratio = format.sampleRate / micFormat.sampleRate

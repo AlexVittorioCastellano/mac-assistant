@@ -4,103 +4,62 @@ import Foundation
 /// testo) di un avviso o di un errore; l'app lo legge e lo spiega.
 ///
 /// Come per la chat: per i messaggi più comuni di macOS il codice riconosce il
-/// messaggio e fornisce una guida verificata; le truffe le riconosce il codice,
-/// non l'AI, e vengono segnalate sempre in modo chiaro.
+/// messaggio e fornisce una spiegazione verificata; le truffe le riconosce il
+/// codice, non l'AI, e vengono segnalate sempre in modo chiaro.
+///
+/// Gli schemi per riconoscere i messaggi stanno nei pacchetti lingua e si
+/// cercano in TUTTE le lingue insieme (una pagina truffa in inglese va
+/// riconosciuta anche da chi usa il Mac in italiano); titolo e consiglio
+/// arrivano nella lingua dell'utente.
 public enum MessageExplainer {
+
+    /// Gravità e icona non dipendono dalla lingua.
+    static let meta: [String: (severity: Finding.Severity, symbol: String)] = [
+        "scam": (.critical, "exclamationmark.octagon.fill"),
+        "unverified": (.warning, "checkmark.shield"),
+        "damaged": (.warning, "exclamationmark.triangle"),
+        "diskfull": (.warning, "internaldrive"),
+        "memory": (.warning, "memorychip"),
+        "notresponding": (.info, "hourglass"),
+        "panic": (.warning, "arrow.clockwise"),
+        "permission": (.info, "hand.raised"),
+        "keychain": (.info, "key"),
+        "accessory": (.info, "cable.connector"),
+        "icloudfull": (.info, "icloud"),
+    ]
+
+    /// Ordine fisso dei messaggi (la truffa per prima).
+    static let order = ["scam", "unverified", "damaged", "diskfull", "memory", "notresponding",
+                        "panic", "permission", "keychain", "accessory", "icloudfull"]
 
     struct Known {
         let id: String
-        /// Basta che il testo contenga una di queste frasi (minuscole, senza accenti).
-        let patterns: [String]
-        let severity: Finding.Severity
         let title: String
         let advice: String
-        let symbol: String
+        var severity: Finding.Severity { meta[id]?.severity ?? .info }
+        var symbol: String { meta[id]?.symbol ?? "info.circle" }
     }
-
-    static let known: [Known] = [
-        Known(id: "scam",
-              patterns: ["il tuo mac e infetto", "il tuo computer e infetto", "your mac is infected", "your computer is infected",
-                         "virus rilevat", "virus detected", "chiama il supporto", "call apple support", "call support",
-                         "contatta il supporto apple al", "numero verde", "toll free", "il tuo mac e bloccato", "your mac is locked",
-                         "il tuo iphone e stato hackerato", "il tuo mac e stato hackerato", "hacked"],
-              severity: .critical,
-              title: "Quasi certamente è una TRUFFA",
-              advice: "macOS non mostra mai avvisi di virus dentro il browser e Apple non ti chiede di chiamare un numero. Non chiamare, non scaricare nulla e non dare password: chiudi la scheda con ⌘W (se non si chiude, esci dal browser con ⌥⌘Esc).",
-              symbol: "exclamationmark.octagon.fill"),
-        Known(id: "unverified",
-              patterns: ["sviluppatore non puo essere verificato", "developer cannot be verified", "non puo verificare",
-                         "could not verify", "apple cannot check it for malicious", "non e possibile verificare la presenza di malware",
-                         "free of malware", "privo di malware"],
-              severity: .warning,
-              title: "È un controllo di sicurezza di macOS sulle app scaricate da Internet",
-              advice: "Se l'app viene da un sito ufficiale di cui ti fidi, puoi aprirla da Impostazioni di Sistema → Privacy e sicurezza: scorri in basso e premi «Apri comunque». Se non sai da dove viene, eliminala.",
-              symbol: "checkmark.shield"),
-        Known(id: "damaged",
-              patterns: ["e danneggiat", "is damaged and can", "danneggiato e non puo essere aperto"],
-              severity: .warning,
-              title: "macOS blocca un'app che risulta danneggiata o modificata",
-              advice: "Elimina l'app e scaricala di nuovo dal sito ufficiale o dall'App Store. Non usare comandi trovati online per forzarne l'apertura.",
-              symbol: "exclamationmark.triangle"),
-        Known(id: "diskfull",
-              patterns: ["disco di avvio e quasi pieno", "startup disk is almost full", "disco di avvio e pieno", "spazio su disco insufficiente",
-                         "not enough disk space", "spazio di archiviazione insufficiente"],
-              severity: .warning,
-              title: "Lo spazio sul disco sta finendo",
-              advice: "Premi «Spazio disco» in questa app per vedere cosa occupa più spazio.",
-              symbol: "internaldrive"),
-        Known(id: "memory",
-              patterns: ["esaurito la memoria", "run out of application memory", "memoria delle applicazioni"],
-              severity: .warning,
-              title: "Il Mac ha finito la memoria per le app",
-              advice: "Chiudi le app e le schede del browser che non usi. Se succede spesso, premi «Mac lento» in questa app.",
-              symbol: "memorychip"),
-        Known(id: "notresponding",
-              patterns: ["non risponde", "not responding", "uscita forzata"],
-              severity: .info,
-              title: "Un'app si è bloccata",
-              advice: "Premi ⌥⌘Esc, scegli l'app e clicca «Uscita forzata». Le modifiche non salvate in quell'app si perdono.",
-              symbol: "hourglass"),
-        Known(id: "panic",
-              patterns: ["riavviato a causa di un problema", "restarted because of a problem", "si e riavviato perche si e verificato un problema"],
-              severity: .warning,
-              title: "Il Mac si è riavviato da solo per un errore",
-              advice: "Se è successo una volta sola, non preoccuparti. Se si ripete: installa gli aggiornamenti di macOS e delle app, scollega gli accessori e, se continua, rivolgiti all'assistenza Apple.",
-              symbol: "arrow.clockwise"),
-        Known(id: "permission",
-              patterns: ["vorrebbe accedere", "would like to access", "desidera accedere", "vorrebbe registrare", "would like to record",
-                         "vorrebbe controllare", "would like to control", "vuole accedere"],
-              severity: .info,
-              title: "Un'app ti chiede un permesso",
-              advice: "Consenti solo se conosci l'app e il permesso ha senso per quello che fa (es. una app per videochiamate e la fotocamera). Puoi cambiare idea in Impostazioni di Sistema → Privacy e sicurezza.",
-              symbol: "hand.raised"),
-        Known(id: "keychain",
-              patterns: ["portachiavi", "keychain"],
-              severity: .info,
-              title: "Il portachiavi chiede la password",
-              advice: "Il portachiavi custodisce le tue password: di solito chiede la stessa password che usi per accedere al Mac. Inseriscila solo se la richiesta arriva da un'app che stai usando.",
-              symbol: "key"),
-        Known(id: "accessory",
-              patterns: ["consentire all'accessorio", "allow accessory to connect", "accessorio di connettersi"],
-              severity: .info,
-              title: "macOS chiede se fidarsi di un accessorio collegato",
-              advice: "Consenti se hai appena collegato tu quell'accessorio (chiavetta, disco, adattatore). Se non hai collegato nulla, rifiuta.",
-              symbol: "cable.connector"),
-        Known(id: "icloudfull",
-              patterns: ["spazio icloud", "icloud storage is full", "archiviazione icloud", "icloud e pieno"],
-              severity: .info,
-              title: "Lo spazio di iCloud è pieno (è online, non sul Mac)",
-              advice: "Puoi vedere cosa occupa iCloud in Impostazioni di Sistema → il tuo nome → iCloud. Liberare spazio sul Mac non risolve questo messaggio.",
-              symbol: "icloud"),
-    ]
 
     static func normalize(_ s: String) -> String {
         IntentRouter.normalize(s).replacingOccurrences(of: "\n", with: " ")
     }
 
+    /// Schemi di un messaggio, da tutti i pacchetti lingua.
+    static func patterns(for id: String) -> [String] {
+        L.packs.values.flatMap { pack in pack.messages.filter { $0.id == id }.flatMap(\.patterns) }
+    }
+
+    /// Testi di un messaggio nella lingua corrente (o in inglese).
+    static func texts(for id: String) -> (title: String, advice: String) {
+        let message = L.current.messages.first { $0.id == id }
+            ?? L.packs[L.fallbackCode]?.messages.first { $0.id == id }
+        return (message?.title ?? id, message?.advice ?? "")
+    }
+
     static func match(_ text: String) -> [Known] {
         let t = normalize(text)
-        return known.filter { k in k.patterns.contains { t.contains($0) } }
+        return order.filter { id in patterns(for: id).contains { t.contains(normalize($0)) } }
+            .map { id in let x = texts(for: id); return Known(id: id, title: x.title, advice: x.advice) }
     }
 
     public static func isScam(_ text: String) -> Bool {
@@ -110,7 +69,7 @@ public enum MessageExplainer {
     public static func findings(for text: String) -> [Finding] {
         let quoted = text.replacingOccurrences(of: "\n", with: " ").trimmingCharacters(in: .whitespaces)
         var result: [Finding] = [Finding(id: "read", severity: .info,
-                                         title: "Testo letto: «\(quoted.count > 180 ? quoted.prefix(180) + "…" : quoted)»",
+                                         title: L.t("message.read", quoted.count > 180 ? quoted.prefix(180) + "…" : quoted),
                                          symbol: "text.viewfinder")]
         let matches = match(text)
         // Una truffa vince su tutto: niente altri consigli che potrebbero confondere.
@@ -123,23 +82,14 @@ public enum MessageExplainer {
 
     public static func request(for text: String) -> AIRequest {
         let matches = match(text)
-        var prompt = """
-        L'utente ha ricevuto questo messaggio sul Mac e chiede cosa significa:
-        «\(text.prefix(1200))»
-        """
+        var prompt = L.t("message.prompt", text.prefix(1200))
         if let first = matches.first {
-            prompt += "\n\nInformazione verificata: \(first.title). \(first.advice)"
+            prompt += "\n\n" + L.t("message.prompt.verified", first.title, first.advice)
         }
         if isScam(text) {
-            prompt += "\n\nÈ una truffa: dillo chiaramente all'utente e non dare nessuna istruzione per seguire il messaggio."
+            prompt += "\n\n" + L.t("message.prompt.scam")
         }
-        prompt += """
-
-
-        Spiega in 2 o 3 frasi semplici cosa significa il messaggio. Non dare consigli in elenco: \
-        li mostra già l'app. Non suggerire mai comandi nel Terminale e non suggerire di disattivare \
-        protezioni di sicurezza. Se il testo è incomprensibile o non è un messaggio del Mac, dillo.
-        """
+        prompt += "\n\n" + L.t("message.prompt.end")
         return AIRequest(instructions: Prompts.base, prompt: prompt)
     }
 }

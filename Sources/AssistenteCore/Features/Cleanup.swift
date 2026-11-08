@@ -22,10 +22,10 @@ public struct CleanupItem: Sendable, Equatable, Identifiable {
 
     public var explanation: String {
         switch reason {
-        case .installer: "Installer già scaricato: dopo l'installazione non serve più"
-        case .unusedDownload(let days) where days >= 365: "Nei Download, non lo apri da più di un anno"
-        case .unusedDownload(let days): "Nei Download, non lo apri da \(days / 30) mesi"
-        case .large: "File molto grande"
+        case .installer: L.t("cleanup.reason.installer")
+        case .unusedDownload(let days) where days >= 365: L.t("cleanup.reason.year")
+        case .unusedDownload(let days): L.t("cleanup.reason.months", days / 30)
+        case .large: L.t("cleanup.reason.large")
         }
     }
 }

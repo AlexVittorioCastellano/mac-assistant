@@ -60,7 +60,9 @@ public enum L {
 
     /// Lingua scelta dall'utente nelle impostazioni (`nil` = automatica).
     public static var override: String? {
-        get { lock.withLock { _override } }
+        // ASSISTENTE_LINGUA (es. "it") fissa la lingua: la usano i test, così
+        // girano uguali su qualunque Mac, e chi vuole provare un'altra lingua.
+        get { lock.withLock { _override } ?? ProcessInfo.processInfo.environment["ASSISTENTE_LINGUA"] }
         set { lock.withLock { _override = newValue } }
     }
 

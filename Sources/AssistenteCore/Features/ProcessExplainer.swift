@@ -82,35 +82,35 @@ public enum ProcessExplainer {
 
         switch g.kind {
         case .macOS:
-            result.append(.init(id: "kind", severity: .info, title: "Fa parte di macOS",
+            result.append(.init(id: "kind", severity: .info, title: L.t("process.kind.macos"),
                                 iconPath: icon, symbol: symbol))
-            result.append(.init(id: "close", severity: .critical, title: "Non chiuderlo: serve al sistema",
+            result.append(.init(id: "close", severity: .critical, title: L.t("process.close.macos"),
                                 advice: g.cpuPercent >= 50
-                                    ? "Se continua a usare tanto processore per ore, riavvia il Mac."
+                                    ? L.t("process.close.macos.advice")
                                     : nil))
         case .app(let name):
-            result.append(.init(id: "kind", severity: .info, title: "È l'app «\(name)»",
+            result.append(.init(id: "kind", severity: .info, title: L.t("process.kind.app", name),
                                 iconPath: icon, symbol: symbol))
-            result.append(.init(id: "close", severity: .ok, title: "Puoi chiuderla quando vuoi",
-                                advice: "Per chiuderla: salva il lavoro, poi premi ⌘Q mentre sei nell'app."))
+            result.append(.init(id: "close", severity: .ok, title: L.t("process.close.app"),
+                                advice: L.t("process.close.app.advice")))
         case .appComponent(let app):
-            result.append(.init(id: "kind", severity: .info, title: "Fa parte dell'app «\(app)»",
+            result.append(.init(id: "kind", severity: .info, title: L.t("process.kind.component", app),
                                 iconPath: icon, symbol: symbol))
-            result.append(.init(id: "close", severity: .info, title: "Non chiuderlo da solo: se serve, chiudi «\(app)»",
-                                advice: "Per chiudere «\(app)»: salva il lavoro, poi premi ⌘Q mentre sei nell'app."))
+            result.append(.init(id: "close", severity: .info, title: L.t("process.close.component", app),
+                                advice: L.t("process.close.component.advice", app)))
         case .background:
-            result.append(.init(id: "kind", severity: .info, title: "È un programma in background installato da un'altra app",
+            result.append(.init(id: "kind", severity: .info, title: L.t("process.kind.background"),
                                 iconPath: icon, symbol: symbol))
-            result.append(.init(id: "close", severity: .warning, title: "Chiudilo solo se sai a cosa serve: spesso si riavvia da solo",
-                                advice: "Puoi vedere e disattivare i programmi in background in Impostazioni di Sistema → Generali → Elementi login."))
+            result.append(.init(id: "close", severity: .warning, title: L.t("process.close.background"),
+                                advice: L.t("process.close.background.advice")))
         case .unknown:
-            result.append(.init(id: "kind", severity: .info, title: "Non riesco a capire da dove viene",
+            result.append(.init(id: "kind", severity: .info, title: L.t("process.kind.unknown"),
                                 iconPath: icon, symbol: symbol))
-            result.append(.init(id: "close", severity: .warning, title: "Meglio non chiuderlo se non sai cos'è"))
+            result.append(.init(id: "close", severity: .warning, title: L.t("process.close.unknown")))
         }
 
-        var usage = "Adesso usa \(Fmt.percent(g.cpuPercent)) del processore e \(Fmt.size(g.residentBytes)) di memoria"
-        if g.instanceCount > 1 { usage += " (\(g.instanceCount) copie)" }
+        var usage = L.t("process.usage", Fmt.percent(g.cpuPercent), Fmt.size(g.residentBytes))
+        if g.instanceCount > 1 { usage += L.t("process.usage.copies", g.instanceCount) }
         result.append(.init(id: "usage", severity: .info, title: usage))
         return result
     }
@@ -120,34 +120,22 @@ public enum ProcessExplainer {
     public static func request(question: String, details d: Details) -> AIRequest {
         let g = d.group
         let kind = switch g.kind {
-            case .macOS: "fa parte di macOS"
-            case .app(let name): "è l'app «\(name)»"
-            case .appComponent(let app): "è un componente interno dell'app «\(app)»"
-            case .background: "è un programma in background installato da terzi"
-            case .unknown: "sconosciuto"
+            case .macOS: L.t("process.prompt.kind.macos")
+            case .app(let name): L.t("process.prompt.kind.app", name)
+            case .appComponent(let app): L.t("process.prompt.kind.component", app)
+            case .background: L.t("process.prompt.kind.background")
+            case .unknown: L.t("process.prompt.kind.unknown")
         }
         let verdict = findings(for: d).first { $0.id == "close" }?.title ?? ""
 
-        var prompt = """
-        Domanda dell'utente: \(question)
-
-        Processo: «\(g.name)»
-        Tipo (deciso dall'app): \(kind)
-        Si può chiudere? (deciso dall'app): \(verdict)
-        """
+        var prompt = L.t("process.prompt", question, g.name, kind, verdict)
         if let note = d.note {
-            prompt += "\nCosa fa (informazione sicura): \(note)"
+            prompt += "\n" + L.t("process.prompt.note", note)
         } else if let path = g.path {
             // Senza una nota, il percorso aiuta il modello a capire (es. "CoreSuggestions").
-            prompt += "\nPercorso (solo per capire, non citarlo): \(path)"
+            prompt += "\n" + L.t("process.prompt.path", path)
         }
-        prompt += """
-
-
-        Spiega in 2 o 3 frasi semplici a cosa serve questo processo.
-        Usa l'informazione sicura se c'è; altrimenti deducilo dal nome e, se non sei sicuro, dillo.
-        Non dire se si può chiudere: lo mostra già l'app. Non fare elenchi.
-        """
+        prompt += "\n\n" + L.t("process.prompt.end")
         return AIRequest(instructions: Prompts.base, prompt: prompt)
     }
 
@@ -156,8 +144,8 @@ public enum ProcessExplainer {
         // Alcuni processi (es. kernel_task) sono sempre attivi ma non leggibili
         // senza permessi di amministratore: non diciamo "non è attivo".
         if let note = KnownProcesses.note(for: name) {
-            return "«\(name)» fa parte di macOS: \(note). Non chiuderlo."
+            return L.t("process.notfound.known", name, note)
         }
-        return "Non trovo «\(name)» tra i processi attivi. Controlla il nome: puoi copiarlo da Monitoraggio Attività."
+        return L.t("process.notfound", name)
     }
 }
