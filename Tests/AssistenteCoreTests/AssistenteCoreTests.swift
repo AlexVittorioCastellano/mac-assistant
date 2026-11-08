@@ -93,6 +93,8 @@ import Testing
 
     @Test func partialNameOnlyWhenUnambiguous() {
         #expect(ProcessExplainer.find("acme", in: samples)?.group.name == "AcmeUpdater")
+        #expect(ProcessExplainer.find("acme", in: samples)?.isExactMatch == false)
+        #expect(ProcessExplainer.find("AcmeUpdater", in: samples)?.isExactMatch == true)
         #expect(ProcessExplainer.find("doesnotexist", in: samples) == nil)
     }
 
@@ -184,7 +186,7 @@ import Testing
 
     @Test func processNamesNeedATriggerPhrase() {
         // "mail" senza "cos'è" ecc. non è una domanda su un processo.
-        #expect(IntentRouter.route("Come mando una mail?", runningNames: running) == .notYetSupported)
+        #expect(IntentRouter.route("Come mando una mail?", runningNames: running) == .chat)
         // Il nome deve essere una parola intera: "bird" non è in "birdwatching".
         #expect(IntentRouter.route("Cos'è birdwatching?", runningNames: running) == .process("birdwatching"))
     }
@@ -200,8 +202,10 @@ import Testing
         #expect(IntentRouter.route("Quale app occupa più RAM?", runningNames: running) == .slowMac)
     }
 
-    @Test func otherQuestionsAreNotYetSupported() {
-        #expect(IntentRouter.route("Come faccio uno screenshot?") == .notYetSupported)
+    @Test func otherQuestionsGoToChat() {
+        #expect(IntentRouter.route("Come faccio uno screenshot?") == .chat)
+        #expect(IntentRouter.route("Come faccio un'istantanea dello schermo?") == .chat)
+        #expect(IntentRouter.route("Come cambio lo sfondo?") == .chat)
     }
 }
 
@@ -281,5 +285,43 @@ import Testing
         let c = try #require(DiskMonitor.parseContainers(containers))
         #expect(c.total == 1000 << 30)
         #expect(c.macOS == 21 << 30)
+    }
+}
+
+@Suite struct MacHelpChatTests {
+    @Test func addsVerifiedGuideWhenRelevant() {
+        let p = MacHelpChat.prompt(for: "Come faccio uno SCREENSHOT?")
+        #expect(p.contains("Guida verificata"))
+        #expect(p.contains("⌘⇧4"))
+    }
+
+    @Test func noGuideForUnknownTopics() {
+        #expect(MacHelpChat.prompt(for: "Come cambio la suoneria degli avvisi?") == "Come cambio la suoneria degli avvisi?")
+    }
+
+    @Test(arguments: ["Come mando un file al mio iPhone?", "come passo le foto sull'iphone", "Posso inviare un video all'iPad?"])
+    func combinedKeywordsFindAirDrop(_ q: String) {
+        #expect(MacHelpChat.guides(for: q).first?.hasPrefix("AirDrop") == true)
+    }
+
+    @Test func atMostTwoGuides() {
+        let p = MacHelpChat.prompt(for: "screenshot, emoji, stampare e bluetooth")
+        #expect(p.components(separatedBy: "\n- ").count == 3)
+    }
+
+    @Test func safetyNetCatchesWrongShortcuts() {
+        let guides = MacHelpChat.guides(for: "screenshot")
+        #expect(MacHelpChat.shortcuts(in: "Premi **⌘⇧3**, poi ⌥⌘Esc.") == ["⌘⇧3", "⌥⌘Esc"])
+        // Corretta: nessun riquadro.
+        #expect(!MacHelpChat.answerNeedsGuide("1. Premi **⌘⇧3** per tutto lo schermo.", guides: guides))
+        // Manca ⇧: serve il riquadro.
+        #expect(MacHelpChat.answerNeedsGuide("1. Premi il tasto ⌘ e il tasto 3.", guides: guides))
+        #expect(MacHelpChat.answerNeedsGuide("Premi ⌘3.", guides: guides))
+        // Senza guide non si può verificare nulla.
+        #expect(!MacHelpChat.answerNeedsGuide("Premi ⌘3.", guides: []))
+    }
+
+    @Test func instructionsNameTheMacOSVersion() {
+        #expect(MacHelpChat.instructions.contains("macOS "))
     }
 }

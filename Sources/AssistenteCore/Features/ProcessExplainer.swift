@@ -10,6 +10,9 @@ public enum ProcessExplainer {
     public struct Details: Sendable, Equatable {
         public var group: ProcessGroup
         public var note: String?
+        /// `false` se trovato solo per nome parziale (es. "AirDrop" dentro
+        /// "AirDropHandoffIntentsExtension"): potrebbe non essere quello cercato.
+        public var isExactMatch = true
     }
 
     // MARK: Ricerca
@@ -27,9 +30,10 @@ public enum ProcessExplainer {
             matching = samples.filter { same(ProcessLister.logicalName($0.name), name) }
         }
         // 3. Nome parziale, solo se non è ambiguo.
+        var exact = true
         if matching.isEmpty {
             let partial = samples.filter { $0.name.localizedCaseInsensitiveContains(name) }
-            if Set(partial.map { ProcessLister.logicalName($0.name) }).count == 1 { matching = partial }
+            if Set(partial.map { ProcessLister.logicalName($0.name) }).count == 1 { matching = partial; exact = false }
         }
         guard !matching.isEmpty else { return nil }
 
@@ -47,7 +51,7 @@ public enum ProcessExplainer {
             pids: matching.map(\.pid),
             path: main.path,
             kind: kind)
-        return Details(group: group, note: KnownProcesses.note(for: main.name))
+        return Details(group: group, note: KnownProcesses.note(for: main.name), isExactMatch: exact)
     }
 
     /// Processi da proporre quando l'utente non ha indicato un nome:

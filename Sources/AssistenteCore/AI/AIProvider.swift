@@ -54,6 +54,16 @@ public protocol AIProvider: Sendable {
     /// generato fino a quel momento (non solo l'ultimo pezzo), così
     /// l'interfaccia può semplicemente sostituire il testo mostrato.
     func streamResponse(to request: AIRequest) -> AsyncThrowingStream<String, Error>
+
+    /// Crea una conversazione che ricorda i messaggi precedenti (chat libera).
+    func makeChatSession(instructions: String) -> any AIChatSession
+}
+
+/// Una conversazione a più turni: ogni `send` vede anche i messaggi precedenti.
+public protocol AIChatSession: Sendable {
+    /// Come `AIProvider.streamResponse`: ogni elemento è il testo completo
+    /// della risposta generato fino a quel momento.
+    func send(_ prompt: String) -> AsyncThrowingStream<String, Error>
 }
 
 extension AIProvider {

@@ -57,8 +57,18 @@ public struct LocalProvider: AIProvider {
         }
     }
 
+    public func makeChatSession(instructions: String) -> any AIChatSession {
+        LocalChatSession(instructions: instructions)
+    }
+
+    /// Guardrail "permissive" (vedi `streamResponse`).
+    static func makeSession(instructions: String) -> LanguageModelSession {
+        let model = SystemLanguageModel(guardrails: .permissiveContentTransformations)
+        return LanguageModelSession(model: model, instructions: instructions)
+    }
+
     /// Traduce gli errori del framework in messaggi semplici.
-    private static func friendly(_ error: Error) -> Error {
+    static func friendly(_ error: Error) -> Error {
         if error is SystemLanguageModel.Error {
             return AIError("Il modello non è ancora pronto. Riprova tra poco.")
         }
@@ -76,6 +86,46 @@ public struct LocalProvider: AIProvider {
             return AIError("Il modello ci sta mettendo troppo. Riprova.")
         default:
             return AIError("Non sono riuscito a generare una risposta.")
+        }
+    }
+}
+
+/// Conversazione on-device. Il modello ha un contesto limitato (qualche
+/// migliaio di parole): quando si riempie, la conversazione ricomincia da capo
+/// e lo diciamo all'utente.
+actor LocalChatSession: AIChatSession {
+    private let instructions: String
+    private var session: LanguageModelSession
+
+    init(instructions: String) {
+        self.instructions = instructions
+        self.session = LocalProvider.makeSession(instructions: instructions)
+    }
+
+    nonisolated func send(_ prompt: String) -> AsyncThrowingStream<String, Error> {
+        AsyncThrowingStream { continuation in
+            let task = Task { await self.run(prompt, continuation) }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
+    private func run(_ prompt: String, _ continuation: AsyncThrowingStream<String, Error>.Continuation) async {
+        do {
+            // "Greedy": sceglie sempre la parola più probabile. Nelle prove copiava
+            // le scorciatoie dalla guida senza errori (6/6, contro 5/6 con
+            // temperatura 0.3) e dà la stessa risposta alla stessa domanda.
+            let options = GenerationOptions(sampling: .greedy)
+            for try await snapshot in session.streamResponse(to: prompt, options: options) {
+                continuation.yield(snapshot.content)
+            }
+            continuation.finish()
+        } catch LanguageModelError.contextSizeExceeded {
+            // Conversazione troppo lunga: ripartiamo da zero.
+            session = LocalProvider.makeSession(instructions: instructions)
+            continuation.finish(throwing: AIError(
+                "La conversazione è diventata troppo lunga per il modello sul Mac, quindi ne ho iniziata una nuova. Ripeti pure la domanda."))
+        } catch {
+            continuation.finish(throwing: LocalProvider.friendly(error))
         }
     }
 }

@@ -6,11 +6,12 @@ public enum Intent: Sendable, Equatable {
     case diskSpace
     /// Spiegare un processo. `nil` = l'utente non ha indicato quale.
     case process(String?)
-    case notYetSupported
+    /// Tutto il resto: chat libera su come usare il Mac.
+    case chat
 }
 
 /// Smista la domanda alla funzione giusta, con regole semplici e prevedibili.
-/// Con la chat libera (funzione 4) le domande non riconosciute andranno al modello.
+/// Le domande che non riguardano lentezza, processi o disco vanno alla chat.
 public enum IntentRouter {
     static let slowKeywords = [
         "lento", "lenta", "lentezza", "rallent", "bloccat", "si blocca", "impalla",
@@ -19,8 +20,9 @@ public enum IntentRouter {
     ]
 
     static let diskKeywords = [
+        // Non "istantanea": "istantanea dello schermo" è uno screenshot.
         "spazio", "disco", "archiviazione", "dati di sistema", "storage", "snapshot",
-        "istantane", "gb liber", "pieno", "piena", "occupa",
+        "istantanee locali", "gb liber", "pieno", "piena", "occupa",
     ]
 
     /// Parole che indicano chiaramente la lentezza (vincono su "disco"):
@@ -71,7 +73,7 @@ public enum IntentRouter {
             // 4. Altrimenti, il nome è quello che resta tolte le parole di contorno.
             return .process(candidateName(in: question))
         }
-        return topic(of: text) ?? .notYetSupported
+        return topic(of: text) ?? .chat
     }
 
     /// Lentezza o spazio su disco (o nessuno dei due).

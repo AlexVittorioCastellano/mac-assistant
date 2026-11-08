@@ -1,13 +1,39 @@
 // Strumento per sviluppatori: prova le funzioni dal terminale.
 // Uso:  swift run assistente-cli "Perché il Mac è lento?"
+//       swift run assistente-cli --chat "Come faccio uno screenshot?"   (poi altre domande, una per riga)
+//       swift run assistente-cli --guide "Come mando un file all'iPhone?"  (quale guida verificata si attiva)
 //       swift run assistente-cli --prompt "..."   (mostra anche il prompt inviato al modello)
 import AssistenteCore
 import Foundation
 
 var args = Array(CommandLine.arguments.dropFirst())
 let showPrompt = args.contains("--prompt")
-args.removeAll { $0 == "--prompt" }
+let chatMode = args.contains("--chat")
+let guideOnly = args.contains("--guide")
+args.removeAll { $0 == "--prompt" || $0 == "--chat" || $0 == "--guide" }
+
+/// Stampa una risposta in streaming, solo la parte nuova a ogni passo.
+func printStream(_ stream: AsyncThrowingStream<String, Error>) async throws {
+    var printed = 0
+    for try await partial in stream {
+        let chars = Array(partial)
+        if chars.count > printed {
+            print(String(chars[printed...]), terminator: "")
+            fflush(stdout)
+            printed = chars.count
+        }
+    }
+    print()
+}
 let question = args.isEmpty ? Assistant.slowMacQuestion : args.joined(separator: " ")
+
+// --guide: mostra solo quale guida verificata si attiva (utile per chi
+// aggiunge voci a MacHowTo). Nessuna AI.
+if guideOnly {
+    let guides = MacHelpChat.guides(for: question)
+    print(guides.isEmpty ? "— nessuna guida" : guides.map { "✓ " + $0.prefix(60) + "…" }.joined(separator: "\n"))
+    exit(0)
+}
 
 let assistant = Assistant()
 print("❓ \(question)\n")
@@ -16,6 +42,16 @@ do {
     switch try await assistant.prepare(question: question) {
     case .message(let text):
         print(text)
+    case .chat(let prompt, _):
+        let chat = assistant.makeChatSession()
+        try await printStream(chat.send(prompt))
+        // Con --chat si continua a conversare: una domanda per riga (Ctrl-D per uscire).
+        if chatMode {
+            while let line = readLine(), !line.isEmpty {
+                print("\n❓ \(line)\n")
+                try await printStream(chat.send(MacHelpChat.prompt(for: line)))
+            }
+        }
     case .choices(let message, let options):
         print(message)
         for o in options { print("  - \(o.label)") }

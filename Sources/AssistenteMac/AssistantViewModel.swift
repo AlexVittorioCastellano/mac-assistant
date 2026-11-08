@@ -3,6 +3,19 @@ import Observation
 import os
 import SwiftUI
 
+/// Un messaggio della chat libera.
+struct ChatMessage: Identifiable, Equatable {
+    enum Role { case user, assistant }
+    let id = UUID()
+    let role: Role
+    var text: String
+    var isError = false
+    /// Guida verificata da mostrare sotto la risposta (vedi `answerNeedsGuide`).
+    var verifiedGuides: [String] = []
+    /// La risposta si basa su una guida verificata (mostriamo un segno di spunta).
+    var basedOnGuide = false
+}
+
 /// Stato dell'interfaccia. Non contiene logica di sistema o di AI:
 /// delega tutto ad `Assistant` (in AssistenteCore).
 @MainActor
@@ -19,6 +32,11 @@ final class AssistantViewModel {
     var notice: String?
     var isWorking = false
 
+    /// Chat libera: messaggi e conversazione in corso (che ricorda il contesto).
+    var messages: [ChatMessage] = []
+    private var chat: (any AIChatSession)?
+    var isChatting: Bool { !messages.isEmpty }
+
     private let assistant = Assistant()
     private let log = Logger(subsystem: "AssistenteMac", category: "ui")
     private var task: Task<Void, Never>?
@@ -32,12 +50,7 @@ final class AssistantViewModel {
         question = q
 
         task?.cancel()
-        findings = []
-        choices = []
-        chart = nil
-        chartHover = nil
-        answer = ""
-        notice = nil
+        clearResults()
         isWorking = true
 
         task = Task {
@@ -45,6 +58,12 @@ final class AssistantViewModel {
             do {
                 let reply = try await assistant.prepare(question: q)
                 log.info("prepare completato")
+                if case .chat(let prompt, let guides) = reply {
+                    try await sendToChat(q, prompt: prompt, guides: guides)
+                    return
+                }
+                // Una funzione specifica (lentezza, processi, disco) chiude la chat.
+                endChat()
                 switch reply {
                 case .message(let text):
                     notice = text
@@ -63,13 +82,63 @@ final class AssistantViewModel {
                     }
                     if Task.isCancelled { return }
                     log.info("risposta completata: \(self.answer.count) caratteri")
+                case .chat:
+                    break  // gestito sopra
                 }
             } catch is CancellationError {
                 // Nuova domanda: nulla da fare.
             } catch {
                 log.error("errore: \(error.localizedDescription, privacy: .public)")
-                notice = error.localizedDescription
+                if isChatting, let last = messages.indices.last, messages[last].role == .assistant {
+                    messages[last].text = error.localizedDescription
+                    messages[last].isError = true
+                } else {
+                    notice = error.localizedDescription
+                }
             }
         }
+    }
+
+    /// Inizia da capo la chat libera.
+    func newConversation() {
+        task?.cancel()
+        endChat()
+        clearResults()
+        question = ""
+        isWorking = false
+    }
+
+    // MARK: - Privato
+
+    private func sendToChat(_ text: String, prompt: String, guides: [String]) async throws {
+        let session = chat ?? assistant.makeChatSession()
+        chat = session
+        question = ""  // come nelle app di messaggi: il campo si svuota
+        messages.append(ChatMessage(role: .user, text: text))
+        messages.append(ChatMessage(role: .assistant, text: "", basedOnGuide: !guides.isEmpty))
+        let index = messages.count - 1
+        for try await partial in session.send(prompt) {
+            messages[index].text = partial
+        }
+        log.info("chat: risposta di \(self.messages[index].text.count) caratteri")
+        // Rete di sicurezza: se il modello ha scritto una scorciatoia diversa
+        // da quella verificata, mostriamo anche la guida esatta.
+        if MacHelpChat.answerNeedsGuide(messages[index].text, guides: guides) {
+            messages[index].verifiedGuides = guides
+        }
+    }
+
+    private func endChat() {
+        messages = []
+        chat = nil
+    }
+
+    private func clearResults() {
+        findings = []
+        choices = []
+        chart = nil
+        chartHover = nil
+        answer = ""
+        notice = nil
     }
 }

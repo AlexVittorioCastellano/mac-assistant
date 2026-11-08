@@ -9,6 +9,10 @@ public enum AssistantReply: Sendable {
     /// Ogni opzione ha un'etichetta e la domanda da fare se viene scelta.
     case choices(message: String, options: [Choice])
     case message(String)
+    /// Chat libera: `prompt` va inviato alla conversazione in corso
+    /// (vedi `makeChatSession`), così il modello ricorda i messaggi precedenti.
+    /// `guides` sono le guide verificate usate (per la rete di sicurezza).
+    case chat(prompt: String, guides: [String])
 }
 
 public struct Choice: Sendable, Equatable, Hashable {
@@ -72,16 +76,31 @@ public struct Assistant: Sendable {
                             options: options)
 
         case .process(let name?):
-            guard let details = ProcessExplainer.find(name, in: samples) else {
+            // "Cos'è AirDrop?" riguarda una funzione del Mac, non un processo: se
+            // la parola "processo" non c'è e il nome non corrisponde esattamente
+            // a un processo (o a uno noto), risponde la chat.
+            let saysProcess = IntentRouter.normalize(question).contains("process")
+            let details = ProcessExplainer.find(name, in: samples)
+            if !saysProcess && KnownProcesses.note(for: name) == nil && details?.isExactMatch != true {
+                return .chat(prompt: MacHelpChat.prompt(for: question), guides: MacHelpChat.guides(for: question))
+            }
+            guard let details else {
                 return .message(ProcessExplainer.notFoundMessage(for: name))
             }
             return .result(findings: ProcessExplainer.findings(for: details),
                            aiRequest: ProcessExplainer.request(question: question, details: details))
 
-        case .notYetSupported:
-            return .message("Per ora so rispondere a domande sulla lentezza del Mac, sui processi "
-                            + "(es. «Cos'è mds_stores?») e sullo spazio su disco. La chat libera arriverà presto!")
+        case .chat:
+            if case .unavailable(let reason) = provider.availability {
+                return .message(reason)
+            }
+            return .chat(prompt: MacHelpChat.prompt(for: question), guides: MacHelpChat.guides(for: question))
         }
+    }
+
+    /// Nuova conversazione per la chat libera.
+    public func makeChatSession() -> any AIChatSession {
+        provider.makeChatSession(instructions: MacHelpChat.instructions)
     }
 
     public func explain(_ request: AIRequest) -> AsyncThrowingStream<String, Error> {

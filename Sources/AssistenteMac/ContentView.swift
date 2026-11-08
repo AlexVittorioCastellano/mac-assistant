@@ -10,7 +10,10 @@ struct ContentView: View {
             header
             inputRow
             quickActions
-            if model.isWorking || !model.choices.isEmpty || !model.findings.isEmpty || !model.answer.isEmpty || model.notice != nil {
+            if model.isChatting {
+                Divider()
+                ChatView(model: model)
+            } else if model.isWorking || !model.choices.isEmpty || !model.findings.isEmpty || !model.answer.isEmpty || model.notice != nil {
                 Divider()
                 // Niente ScrollView: dentro un MenuBarExtra non ha un'altezza
                 // naturale e si riduce a zero (i risultati sparivano).
@@ -32,7 +35,8 @@ struct ContentView: View {
 
     private var inputRow: some View {
         HStack {
-            TextField("Fai una domanda sul tuo Mac…", text: $model.question)
+            TextField(model.isChatting ? "Scrivi un altro messaggio…" : "Fai una domanda sul tuo Mac…",
+                      text: $model.question)
                 .textFieldStyle(.roundedBorder)
                 .focused($fieldFocused)
                 .onSubmit { model.ask() }
@@ -138,11 +142,12 @@ struct ContentView: View {
         }
     }
 
-    /// Il modello può rispondere con un po' di Markdown (grassetti, elenchi).
-    private func markdown(_ text: String) -> AttributedString {
-        (try? AttributedString(markdown: text, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)))
-            ?? AttributedString(text)
-    }
+}
+
+/// Il modello può rispondere con un po' di Markdown (grassetti, elenchi).
+func markdown(_ text: String) -> AttributedString {
+    (try? AttributedString(markdown: text, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)))
+        ?? AttributedString(text)
 }
 
 private struct FindingRow: View {
