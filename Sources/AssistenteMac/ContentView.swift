@@ -15,10 +15,19 @@ struct ContentView: View {
                 ChatView(model: model)
             } else if model.isWorking || !model.choices.isEmpty || !model.findings.isEmpty || !model.answer.isEmpty || model.notice != nil {
                 Divider()
-                // Niente ScrollView: dentro un MenuBarExtra non ha un'altezza
-                // naturale e si riduce a zero (i risultati sparivano).
-                // Le risposte sono brevi, quindi il riquadro si adatta al testo.
-                results.frame(maxWidth: .infinity, alignment: .leading)
+                // Dentro un MenuBarExtra uno ScrollView senza altezza si riduce a
+                // zero. Le risposte brevi si mostrano così come sono; quelle
+                // lunghe (es. il controllo generale) scorrono in un'area di
+                // altezza FISSA, calcolata perché il riquadro stia sullo schermo
+                // anche di un MacBook da 13".
+                if isLongResult {
+                    ScrollView {
+                        results.frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .frame(height: scrollHeight)
+                } else {
+                    results.frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
             Divider()
             footer
@@ -26,6 +35,19 @@ struct ContentView: View {
         .padding(14)
         .frame(width: 400)
         .onAppear { fieldFocused = true }
+    }
+
+    /// Stima prudente: molte righe (o il grafico) = risultato lungo.
+    private var isLongResult: Bool {
+        let rows = model.findings.count + Finding.advice(from: model.findings).count
+        return rows + (model.chart != nil ? 5 : 0) > 11
+    }
+
+    /// Altezza dell'area a scorrimento: quanto resta sullo schermo tolta la
+    /// parte fissa del riquadro (campo, pulsanti, piè di pagina ≈ 300 punti).
+    private var scrollHeight: CGFloat {
+        let screen = NSScreen.main?.visibleFrame.height ?? 800
+        return max(300, min(620, screen - 330))
     }
 
     private var header: some View {
@@ -54,12 +76,26 @@ struct ContentView: View {
     private var quickActions: some View {
         // Etichette brevi per farci stare tre pulsanti; la domanda completa
         // compare passandoci sopra con il mouse.
-        HStack(spacing: 8) {
+        VStack(spacing: 8) {
+            // Il pulsante principale: un controllo generale in un clic.
+            Button {
+                model.ask(Assistant.healthQuestion)
+            } label: {
+                Label("Controlla il mio Mac", systemImage: "stethoscope")
+                    .font(.body.weight(.semibold))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .help("Velocità, spazio, backup, sicurezza, aggiornamenti e batteria in un colpo solo")
+
+            HStack(spacing: 8) {
             quickButton("Mac lento", question: Assistant.slowMacQuestion, icon: "tortoise")
             quickButton("Processi", question: Assistant.processQuestion, icon: "questionmark.app")
             quickButton("Spazio disco", question: Assistant.diskQuestion, icon: "internaldrive")
+            }
+            .controlSize(.regular)
         }
-        .controlSize(.regular)
         .disabled(model.isWorking)
     }
 
@@ -154,6 +190,28 @@ private struct FindingRow: View {
     let finding: Finding
 
     var body: some View {
+        if finding.id == "overall" {
+            headline
+        } else {
+            row
+        }
+    }
+
+    /// Il semaforo del controllo generale: grande, in un riquadro colorato.
+    private var headline: some View {
+        HStack(spacing: 10) {
+            Image(systemName: finding.symbol ?? icon)
+                .font(.title)
+                .foregroundStyle(color)
+            Text(finding.title)
+                .font(.title3.weight(.semibold))
+            Spacer(minLength: 0)
+        }
+        .padding(10)
+        .background(color.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    private var row: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             if let swatch = finding.swatch {
                 // Pallino dello stesso colore del blocco nella barra (fa da legenda).

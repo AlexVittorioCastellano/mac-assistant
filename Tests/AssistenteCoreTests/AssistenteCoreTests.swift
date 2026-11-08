@@ -350,3 +350,71 @@ import Testing
         #expect(MacHelpChat.instructions.contains("macOS "))
     }
 }
+
+@Suite struct HealthCheckTests {
+    func input(status: MacStatus, free: UInt64 = 300 << 30, cpu: Double = 10, uptimeDays: Double = 1) -> HealthCheck.Input {
+        let snap = SystemSnapshot(
+            cpuUsagePercent: cpu, coreCount: 8,
+            memory: MemoryInfo(totalBytes: 16 << 30, usedBytes: 8 << 30, cachedBytes: 0, compressedBytes: 0,
+                               swapUsedBytes: 0, pressure: .normal),
+            thermal: .nominal, uptime: uptimeDays * 86_400, processes: [])
+        return HealthCheck.Input(snapshot: snap, disk: (500 << 30, free), status: status)
+    }
+
+    @Test func allGoodIsGreen() {
+        let status = MacStatus(fileVaultOn: true, firewallOn: true, gatekeeperOn: true, sipOn: true,
+                               backup: .configured(lastBackup: Date()), automaticUpdatesOn: true, pendingUpdates: 0,
+                               battery: BatteryHealth(healthPercent: 95, cycleCount: 100))
+        let f = HealthCheck.findings(for: input(status: status))
+        #expect(f.first?.title == "Il tuo Mac sta bene")
+        #expect(f.first?.severity == .ok)
+        #expect(f.dropFirst().allSatisfy { $0.severity == .ok })
+    }
+
+    @Test func problemsAreCountedAndListedFirst() {
+        let status = MacStatus(fileVaultOn: false, firewallOn: false, gatekeeperOn: false, sipOn: true,
+                               backup: .notConfigured, automaticUpdatesOn: true,
+                               battery: BatteryHealth(healthPercent: 72, cycleCount: 900))
+        let f = HealthCheck.findings(for: input(status: status, free: 20 << 30))
+        // FileVault, Gatekeeper, backup, batteria, spazio = 5; il firewall spento è solo un'informazione.
+        #expect(f.first?.title == "Ci sono 5 cose da sistemare")
+        #expect(f.first?.severity == .critical)
+        // Le voci critiche per prime, nell'ordine fisso (spazio prima di Gatekeeper).
+        #expect(f[1].id == "disk")
+        #expect(f[2].id == "gatekeeper")
+        #expect(f.first { $0.id == "firewall" }?.severity == .info)
+    }
+
+    @Test func oldBackupIsAWarning() {
+        let tenDaysAgo = Date().addingTimeInterval(-10 * 86_400)
+        let f = HealthCheck.findings(for: input(status: MacStatus(backup: .configured(lastBackup: tenDaysAgo))))
+        #expect(f.first { $0.id == "backup" }?.title == "Ultimo backup 10 giorni fa")
+    }
+
+    @Test func unknownValuesAreSkippedNotGuessed() {
+        let f = HealthCheck.findings(for: input(status: MacStatus()))
+        #expect(!f.contains { $0.id == "filevault" || $0.id == "sip" || $0.id == "battery" })
+    }
+
+    @Test func parsesAppleSiliconBatteryPlist() throws {
+        let plist = """
+        <?xml version="1.0" encoding="UTF-8"?><plist version="1.0"><array><dict>
+        <key>CycleCount</key><integer>3</integer><key>MaxCapacity</key><integer>100</integer>
+        <key>BatteryData</key><dict><key>DesignCapacity</key><integer>8579</integer>
+        <key>AppleRawMaxCapacity</key><integer>6863</integer></dict>
+        </dict></array></plist>
+        """
+        let b = try #require(MacStatusMonitor.parseBattery(plist))
+        #expect(b.healthPercent == 80)
+        #expect(b.cycleCount == 3)
+        #expect(MacStatusMonitor.parseBattery("") == nil)  // Mac senza batteria
+    }
+
+    @Test func routesHealthQuestions() {
+        #expect(IntentRouter.route("Controlla il mio Mac") == .healthCheck)
+        #expect(IntentRouter.route("Il mio Mac sta bene?") == .healthCheck)
+        #expect(IntentRouter.route("Il Mac è sicuro?") == .healthCheck)
+        // "Centro di Controllo" non è un controllo generale.
+        #expect(IntentRouter.route("Come apro il Centro di Controllo?") == .chat)
+    }
+}

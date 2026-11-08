@@ -75,6 +75,7 @@ final class AssistantViewModel {
                 case .result(let found, let request, let newChart):
                     findings = found  // mostrati subito, prima dell'AI
                     chart = newChart
+                    guard let request else { return }  // niente spiegazione (es. controllo)
                     if case .unavailable(let reason) = assistant.provider.availability {
                         notice = reason
                         return

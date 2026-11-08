@@ -4,6 +4,8 @@ import Foundation
 public enum Intent: Sendable, Equatable {
     case slowMac
     case diskSpace
+    /// "Controlla il mio Mac": semaforo generale.
+    case healthCheck
     /// Spiegare un processo. `nil` = l'utente non ha indicato quale.
     case process(String?)
     /// Tutto il resto: chat libera su come usare il Mac.
@@ -23,6 +25,14 @@ public enum IntentRouter {
         // Non "istantanea": "istantanea dello schermo" è uno screenshot.
         "spazio", "disco", "archiviazione", "dati di sistema", "storage", "snapshot",
         "istantanee locali", "gb liber", "pieno", "piena", "occupa",
+    ]
+
+    /// "Il mio Mac sta bene?", "fai un controllo". Niente "controll" da solo:
+    /// "Centro di Controllo" è un'altra cosa.
+    static let healthKeywords = [
+        "controlla il mio mac", "controlla il mac", "controllo generale", "fai un controllo", "fammi un controllo",
+        "check", "salute", "sta bene", "tutto a posto", "tutto ok", "e sicuro", "e protetto", "sicurezza del mac",
+        "stato del mac", "va tutto bene",
     ]
 
     /// Parole che indicano chiaramente la lentezza (vincono su "disco"):
@@ -93,6 +103,7 @@ public enum IntentRouter {
 
     /// Lentezza o spazio su disco (o nessuno dei due).
     static func topic(of normalized: String) -> Intent? {
+        if healthKeywords.contains(where: { hasStem(normalized, $0) }) { return .healthCheck }
         let strongSlow = strongSlowKeywords.contains { hasStem(normalized, $0) }
         let disk = diskKeywords.contains { hasStem(normalized, $0) }
         if disk && !strongSlow { return .diskSpace }

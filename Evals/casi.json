@@ -1018,6 +1018,34 @@
    "notContains": [
     "cestino"
    ]
+  },
+  {
+   "question": "Controlla il mio Mac",
+   "intent": "healthCheck"
+  },
+  {
+   "question": "Il mio Mac sta bene?",
+   "intent": "healthCheck"
+  },
+  {
+   "question": "Fammi un controllo generale del computer",
+   "intent": "healthCheck"
+  },
+  {
+   "question": "Il mio Mac è protetto?",
+   "intent": "healthCheck"
+  },
+  {
+   "question": "Come apro il Centro di Controllo?",
+   "intent": "chat"
+  },
+  {
+   "question": "Come controllo lo stato della batteria?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "batteria"
+   ]
   }
  ]
 }

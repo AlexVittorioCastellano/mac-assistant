@@ -4,7 +4,8 @@ import Foundation
 public enum AssistantReply: Sendable {
     /// Risultato pronto: i `findings` si mostrano subito, la `aiRequest`
     /// si passa al provider per la spiegazione.
-    case result(findings: [Finding], aiRequest: AIRequest, chart: SegmentedChart? = nil)
+    /// `aiRequest` è `nil` quando il risultato non ha bisogno di spiegazione.
+    case result(findings: [Finding], aiRequest: AIRequest?, chart: SegmentedChart? = nil)
     /// L'utente deve scegliere tra alcune opzioni (es. quale processo).
     /// Ogni opzione ha un'etichetta e la domanda da fare se viene scelta.
     case choices(message: String, options: [Choice])
@@ -36,17 +37,20 @@ public struct Assistant: Sendable {
     public let provider: any AIProvider
     public let monitor: SystemMonitor
     public let disk: DiskMonitor
+    public let status: MacStatusMonitor
 
     public init(provider: any AIProvider = LocalProvider(), monitor: SystemMonitor = SystemMonitor(),
-                disk: DiskMonitor = DiskMonitor()) {
+                disk: DiskMonitor = DiskMonitor(), status: MacStatusMonitor = MacStatusMonitor()) {
         self.provider = provider
         self.monitor = monitor
         self.disk = disk
+        self.status = status
     }
 
     public static let slowMacQuestion = "Perché il Mac è lento?"
     public static let processQuestion = "Cos'è questo processo?"
     public static let diskQuestion = "Dove è finito lo spazio?"
+    public static let healthQuestion = "Controlla il mio Mac"
 
     /// - Parameter conversationGuides: guide usate nel turno precedente della
     ///   chat. Una domanda di seguito ("E se non compare?") senza guide proprie
@@ -58,7 +62,7 @@ public struct Assistant: Sendable {
         var intent = IntentRouter.route(question, runningNames: names)
         // "Come chiudo un programma bloccato?" contiene "bloccato" (lentezza), ma
         // è una domanda pratica con una guida pronta: risponde la chat.
-        if intent == .slowMac || intent == .diskSpace,
+        if intent == .slowMac || intent == .diskSpace || intent == .healthCheck,
            IntentRouter.isHowTo(question), !MacHelpChat.guides(for: question).isEmpty {
             intent = .chat
         }
@@ -69,6 +73,14 @@ public struct Assistant: Sendable {
             let findings = SlowMacDiagnosis.findings(for: snapshot)
             return .result(findings: findings,
                            aiRequest: SlowMacDiagnosis.request(question: question, snapshot: snapshot, findings: findings))
+
+        case .healthCheck:
+            async let snapshot = monitor.snapshot()
+            async let macStatus = status.status()
+            let capacity = DiskMonitor.volumeCapacity()
+            let input = HealthCheck.Input(snapshot: try await snapshot, disk: (capacity.total, capacity.free),
+                                          status: await macStatus)
+            return .result(findings: HealthCheck.findings(for: input), aiRequest: nil)
 
         case .diskSpace:
             let usage = await disk.usage()

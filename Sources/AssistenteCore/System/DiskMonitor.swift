@@ -71,7 +71,7 @@ public struct DiskMonitor: Sendable {
     static func size(of paths: [String]) async -> UInt64? {
         let existing = paths.filter { FileManager.default.fileExists(atPath: $0) }
         guard !existing.isEmpty else { return 0 }
-        guard let output = await run("/usr/bin/du", ["-sk"] + existing) else { return nil }
+        guard let output = await Shell.run("/usr/bin/du", ["-sk"] + existing) else { return nil }
         let kilobytes = output.split(separator: "\n").compactMap { line in
             line.split(separator: "\t").first.flatMap { UInt64($0) }
         }
@@ -79,7 +79,7 @@ public struct DiskMonitor: Sendable {
     }
 
     /// Spazio totale, libero e "eliminabile" (purgeable) del disco di avvio.
-    static func volumeCapacity() -> (total: UInt64, free: UInt64, purgeable: UInt64) {
+    public static func volumeCapacity() -> (total: UInt64, free: UInt64, purgeable: UInt64) {
         let keys: Set<URLResourceKey> = [.volumeTotalCapacityKey, .volumeAvailableCapacityKey,
                                          .volumeAvailableCapacityForImportantUsageKey]
         let values = try? URL(fileURLWithPath: "/").resourceValues(forKeys: keys)
@@ -91,7 +91,7 @@ public struct DiskMonitor: Sendable {
 
     /// Dati del contenitore APFS del disco di avvio (via `diskutil`).
     static func apfsContainer() async -> (total: UInt64, free: UInt64, macOS: UInt64)? {
-        guard let output = await run("/usr/sbin/diskutil", ["apfs", "list", "-plist"]),
+        guard let output = await Shell.run("/usr/sbin/diskutil", ["apfs", "list", "-plist"]),
               let data = output.data(using: .utf8),
               let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
               let containers = plist["Containers"] as? [[String: Any]] else { return nil }
@@ -118,31 +118,7 @@ public struct DiskMonitor: Sendable {
 
     /// Istantanee locali di Time Machine.
     static func localSnapshotCount() async -> Int {
-        guard let output = await run("/usr/bin/tmutil", ["listlocalsnapshots", "/"]) else { return 0 }
+        guard let output = await Shell.run("/usr/bin/tmutil", ["listlocalsnapshots", "/"]) else { return 0 }
         return output.split(separator: "\n").filter { $0.contains("com.apple.TimeMachine") }.count
-    }
-
-    /// Esegue un comando di sola lettura su un thread separato (per non
-    /// bloccare quelli di Swift Concurrency) e ne restituisce l'output.
-    /// `nil` se il comando fallisce senza produrre nulla.
-    static func run(_ tool: String, _ arguments: [String]) async -> String? {
-        await withCheckedContinuation { continuation in
-            DispatchQueue.global(qos: .userInitiated).async {
-                let process = Process()
-                process.executableURL = URL(fileURLWithPath: tool)
-                process.arguments = arguments
-                process.environment = ["LC_ALL": "C"]
-                let pipe = Pipe()
-                process.standardOutput = pipe
-                process.standardError = FileHandle.nullDevice
-                do { try process.run() } catch { continuation.resume(returning: nil); return }
-                let data = pipe.fileHandleForReading.readDataToEndOfFile()
-                process.waitUntilExit()
-                let text = String(decoding: data, as: UTF8.self)
-                // `du` esce con errore anche se una sola sottocartella è protetta:
-                // teniamo comunque i numeri che ha prodotto.
-                continuation.resume(returning: text.isEmpty && process.terminationStatus != 0 ? nil : text)
-            }
-        }
     }
 }

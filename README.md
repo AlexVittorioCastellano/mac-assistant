@@ -19,6 +19,7 @@ Fai una domanda in italiano sul tuo Mac e ricevi una risposta chiara e veloce.
 
 | Funzione | Stato |
 |---|---|
+| **"Controlla il mio Mac"**: un semaforo in un clic su velocità, spazio, backup di Time Machine, cifratura (FileVault), Gatekeeper, SIP, firewall, aggiornamenti e batteria | ✅ |
 | "Perché il Mac è lento?": legge processore, memoria, temperatura e processi e spiega cosa succede | ✅ |
 | "Cos'è questo processo?": dice cos'è, se fa parte di macOS o di un'app e se si può chiudere | ✅ |
 | "Dove è finito lo spazio?": divide lo spazio occupato in voci (modelli di Apple Intelligence, app, Download, cache…) e spiega i "Dati di sistema" | ✅ |
@@ -142,6 +143,7 @@ answers are in Italian by design.)
 
 | Feature | Status |
 |---|---|
+| **"Check my Mac"**: one-click traffic light for speed, disk space, Time Machine backup, FileVault, Gatekeeper, SIP, firewall, updates and battery health | ✅ |
 | "Why is my Mac slow?": reads CPU, memory, thermal state and processes, and explains | ✅ |
 | "What is this process?": what it is, whether it belongs to macOS or an app, and whether it's safe to quit | ✅ |
 | "Where did my disk space go?": breaks down used space (Apple Intelligence models, apps, Downloads, caches…) and explains "System Data" | ✅ |

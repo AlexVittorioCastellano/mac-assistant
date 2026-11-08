@@ -72,24 +72,16 @@ do {
             print()
         }
         for f in findings { print("• [\(f.severity)] \(f.title)") }
-        if showPrompt { print("\n--- prompt ---\n\(request.prompt)\n--------------") }
         print()
-        let advice = Finding.advice(from: findings)
-        if case .unavailable(let reason) = assistant.provider.availability {
-            print("(\(reason))")
-        } else {
-        var printed = 0
-        for try await partial in assistant.explain(request) {
-            // Stampa solo la parte nuova del testo.
-            let chars = Array(partial)
-            if chars.count > printed {
-                print(String(chars[printed...]), terminator: "")
-                fflush(stdout)
-                printed = chars.count
+        if let request {
+            if showPrompt { print("--- prompt ---\n\(request.prompt)\n--------------\n") }
+            if case .unavailable(let reason) = assistant.provider.availability {
+                print("(\(reason))")
+            } else {
+                try await printStream(assistant.explain(request))
             }
         }
-        print()
-        }
+        let advice = Finding.advice(from: findings)
         if !advice.isEmpty {
             print("\nCosa puoi fare:")
             for a in advice { print("  → \(a)") }
