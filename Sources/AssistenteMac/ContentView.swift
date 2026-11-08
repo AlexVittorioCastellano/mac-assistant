@@ -12,10 +12,10 @@ struct ContentView: View {
             quickActions
             if model.isWorking || !model.findings.isEmpty || !model.answer.isEmpty || model.notice != nil {
                 Divider()
-                ScrollView {
-                    results.frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .frame(maxHeight: 360)
+                // Niente ScrollView: dentro un MenuBarExtra non ha un'altezza
+                // naturale e si riduce a zero (i risultati sparivano).
+                // Le risposte sono brevi, quindi il riquadro si adatta al testo.
+                results.frame(maxWidth: .infinity, alignment: .leading)
             }
             Divider()
             footer
