@@ -18,8 +18,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/MigatteNoAlecs/mac-assistant/releases/latest/download/MacAssistant.zip"><b>Download for Mac</b></a> ·
-  <a href="https://migattenoalecs.github.io/mac-assistant/">Website</a> ·
+  <a href="https://github.com/AlexVittorioCastellano/mac-assistant/releases/latest/download/MacAssistant.zip"><b>Download for Mac</b></a> ·
+  <a href="https://alexvittoriocastellano.github.io/mac-assistant/">Website</a> ·
   🇬🇧 <a href="#english">English</a> · 🇮🇹 <a href="#italiano">Italiano</a>
 </p>
 
@@ -82,8 +82,8 @@ finds, and suggests what *you* can do. It never quits apps or deletes files on i
 
 ## Download
 
-Grab **[MacAssistant.zip](https://github.com/MigatteNoAlecs/mac-assistant/releases/latest/download/MacAssistant.zip)**
-from the [latest release](https://github.com/MigatteNoAlecs/mac-assistant/releases/latest), unzip it and move
+Grab **[MacAssistant.zip](https://github.com/AlexVittorioCastellano/mac-assistant/releases/latest/download/MacAssistant.zip)**
+from the [latest release](https://github.com/AlexVittorioCastellano/mac-assistant/releases/latest), unzip it and move
 **Mac Assistant** to Applications. The app isn't notarized yet: the first time, macOS asks you to confirm in
 **System Settings → Privacy & Security → Open Anyway**.
 
@@ -92,7 +92,7 @@ from the [latest release](https://github.com/MigatteNoAlecs/mac-assistant/releas
 You only need the **Command Line Tools** (`xcode-select --install`); Xcode is optional.
 
 ```sh
-git clone https://github.com/MigatteNoAlecs/mac-assistant.git
+git clone https://github.com/AlexVittorioCastellano/mac-assistant.git
 cd mac-assistant
 ./scripts/crea-app.sh                 # builds "build/Mac Assistant.app"
 open "build/Mac Assistant.app"
@@ -213,8 +213,8 @@ da solo: legge, spiega e suggerisce.
 </p>
 
 <p align="center">
-  <a href="https://github.com/MigatteNoAlecs/mac-assistant/releases/latest/download/MacAssistant.zip"><b>Scarica per Mac</b></a> ·
-  <a href="https://migattenoalecs.github.io/mac-assistant/">Sito</a>
+  <a href="https://github.com/AlexVittorioCastellano/mac-assistant/releases/latest/download/MacAssistant.zip"><b>Scarica per Mac</b></a> ·
+  <a href="https://alexvittoriocastellano.github.io/mac-assistant/">Sito</a>
 </p>
 
 ### Cosa fa
@@ -233,7 +233,7 @@ da solo: legge, spiega e suggerisce.
 
 ### Scaricare l'app
 
-Scarica **MacAssistant.zip** dall'[ultima versione](https://github.com/MigatteNoAlecs/mac-assistant/releases/latest),
+Scarica **MacAssistant.zip** dall'[ultima versione](https://github.com/AlexVittorioCastellano/mac-assistant/releases/latest),
 estrailo e sposta **Mac Assistant** in Applicazioni. L'app non è ancora notarizzata: la prima volta macOS chiede
 una conferma in **Impostazioni di Sistema → Privacy e sicurezza → Apri comunque**.
 
@@ -243,7 +243,7 @@ macOS 27 o successivo con Apple Silicon e Apple Intelligence attiva (senza, rest
 controlli e i consigli, ma non la spiegazione scritta dall'AI). Bastano i Command Line Tools:
 
 ```sh
-git clone https://github.com/MigatteNoAlecs/mac-assistant.git
+git clone https://github.com/AlexVittorioCastellano/mac-assistant.git
 cd mac-assistant
 ./scripts/crea-app.sh && open "build/Mac Assistant.app"
 ```
