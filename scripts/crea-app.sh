@@ -16,6 +16,8 @@ BIN=$(swift build -c "$CONFIG" --show-bin-path)/AssistenteMac
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/AssistenteMac"
+# Risorse del nucleo (pacchetti lingua).
+cp -R "$(dirname "$BIN")/AssistenteMac_AssistenteCore.bundle" "$APP/Contents/Resources/"
 
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>

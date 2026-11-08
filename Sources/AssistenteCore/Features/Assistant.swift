@@ -115,7 +115,7 @@ public struct Assistant: Sendable {
             // "Cos'è AirDrop?" riguarda una funzione del Mac, non un processo: se
             // la parola "processo" non c'è e il nome non corrisponde esattamente
             // a un processo (o a uno noto), risponde la chat.
-            let saysProcess = IntentRouter.normalize(question).contains("process")
+            let saysProcess = IntentRouter.normalize(question).contains(L.t("router.processWord"))
             let details = ProcessExplainer.find(name, in: samples)
             if !saysProcess && KnownProcesses.note(for: name) == nil && details?.isExactMatch != true {
                 return chatReply(question, conversationGuides)

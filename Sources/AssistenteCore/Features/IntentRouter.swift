@@ -19,60 +19,20 @@ public enum Intent: Sendable, Equatable {
 /// Smista la domanda alla funzione giusta, con regole semplici e prevedibili.
 /// Le domande che non riguardano lentezza, processi o disco vanno alla chat.
 public enum IntentRouter {
-    static let slowKeywords = [
-        "lent", "rilent", "rallent", "bloccat", "si blocca", "impalla", "lagg",
-        "ventol", "scalda", "caldo", "cpu", "processore", "ram", "memoria", "pesante",
-        "girella", "rotella", "pallina",
-    ]
-
-    static let diskKeywords = [
-        // Non "istantanea": "istantanea dello schermo" è uno screenshot.
-        "spazio", "disco", "archiviazione", "dati di sistema", "storage", "snapshot",
-        "istantanee locali", "gb liber", "pieno", "piena", "occupa",
-    ]
-
-    /// "Il mio Mac sta bene?", "fai un controllo". Niente "controll" da solo:
-    /// "Centro di Controllo" è un'altra cosa.
-    static let healthKeywords = [
-        "controlla il mio mac", "controlla il mac", "controllo generale", "fai un controllo", "fammi un controllo",
-        "check", "salute", "sta bene", "tutto a posto", "tutto ok", "e sicuro", "e protetto", "sicurezza del mac",
-        "stato del mac", "va tutto bene",
-    ]
-
-    /// Pulizia: liberare spazio togliendo file.
-    static let cleanupKeywords = [
-        "pulizia", "pulisci", "fai pulizia", "libera spazio", "liberare spazio", "libero spazio",
-        "cosa posso cancellare", "cosa posso eliminare", "cosa posso togliere", "fare spazio",
-    ]
-
-    /// App sospette, malware, programmi che partono da soli.
-    static let securityKeywords = [
-        "app sospett", "programmi sospett", "programma sospett", "sospett", "malware", "adware", "virus",
-        "spyware", "trojan", "in background", "partono da sol", "parte da sol", "si avviano da sol",
-        "mackeeper", "software indesiderat",
-    ]
-
-    /// Parole che indicano chiaramente la lentezza (vincono su "disco"):
-    /// "il disco è lento" riguarda la velocità, non lo spazio.
-    /// Anche "RAM", "CPU" e "processore" indicano la lentezza: "quale app occupa
-    /// più RAM" non riguarda il disco. "Memoria" invece è ambigua in italiano
-    /// ("memoria piena" di solito vuol dire disco pieno).
-    static let strongSlowKeywords = ["lent", "rilent", "rallent", "bloccat", "si blocca",
-                                     "ventol", "scalda", "caldo", "ram", "cpu", "processore"]
-
-    /// Frasi che indicano una domanda su un processo.
-    static let processTriggers = [
-        "cos'e", "cosa e", "cos e", "che cos", "cosa fa", "a cosa serve", "che fa",
-        "processo", "chiudere", "chiuderlo", "chiuderla", "posso chiudere", "che roba",
-    ]
-
-    /// Parole da togliere per trovare il nome del processo nella frase.
-    static let fillerWords: Set<String> = [
-        "il", "lo", "la", "i", "gli", "le", "l", "un", "uno", "una", "questo", "questa",
-        "quel", "quello", "quella", "processo", "programma", "app", "applicazione",
-        "si", "puo", "posso", "chiudere", "chiuderlo", "chiuderla", "e", "che", "di",
-        "sul", "mio", "mac", "serve", "a", "cosa", "fa", "cos", "roba",
-    ]
+    // Le parole chiave dipendono dalla lingua: stanno nel pacchetto lingua
+    // (Languages/*.json, sezione "router"). Regole comuni a tutte le lingue:
+    // - si confrontano a INIZIO parola ("disco" non scatta in "ingrandisco");
+    // - "strongSlow" vince su "disk" ("il disco è lento" = lentezza);
+    // - "health" non deve contenere parole ambigue (es. "Centro di Controllo").
+    static var router: LanguagePack.Router { L.current.router }
+    static var slowKeywords: [String] { router.slow }
+    static var diskKeywords: [String] { router.disk }
+    static var healthKeywords: [String] { router.health }
+    static var cleanupKeywords: [String] { router.cleanup }
+    static var securityKeywords: [String] { router.security }
+    static var strongSlowKeywords: [String] { router.strongSlow }
+    static var processTriggers: [String] { router.processTriggers }
+    static var fillerWords: Set<String> { Set(router.fillerWords) }
 
     /// - Parameter runningNames: nomi dei processi attivi, per riconoscerli nella frase.
     public static func route(_ question: String, runningNames: [String] = []) -> Intent {
@@ -108,14 +68,13 @@ public enum IntentRouter {
     /// "Come creo un nuovo utente?" invece è una domanda nuova.
     public static func isFollowUp(_ question: String) -> Bool {
         let t = normalize(question).trimmingCharacters(in: .whitespaces)
-        let starts = ["e ", "e,", "ma ", "pero", "allora", "ok", "anche", "invece", "e poi", "non ", "se ", "quindi", "e invece"]
-        return starts.contains { t.hasPrefix($0) }
+        return router.followUp.contains { t.hasPrefix($0) }
     }
 
     /// Domanda pratica del tipo "come faccio a…", "cosa faccio se…".
     public static func isHowTo(_ question: String) -> Bool {
         let t = normalize(question)
-        return ["come ", "cosa faccio", "cosa devo fare", "che faccio"].contains { hasStem(t, $0) }
+        return router.howTo.contains { hasStem(t, $0) }
     }
 
     /// Lentezza o spazio su disco (o nessuno dei due).
@@ -149,7 +108,7 @@ public enum IntentRouter {
 
     static func normalize(_ s: String) -> String {
         s.replacingOccurrences(of: "’", with: "'")
-            .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Fmt.italian)
+            .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: L.locale)
     }
 
     static func quotedName(in s: String) -> String? {

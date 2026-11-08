@@ -12,7 +12,8 @@ let package = Package(
     targets: [
         // Logica condivisa: raccolta dati di sistema, AI, funzioni.
         // Non dipende da SwiftUI, così è testabile e riusabile.
-        .target(name: "AssistenteCore"),
+        // Languages/: un pacchetto JSON per lingua (testi, parole chiave, guide).
+        .target(name: "AssistenteCore", resources: [.copy("Languages")]),
 
         // App nella barra dei menu (solo interfaccia).
         .executableTarget(name: "AssistenteMac", dependencies: ["AssistenteCore"]),
