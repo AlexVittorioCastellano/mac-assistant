@@ -5,21 +5,18 @@ import Observation
 import os
 import SwiftUI
 
-/// Un messaggio della chat libera.
 struct ChatMessage: Identifiable, Equatable {
     enum Role { case user, assistant }
     let id = UUID()
     let role: Role
     var text: String
     var isError = false
-    /// Guida verificata da mostrare sotto la risposta (vedi `answerNeedsGuide`).
+
     var verifiedGuides: [String] = []
-    /// La risposta si basa su una guida verificata (mostriamo un segno di spunta).
+
     var basedOnGuide = false
 }
 
-/// Stato dell'interfaccia. Non contiene logica di sistema o di AI:
-/// delega tutto ad `Assistant` (in AssistenteCore).
 @MainActor
 @Observable
 final class AssistantViewModel {
@@ -27,17 +24,15 @@ final class AssistantViewModel {
     var findings: [Finding] = []
     var choices: [Choice] = []
     var chart: SegmentedChart?
-    /// Punto del grafico sotto il mouse. Sta qui e non in @State perché in
-    /// macOS 27 @State richiede Xcode per compilare.
+
     var chartHover: Double?
     var answer = ""
     var notice: String?
     var isWorking = false
-    /// Testo della rotellina di attesa (dipende da cosa stiamo facendo).
+
     var workingLabel = L.t("ui.working.check")
     private var lastPrewarm = Date.distantPast
 
-    /// Pulizia guidata: file proposti, quelli spuntati, conferma e annulla.
     var cleanupItems: [CleanupItem] = []
     var cleanupSelected: Set<String> = []
     var confirmCleanup = false
@@ -46,29 +41,24 @@ final class AssistantViewModel {
     var selectedCleanupItems: [CleanupItem] { cleanupItems.filter { cleanupSelected.contains($0.id) } }
     var selectedCleanupBytes: UInt64 { selectedCleanupItems.reduce(0) { $0 + $1.bytes } }
 
-    /// Domanda a voce: `true` mentre il microfono ascolta.
     var isListening = false
     private var dictation: LiveDictation?
     private var listenTimeout: Task<Void, Never>?
 
-    /// Chat libera: messaggi e conversazione in corso (che ricorda il contesto).
     var messages: [ChatMessage] = []
     private var chat: (any AIChatSession)?
-    /// Guide del turno precedente, ereditate dalle domande di seguito.
+
     private var chatGuides: [String] = []
     var isChatting: Bool { !messages.isEmpty }
 
-    /// Avvisi automatici in background.
     let alerts = AlertService()
-    /// "Leggi ad alta voce".
+
     let speech = SpeechService()
 
-    /// Il risultato mostrato è il controllo generale (per il riepilogo).
     var isHealthResult: Bool {
         findings.first?.id == "overall" && findings.contains { $0.id == "speed" }
     }
 
-    /// Riepilogo per chi ti aiuta (solo per il controllo generale).
     var helperReport: String? {
         isHealthResult ? HelperReport.text(findings: findings) : nil
     }
@@ -80,18 +70,13 @@ final class AssistantViewModel {
         notice = L.t("ui.report.copied")
     }
 
-    /// Scorciatoia ⌥Spazio (`nil` se un'altra app la usa già).
     private(set) var hotKey: GlobalHotKey?
     private let welcome = WelcomeWindow()
 
-    /// Interruttore "Apri all'accensione" (lo stato vero lo tiene macOS).
     var launchAtLogin: Bool = LaunchAtLogin.isEnabled {
         didSet { LaunchAtLogin.isEnabled = launchAtLogin; launchAtLogin = LaunchAtLogin.isEnabled }
     }
 
-    /// Lingua scelta nelle impostazioni (`nil` = automatica, come il Mac).
-    /// Cambiandola, l'interfaccia si ridisegna e la chat riparte (il modello
-    /// deve ricevere le istruzioni nella nuova lingua).
     var languageCode: String? = UserDefaults.standard.string(forKey: "lingua") {
         didSet {
             UserDefaults.standard.set(languageCode, forKey: "lingua")
@@ -100,7 +85,6 @@ final class AssistantViewModel {
         }
     }
 
-    /// Da chiamare una volta all'avvio dell'app.
     func appDidLaunch() {
         L.override = languageCode
         alerts.start()
@@ -113,7 +97,6 @@ final class AssistantViewModel {
 
     private let quickPanel = QuickPanel()
 
-    /// ⌥Spazio: apre o chiude il pannello flottante.
     func toggleQuickPanel() {
         quickPanel.toggle(model: self)
     }
@@ -137,8 +120,6 @@ final class AssistantViewModel {
         run { [assistant] in try await assistant.prepare(question: q, conversationGuides: guides) }
     }
 
-    /// "Spiega un messaggio": prende dagli appunti uno screenshot (o un file
-    /// immagine, o del testo) e lo spiega.
     func explainClipboard() {
         let pasteboard = NSPasteboard.general
         if let data = pasteboard.data(forType: .png) ?? pasteboard.data(forType: .tiff) {
@@ -157,12 +138,10 @@ final class AssistantViewModel {
         }
     }
 
-    /// Immagine trascinata sul riquadro o presa dagli appunti.
     func explainImage(_ data: Data) {
         question = Assistant.messageQuestion
         run(label: L.t("ui.working.message")) { [assistant] in try await assistant.explainMessage(imageData: data) }
-        // Se dopo qualche secondo stiamo ancora leggendo, è il primo avvio del
-        // riconoscimento del testo: lo diciamo, così l'attesa non sembra un blocco.
+
         Task {
             try? await Task.sleep(for: .seconds(4))
             if isWorking && findings.isEmpty && notice == nil {
@@ -171,16 +150,11 @@ final class AssistantViewModel {
         }
     }
 
-    // MARK: Domanda a voce
-
-    /// Premi una volta per parlare, di nuovo per fare la domanda.
     func toggleVoice() {
         if isListening { finishListening() } else { startListening() }
     }
 
     private func startListening() {
-        // Il microfono richiede l'app vera (con la descrizione del permesso
-        // nell'Info.plist): con `swift run` macOS chiuderebbe l'app.
         guard Bundle.main.bundleIdentifier != nil else {
             notice = L.t("ui.voice.needsApp")
             return
@@ -204,7 +178,7 @@ final class AssistantViewModel {
                 try await dictation.start { [weak self] text in
                     Task { @MainActor in
                         guard let self, self.isListening else { return }
-                        self.question = text  // il testo compare mentre si parla
+                        self.question = text
                     }
                 }
             } catch {
@@ -213,7 +187,7 @@ final class AssistantViewModel {
                 notice = error.localizedDescription
                 return
             }
-            // Sicurezza: dopo 30 secondi si ferma da solo.
+
             listenTimeout = Task {
                 try? await Task.sleep(for: .seconds(30))
                 if isListening { finishListening() }
@@ -232,19 +206,17 @@ final class AssistantViewModel {
             if text.isEmpty {
                 notice = L.t("ui.voice.nothingHeard")
             } else {
-                ask(text)  // la domanda parte; resta visibile nel campo per correggerla
+                ask(text)
             }
         }
     }
 
-    /// Prepara in anticipo il riconoscimento del testo (al massimo ogni 5 minuti).
     func prewarmTextRecognition() {
         guard Date().timeIntervalSince(lastPrewarm) > 300 else { return }
         lastPrewarm = Date()
         TextRecognizer.prewarm()
     }
 
-    /// Esegue una richiesta e mostra la risposta (comune a domande e messaggi).
     private func run(label: String = L.t("ui.working.check"),
                      _ produce: @escaping @Sendable () async throws -> AssistantReply) {
         task?.cancel()
@@ -262,7 +234,7 @@ final class AssistantViewModel {
                     try await sendToChat(q, prompt: prompt, guides: guides)
                     return
                 }
-                // Una funzione specifica (lentezza, processi, disco…) chiude la chat.
+
                 endChat()
                 switch reply {
                 case .message(let text):
@@ -271,9 +243,9 @@ final class AssistantViewModel {
                     notice = message
                     choices = options
                 case .result(let found, let request, let newChart):
-                    findings = found  // mostrati subito, prima dell'AI
+                    findings = found
                     chart = newChart
-                    guard let request else { return }  // niente spiegazione (es. controllo)
+                    guard let request else { return }
                     if case .unavailable(let reason) = assistant.provider.availability {
                         notice = reason
                         return
@@ -290,10 +262,9 @@ final class AssistantViewModel {
                         notice = L.t("ui.cleanup.none")
                     }
                 case .chat:
-                    break  // gestito sopra
+                    break
                 }
             } catch is CancellationError {
-                // Nuova domanda: nulla da fare.
             } catch {
                 log.error("errore: \(error.localizedDescription, privacy: .public)")
                 if isChatting, let last = messages.indices.last, messages[last].role == .assistant {
@@ -306,7 +277,6 @@ final class AssistantViewModel {
         }
     }
 
-    /// Inizia da capo la chat libera.
     func newConversation() {
         task?.cancel()
         endChat()
@@ -315,13 +285,11 @@ final class AssistantViewModel {
         isWorking = false
     }
 
-    // MARK: - Privato
-
     private func sendToChat(_ text: String, prompt: String, guides: [String]) async throws {
         let session = chat ?? assistant.makeChatSession()
         chat = session
         chatGuides = guides
-        question = ""  // come nelle app di messaggi: il campo si svuota
+        question = ""
         messages.append(ChatMessage(role: .user, text: text))
         messages.append(ChatMessage(role: .assistant, text: "", basedOnGuide: !guides.isEmpty))
         let index = messages.count - 1
@@ -329,8 +297,7 @@ final class AssistantViewModel {
             messages[index].text = partial
         }
         log.info("chat: risposta di \(self.messages[index].text.count) caratteri")
-        // Rete di sicurezza: se il modello ha scritto una scorciatoia diversa
-        // da quella verificata, mostriamo anche la guida esatta.
+
         if MacHelpChat.answerNeedsGuide(messages[index].text, guides: guides) {
             messages[index].verifiedGuides = guides
         }
@@ -342,13 +309,10 @@ final class AssistantViewModel {
         chatGuides = []
     }
 
-    // MARK: Pulizia (sposta nel Cestino solo dopo la conferma)
-
     func toggleCleanup(_ item: CleanupItem) {
         if cleanupSelected.contains(item.id) { cleanupSelected.remove(item.id) } else { cleanupSelected.insert(item.id) }
     }
 
-    /// Chiamata SOLO dal pulsante di conferma dell'avviso.
     func performCleanup() {
         let chosen = selectedCleanupItems
         guard !chosen.isEmpty else { return }
@@ -370,7 +334,7 @@ final class AssistantViewModel {
         let restored = Cleanup.undo(lastTrash)
         self.lastTrash = nil
         notice = L.t("ui.cleanup.restored", restored)
-        // Ricarica le proposte, così i file tornano nell'elenco.
+
         run(label: L.t("ui.working.cleanup")) { [assistant] in try await assistant.prepare(question: Assistant.cleanupQuestion) }
     }
 

@@ -1,14 +1,13 @@
 import Foundation
 
-/// Un programma che macOS avvia da solo (LaunchAgent o LaunchDaemon).
 public struct BackgroundItem: Sendable, Equatable {
     public enum Scope: Sendable { case currentUser, allUsers, system }
 
     public var label: String
     public var plistPath: String
-    /// Il programma avviato (primo elemento di ProgramArguments o Program).
+
     public var executable: String?
-    /// Gli argomenti, per capire se esegue uno script.
+
     public var arguments: [String]
     public var scope: Scope
 
@@ -21,14 +20,12 @@ public struct BackgroundItem: Sendable, Equatable {
     }
 }
 
-/// Un'app installata, con la sua firma.
 public struct InstalledApp: Sendable, Equatable {
     public var name: String
     public var path: String
     public var trust: CodeTrust
 }
 
-/// Legge programmi in background e app installate. Solo lettura, niente rete.
 public struct SecurityScanner: Sendable {
     public init() {}
 
@@ -54,7 +51,7 @@ public struct SecurityScanner: Sendable {
             let paths = appFolders.flatMap { folder in
                 ((try? FileManager.default.contentsOfDirectory(atPath: folder)) ?? [])
                     .filter { $0.hasSuffix(".app") }.map { "\(folder)/\($0)" }
-            }.filter { $0 != me }  // non controlliamo noi stessi
+            }.filter { $0 != me }
             apps = await withTaskGroup(of: InstalledApp.self) { group in
                 for path in paths {
                     group.addTask {

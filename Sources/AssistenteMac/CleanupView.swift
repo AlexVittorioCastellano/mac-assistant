@@ -2,8 +2,6 @@ import AppKit
 import AssistenteCore
 import SwiftUI
 
-/// Pulizia guidata: elenco di file con casella da spuntare. Niente si muove
-/// senza la conferma dell'avviso; i file vanno nel Cestino (recuperabili).
 struct CleanupView: View {
     @Bindable var model: AssistantViewModel
 

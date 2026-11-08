@@ -2,10 +2,6 @@ import AppKit
 import AssistenteCore
 import SwiftUI
 
-/// Strumento per sviluppatori: crea le immagini del README con DATI FINTI
-/// (nessun dato del Mac di chi lo lancia) e le risposte vere del modello.
-/// Disegna fuori dallo schermo: non cattura lo schermo.
-/// Uso: ./scripts/screenshot.sh  (equivale a ASSISTENTE_SCREENSHOTS=<cartella>)
 @MainActor
 enum DemoScreenshots {
     static func runIfRequested() {
@@ -28,7 +24,6 @@ enum DemoScreenshots {
 
     nonisolated static let assistant = Assistant()
 
-    /// Fa scrivere al modello vero la spiegazione per dati finti.
     static func explain(_ request: AIRequest?) async -> String {
         guard let request else { return "" }
         return (try? await assistant.provider.respond(to: request)) ?? ""

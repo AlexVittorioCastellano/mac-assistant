@@ -1,28 +1,20 @@
 import Foundation
 
-/// La risposta preparata per l'interfaccia.
 public enum AssistantReply: Sendable {
-    /// Risultato pronto: i `findings` si mostrano subito, la `aiRequest`
-    /// si passa al provider per la spiegazione.
-    /// `aiRequest` è `nil` quando il risultato non ha bisogno di spiegazione.
     case result(findings: [Finding], aiRequest: AIRequest?, chart: SegmentedChart? = nil)
-    /// L'utente deve scegliere tra alcune opzioni (es. quale processo).
-    /// Ogni opzione ha un'etichetta e la domanda da fare se viene scelta.
+
     case choices(message: String, options: [Choice])
     case message(String)
-    /// Pulizia guidata: file proposti; l'utente sceglie e conferma.
+
     case cleanup([CleanupItem])
-    /// Chat libera: `prompt` va inviato alla conversazione in corso
-    /// (vedi `makeChatSession`), così il modello ricorda i messaggi precedenti.
-    /// `guides` sono le guide verificate usate (per la rete di sicurezza).
+
     case chat(prompt: String, guides: [String])
 }
 
 public struct Choice: Sendable, Equatable, Hashable {
     public var label: String
     public var question: String
-    /// File o cartella da cui prendere l'icona (es. l'app di cui il processo
-    /// fa parte). Se manca, si usa `symbol`.
+
     public var iconPath: String?
     public var symbol: String
 
@@ -34,7 +26,6 @@ public struct Choice: Sendable, Equatable, Hashable {
     }
 }
 
-/// Collega raccolta dati, funzioni e AI. Usato sia dall'app sia dalla CLI.
 public struct Assistant: Sendable {
     public let provider: any AIProvider
     public let monitor: SystemMonitor
@@ -56,16 +47,12 @@ public struct Assistant: Sendable {
     public static var securityQuestion: String { L.t("question.security") }
     public static var cleanupQuestion: String { L.t("question.cleanup") }
 
-    /// - Parameter conversationGuides: guide usate nel turno precedente della
-    ///   chat. Una domanda di seguito ("E se non compare?") senza guide proprie
-    ///   le eredita, così il modello resta ancorato alle informazioni corrette.
     public func prepare(question: String, conversationGuides: [String] = []) async throws -> AssistantReply {
         let samples = try ProcessLister.list()
         let names = Array(Set(samples.map(\.name) + samples.map { ProcessLister.logicalName($0.name) }))
 
         var intent = IntentRouter.route(question, runningNames: names)
-        // "Come chiudo un programma bloccato?" contiene "bloccato" (lentezza), ma
-        // è una domanda pratica con una guida pronta: risponde la chat.
+
         if [.slowMac, .diskSpace, .healthCheck, .securityScan, .cleanup].contains(intent),
            IntentRouter.isHowTo(question), !MacHelpChat.guides(for: question).isEmpty {
             intent = .chat
@@ -111,9 +98,7 @@ public struct Assistant: Sendable {
                             options: options)
 
         case .process(let name?):
-            // "Cos'è AirDrop?" riguarda una funzione del Mac, non un processo: se
-            // la parola "processo" non c'è e il nome non corrisponde esattamente
-            // a un processo (o a uno noto), risponde la chat.
+
             let saysProcess = IntentRouter.normalize(question).contains(L.t("router.processWord"))
             let details = ProcessExplainer.find(name, in: samples)
             if !saysProcess && KnownProcesses.note(for: name) == nil && details?.isExactMatch != true {
@@ -139,11 +124,8 @@ public struct Assistant: Sendable {
         return .chat(prompt: MacHelpChat.prompt(for: question, guides: guides), guides: guides)
     }
 
-    // MARK: Spiegami questo messaggio
-
     public static var messageQuestion: String { L.t("question.message") }
 
-    /// Spiega il testo di un avviso o di un errore.
     public func explainMessage(_ text: String) -> AssistantReply {
         let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !t.isEmpty else {
@@ -152,12 +134,10 @@ public struct Assistant: Sendable {
         return .result(findings: MessageExplainer.findings(for: t), aiRequest: MessageExplainer.request(for: t))
     }
 
-    /// Legge il testo nell'immagine (sul Mac) e lo spiega.
     public func explainMessage(imageData: Data) async throws -> AssistantReply {
         explainMessage(try await TextRecognizer.text(inImageData: imageData))
     }
 
-    /// Nuova conversazione per la chat libera.
     public func makeChatSession() -> any AIChatSession {
         provider.makeChatSession(instructions: MacHelpChat.instructions)
     }

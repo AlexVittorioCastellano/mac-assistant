@@ -1,10 +1,6 @@
 import AssistenteCore
 import SwiftUI
 
-/// La chat libera: fumetti dei messaggi in un'area che scorre.
-///
-/// L'area ha un'altezza FISSA: dentro un MenuBarExtra uno ScrollView senza
-/// altezza si riduce a zero, e misurarne il contenuto crea un ciclo di layout.
 struct ChatView: View {
     @Bindable var model: AssistantViewModel
 
@@ -20,7 +16,7 @@ struct ChatView: View {
                     .padding(.vertical, 4)
                 }
                 .frame(height: 340)
-                // Segue la risposta mentre viene scritta.
+
                 .onChange(of: model.messages.last?.text) {
                     if let last = model.messages.last { proxy.scrollTo(last.id, anchor: .bottom) }
                 }
@@ -79,15 +75,12 @@ private struct Bubble: View {
                 if !message.verifiedGuides.isEmpty {
                     VerifiedGuideBox(guides: message.verifiedGuides)
                 } else if message.basedOnGuide {
-                    // "Basata su", non "verificata": la guida copre l'argomento,
-                    // ma il modello può aggiungere passaggi suoi.
                     Label(L.t("ui.chat.guided"), systemImage: "checkmark.seal.fill")
                         .font(.caption2)
                         .foregroundStyle(.green)
                         .help(L.t("ui.chat.guided.help"))
                 }
                 if message.role == .assistant && !message.isError {
-                    // Leggi ad alta voce questa risposta.
                     let reading = speech.speakingID == message.id.uuidString
                     Button {
                         speech.toggle(ReadAloud.speakable(message.text), id: message.id.uuidString)
@@ -101,8 +94,6 @@ private struct Bubble: View {
                 if !message.verifiedGuides.isEmpty || message.basedOnGuide {
                     EmptyView()
                 } else if message.role == .assistant {
-                    // Senza guida il modello piccolo sbaglia più spesso nomi di
-                    // menu e pulsanti: lo diciamo con discrezione.
                     Label(L.t("ui.chat.unguided"), systemImage: "questionmark.circle")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
@@ -117,8 +108,6 @@ private struct Bubble: View {
     }
 }
 
-/// Riquadro con la guida verificata, mostrato quando la risposta del modello
-/// contiene una scorciatoia diversa da quella corretta.
 private struct VerifiedGuideBox: View {
     let guides: [String]
 

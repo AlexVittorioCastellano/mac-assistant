@@ -1,17 +1,13 @@
-// Disegna l'icona dell'app (fumetto con il punto di domanda) e crea
-// Risorse/AppIcon.icns e docs/icona.png.
-// Uso: swift scripts/crea-icona.swift
 import AppKit
 
 func drawIcon(size: CGFloat) -> NSImage {
     NSImage(size: NSSize(width: size, height: size), flipped: false) { _ in
         let s = size
-        // Forma delle icone macOS: quadrato arrotondato con un po' di margine.
+
         let inset = s * 0.1
         let tile = NSRect(x: inset, y: inset, width: s - 2 * inset, height: s - 2 * inset)
         let tilePath = NSBezierPath(roundedRect: tile, xRadius: tile.width * 0.225, yRadius: tile.width * 0.225)
 
-        // Ombra leggera sotto la piastrella.
         NSGraphicsContext.saveGraphicsState()
         let shadow = NSShadow()
         shadow.shadowColor = NSColor.black.withAlphaComponent(0.25)
@@ -22,12 +18,10 @@ func drawIcon(size: CGFloat) -> NSImage {
         tilePath.fill()
         NSGraphicsContext.restoreGraphicsState()
 
-        // Sfumatura dal blu chiaro (in alto) al blu profondo (in basso).
         NSGradient(colors: [NSColor(srgbRed: 0.33, green: 0.62, blue: 0.98, alpha: 1),
                             NSColor(srgbRed: 0.10, green: 0.33, blue: 0.75, alpha: 1)])?
             .draw(in: tilePath, angle: -90)
 
-        // Fumetto bianco con la "coda" in basso a sinistra.
         let bubble = NSRect(x: tile.minX + tile.width * 0.17, y: tile.minY + tile.height * 0.27,
                             width: tile.width * 0.66, height: tile.height * 0.52)
         let bubblePath = NSBezierPath(roundedRect: bubble, xRadius: bubble.height * 0.3, yRadius: bubble.height * 0.3)
@@ -47,7 +41,6 @@ func drawIcon(size: CGFloat) -> NSImage {
         bubblePath.fill()
         NSGraphicsContext.restoreGraphicsState()
 
-        // Punto di domanda, dello stesso blu.
         let config = NSImage.SymbolConfiguration(pointSize: bubble.height * 0.62, weight: .heavy)
             .applying(.init(paletteColors: [NSColor(srgbRed: 0.13, green: 0.42, blue: 0.85, alpha: 1)]))
         if let mark = NSImage(systemSymbolName: "questionmark", accessibilityDescription: nil)?

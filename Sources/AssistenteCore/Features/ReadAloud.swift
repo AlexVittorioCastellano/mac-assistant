@@ -1,8 +1,5 @@
 import Foundation
 
-/// Prepara un testo per essere letto ad alta voce dalla sintesi vocale del Mac:
-/// i simboli dei tasti diventano parole ("⌥⌘Esc" → "Opzione Comando Esc"),
-/// le frecce dei menu diventano "poi", via grassetti e virgolette.
 public enum ReadAloud {
     public static func speakable(_ text: String) -> String {
         var t = text
@@ -14,21 +11,17 @@ public enum ReadAloud {
         t = t.replacingOccurrences(of: "→", with: L.t("speech.then"))
         for mark in ["**", "«", "»", "“", "”", "`"] { t = t.replacingOccurrences(of: mark, with: "") }
         t = t.replacingOccurrences(of: "\n", with: ". ")
-        // Spazi doppi lasciati dalle sostituzioni.
+
         while t.contains("  ") { t = t.replacingOccurrences(of: "  ", with: " ") }
         return t.replacingOccurrences(of: " ,", with: ",").trimmingCharacters(in: .whitespaces)
     }
 
-    /// Il testo da leggere per un risultato: voci, spiegazione e consigli.
     public static func text(findings: [Finding], answer: String) -> String {
         let parts = findings.map(\.title) + [answer] + Finding.advice(from: findings)
         return speakable(parts.filter { !$0.isEmpty }.joined(separator: "\n"))
     }
 }
 
-/// Riepilogo dello stato del Mac da mandare a chi ti aiuta (un figlio, un
-/// tecnico). L'app lo prepara e basta: copiarlo e mandarlo lo decide l'utente.
-/// Non contiene nomi di file né dati personali.
 public enum HelperReport {
     public struct MacInfo: Sendable {
         public var chip: String
@@ -57,7 +50,6 @@ public enum HelperReport {
         }
     }
 
-    /// `findings`: il risultato del controllo generale (la prima riga è il semaforo).
     public static func text(findings: [Finding], info: MacInfo = .current(), date: Date = Date()) -> String {
         let day = date.formatted(.dateTime.day().month(.wide).year().locale(L.locale))
         var lines = [L.t("report.title", day), "", L.t("report.mac", info.chip, info.memory, info.macOS)]

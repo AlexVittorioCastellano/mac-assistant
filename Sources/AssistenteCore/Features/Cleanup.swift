@@ -1,14 +1,12 @@
 import CoreServices
 import Foundation
 
-/// Un file che si potrebbe togliere, con il motivo.
 public struct CleanupItem: Sendable, Equatable, Identifiable {
     public enum Reason: Sendable, Equatable {
-        /// Installer (.dmg, .pkg) nei Download: dopo l'installazione non serve più.
         case installer
-        /// Nei Download e non aperto da molto tempo.
+
         case unusedDownload(days: Int)
-        /// File molto grande.
+
         case large
     }
 
@@ -17,7 +15,7 @@ public struct CleanupItem: Sendable, Equatable, Identifiable {
     public var path: String
     public var bytes: UInt64
     public var reason: Reason
-    /// Proposto già spuntato (solo gli installer: quasi sempre inutili).
+
     public var preselected: Bool
 
     public init(name: String, path: String, bytes: UInt64, reason: Reason, preselected: Bool) {
@@ -38,24 +36,16 @@ public struct CleanupItem: Sendable, Equatable, Identifiable {
     }
 }
 
-/// Funzione "Pulizia guidata".
-///
-/// L'app PROPONE dei file; l'utente sceglie cosa togliere e conferma; i file
-/// vanno nel Cestino (si possono recuperare) e l'ultima pulizia si può
-/// annullare. Questo è l'UNICO punto dell'app che sposta file.
 public enum Cleanup {
     static let installerExtensions: Set<String> = ["dmg", "pkg", "mpkg"]
     static let unusedDays = 90
     static let largeBytes: UInt64 = 500 * 1_048_576
-
-    // MARK: Ricerca (sola lettura)
 
     public static func candidates(home: String = FileManager.default.homeDirectoryForCurrentUser.path,
                                   now: Date = Date()) async -> [CleanupItem] {
         var found: [String: CleanupItem] = [:]
         let downloads = "\(home)/Downloads"
 
-        // 1. Download: installer e file non usati da tempo.
         for path in children(of: downloads) {
             let ext = URL(fileURLWithPath: path).pathExtension.lowercased()
             let bytes = await size(of: path)
@@ -67,7 +57,6 @@ public enum Cleanup {
             }
         }
 
-        // 2. File molto grandi nelle cartelle dell'utente (non in Libreria).
         for folder in ["Desktop", "Documents", "Movies", "Downloads"] {
             for (path, bytes) in largeFiles(in: "\(home)/\(folder)") where found[path] == nil {
                 found[path] = item(path, bytes, .large, preselected: false)
@@ -95,8 +84,6 @@ public enum Cleanup {
         return UInt64(values?.totalFileAllocatedSize ?? 0)
     }
 
-    /// Giorni dall'ultimo utilizzo (data "Ultima apertura" del Finder; se manca,
-    /// la data in cui il file è arrivato nella cartella).
     static func daysSinceLastUse(_ path: String, now: Date) -> Int {
         var date: Date?
         if let item = MDItemCreate(nil, path as CFString) {
@@ -120,7 +107,7 @@ public enum Cleanup {
         for case let url as URL in enumerator {
             if enumerator.level > 4 { enumerator.skipDescendants(); continue }
             let v = try? url.resourceValues(forKeys: [.totalFileAllocatedSizeKey, .isRegularFileKey, .isPackageKey])
-            if v?.isPackage == true { enumerator.skipDescendants(); continue }  // app e librerie di Foto: non entrarci
+            if v?.isPackage == true { enumerator.skipDescendants(); continue }
             if v?.isRegularFile == true, let size = v?.totalFileAllocatedSize, UInt64(size) >= largeBytes {
                 result.append((url.path, UInt64(size)))
             }
@@ -128,17 +115,12 @@ public enum Cleanup {
         return result
     }
 
-    // MARK: Azione (solo dopo la conferma dell'utente)
-
     public struct TrashResult: Sendable {
-        /// Percorso originale → percorso nel Cestino (per poter annullare).
         public var moved: [(original: String, inTrash: String)]
         public var bytes: UInt64
         public var refused: [String]
     }
 
-    /// `true` se l'app può toccare questo file: solo dentro la cartella
-    /// dell'utente, mai in Libreria né in file di sistema.
     public static func isSafeToTouch(_ path: String, home: String = FileManager.default.homeDirectoryForCurrentUser.path) -> Bool {
         let p = URL(fileURLWithPath: path).standardizedFileURL.path
         guard p.hasPrefix(home + "/"), p != home else { return false }
@@ -146,7 +128,6 @@ public enum Cleanup {
         return !relative.hasPrefix("Library") && !relative.hasPrefix(".")
     }
 
-    /// Sposta i file nel Cestino. Rifiuta tutto ciò che non è sicuro.
     public static func moveToTrash(_ items: [CleanupItem],
                                    home: String = FileManager.default.homeDirectoryForCurrentUser.path) -> TrashResult {
         var result = TrashResult(moved: [], bytes: 0, refused: [])
@@ -167,7 +148,6 @@ public enum Cleanup {
         return result
     }
 
-    /// Annulla: riporta i file dal Cestino al loro posto.
     public static func undo(_ result: TrashResult) -> Int {
         var restored = 0
         for (original, inTrash) in result.moved where !inTrash.isEmpty {

@@ -3,22 +3,15 @@ import AssistenteCore
 import Charts
 import SwiftUI
 
-/// Colori dei grafici.
-///
-/// Palette categoriale in ordine fisso (blu, arancio, acqua, giallo, magenta),
-/// con una versione per il tema chiaro e una per lo scuro. Verificata per
-/// distinguibilità anche con daltonismo (ΔE adiacenti ≥ 8 in OKLab) su
-/// entrambi gli sfondi. Sul chiaro alcuni colori hanno contrasto < 3:1: va
-/// bene perché ogni parte è anche scritta per esteso nell'elenco sotto.
 enum ChartPalette {
     static let series: [(light: UInt32, dark: UInt32)] = [
-        (0x2a78d6, 0x3987e5),  // blu
-        (0xeb6834, 0xd95926),  // arancio
-        (0x1baf7a, 0x199e70),  // acqua
-        (0xeda100, 0xc98500),  // giallo
-        (0xe87ba4, 0xd55181),  // magenta
+        (0x2a78d6, 0x3987e5),
+        (0xeb6834, 0xd95926),
+        (0x1baf7a, 0x199e70),
+        (0xeda100, 0xc98500),
+        (0xe87ba4, 0xd55181),
     ]
-    /// "Il resto": grigio neutro, non è una categoria.
+
     static let rest: (light: UInt32, dark: UInt32) = (0x9e9d97, 0x6b6a65)
 
     static func color(_ swatch: ChartSwatch) -> Color {
@@ -28,7 +21,6 @@ enum ChartPalette {
         }
     }
 
-    /// Colore che cambia da solo con il tema chiaro/scuro.
     static func adaptive(_ pair: (light: UInt32, dark: UInt32)) -> Color {
         Color(nsColor: NSColor(name: nil) { appearance in
             let dark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
@@ -43,16 +35,9 @@ enum ChartPalette {
     }
 }
 
-/// Il grafico dello spazio: una ciambella che mostra come è diviso lo spazio
-/// usato e, accanto, quanto è pieno il disco ("usati X su Y" + indicatore).
-///
-/// Al centro della ciambella c'è il totale usato; passando il mouse su una
-/// fetta, il centro mostra il nome e la quantità di quella voce. Le righe
-/// sotto (con il pallino dello stesso colore) fanno da legenda e riportano
-/// i numeri esatti.
 struct DiskChartView: View {
     let chart: SegmentedChart
-    /// Punto della ciambella sotto il mouse (in byte cumulativi), se c'è.
+
     @Binding var hover: Double?
 
     var body: some View {
@@ -75,7 +60,6 @@ struct DiskChartView: View {
 
     private var visible: [SegmentedChart.Segment] { chart.segments.filter { $0.bytes > 0 } }
 
-    /// La fetta sotto il mouse: si trova sommando le fette fino al punto indicato.
     private var hovered: SegmentedChart.Segment? {
         guard let hover else { return nil }
         var running = 0.0
@@ -90,10 +74,10 @@ struct DiskChartView: View {
         Chart(visible) { segment in
             SectorMark(angle: .value("Spazio", Double(segment.bytes)),
                        innerRadius: .ratio(0.62),
-                       angularInset: 1.5)  // piccolo stacco tra le fette
+                       angularInset: 1.5)
                 .cornerRadius(4)
                 .foregroundStyle(ChartPalette.color(segment.swatch))
-                // La fetta sotto il mouse resta piena, le altre si attenuano.
+
                 .opacity(hovered == nil || hovered?.id == segment.id ? 1 : 0.35)
         }
         .chartLegend(.hidden)
@@ -113,7 +97,6 @@ struct DiskChartView: View {
         .accessibilityLabel(L.t("ui.chart.a11y", chart.segments.map(chart.description).joined(separator: ", ")))
     }
 
-    /// Centro della ciambella: il totale, oppure la fetta sotto il mouse.
     @ViewBuilder private var centerLabel: some View {
         VStack(spacing: 1) {
             if let s = hovered {
@@ -140,9 +123,6 @@ struct DiskChartView: View {
     }
 }
 
-/// Indicatore sottile di riempimento: blu se va tutto bene, arancio se lo
-/// spazio sta finendo, rosso se è quasi esaurito (la riga "Spazio libero"
-/// sotto lo dice anche a parole, con la sua icona).
 struct CapacityMeter: View {
     let fraction: Double
     let level: Finding.Severity
@@ -155,7 +135,7 @@ struct CapacityMeter: View {
             }
         }
         .frame(height: 8)
-        .accessibilityHidden(true)  // il testo sopra dice già tutto
+        .accessibilityHidden(true)
     }
 
     private var fill: Color {
@@ -167,7 +147,6 @@ struct CapacityMeter: View {
     }
 }
 
-/// Pallino colorato a sinistra di una riga dell'elenco.
 struct SwatchDot: View {
     let swatch: ChartSwatch
 

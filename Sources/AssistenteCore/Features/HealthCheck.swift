@@ -1,18 +1,11 @@
 import Foundation
 
-/// Funzione "Controlla il mio Mac": un semaforo con tutte le cose importanti
-/// (velocità, spazio, backup, sicurezza, aggiornamenti, batteria).
-///
-/// Tutto deciso dal codice, niente AI: le voci si capiscono da sole e la
-/// risposta è immediata. L'app non cambia nessuna impostazione: dice solo
-/// cosa sistemare e dove.
 public enum HealthCheck {
-
     public struct Input: Sendable {
         public var snapshot: SystemSnapshot
         public var disk: (total: UInt64, free: UInt64)
         public var status: MacStatus
-        /// Cose sospette trovate dalla caccia alle app (`nil` = non controllato).
+
         public var suspicious: Int?
         public var now: Date
 
@@ -28,8 +21,7 @@ public enum HealthCheck {
 
     public static func findings(for input: Input) -> [Finding] {
         let items = checks(input)
-        // Problemi prima, poi le informazioni, poi ciò che va bene. A parità di
-        // gravità resta l'ordine fisso delle voci, così l'elenco non "balla".
+
         let sorted = items.enumerated()
             .sorted { ($0.element.severity, -$0.offset) > ($1.element.severity, -$1.offset) }
             .map(\.element)
@@ -51,7 +43,6 @@ public enum HealthCheck {
         var result: [Finding] = []
         let s = input.status
 
-        // Velocità: riusa le regole di "Mac lento" (senza il riavvio, che è a parte).
         let slow = SlowMacDiagnosis.findings(for: input.snapshot).filter { $0.id != "uptime" && $0.id != "ok" }
         if let worst = slow.max(by: { $0.severity < $1.severity }), worst.severity >= .warning {
             result.append(.init(id: "speed", severity: .warning, title: L.t("health.speed.bad", worst.title.lowercasedFirst),
@@ -60,7 +51,6 @@ public enum HealthCheck {
             result.append(.init(id: "speed", severity: .ok, title: L.t("health.speed.ok"), symbol: "speedometer"))
         }
 
-        // Spazio
         let usage = DiskUsage(totalBytes: input.disk.total, freeBytes: input.disk.free, purgeableBytes: 0,
                               macOSBytes: 0, items: [], localSnapshotCount: 0)
         switch DiskSpaceAnalysis.level(usage) {
@@ -71,7 +61,6 @@ public enum HealthCheck {
                                 advice: L.t("health.disk.low.advice"), symbol: "internaldrive"))
         }
 
-        // Backup
         switch s.backup {
         case .notConfigured:
             result.append(.init(id: "backup", severity: .warning, title: L.t("health.backup.none"),
@@ -93,7 +82,6 @@ public enum HealthCheck {
             break
         }
 
-        // Sicurezza
         if let on = s.fileVaultOn {
             result.append(on
                 ? .init(id: "filevault", severity: .ok, title: L.t("health.filevault.on"), symbol: "lock.fill")
@@ -118,7 +106,6 @@ public enum HealthCheck {
             result.append(.init(id: "sip", severity: .ok, title: L.t("health.sip.on"), symbol: "checkmark.shield.fill"))
         }
         if s.firewallOn == false {
-            // Apple lo spedisce spento: è un'informazione, non un problema.
             result.append(.init(id: "firewall", severity: .info, title: L.t("health.firewall.off"),
                                 advice: L.t("health.firewall.off.advice"),
                                 symbol: "flame"))
@@ -126,7 +113,6 @@ public enum HealthCheck {
             result.append(.init(id: "firewall", severity: .ok, title: L.t("health.firewall.on"), symbol: "flame"))
         }
 
-        // App sospette
         if let n = input.suspicious {
             result.append(n == 0
                 ? .init(id: "apps", severity: .ok, title: L.t("health.apps.ok"), symbol: "checkmark.shield.fill")
@@ -136,7 +122,6 @@ public enum HealthCheck {
                         symbol: "exclamationmark.shield.fill"))
         }
 
-        // Aggiornamenti
         if let pending = s.pendingUpdates, pending > 0 {
             result.append(.init(id: "updates", severity: .warning,
                                 title: pending == 1 ? L.t("health.updates.one") : L.t("health.updates.many", pending),
@@ -150,7 +135,6 @@ public enum HealthCheck {
             result.append(.init(id: "updates", severity: .ok, title: L.t("health.updates.auto.on"), symbol: "arrow.down.circle"))
         }
 
-        // Batteria
         if let b = s.battery {
             if b.healthPercent < 80 {
                 result.append(.init(id: "battery", severity: .warning,
@@ -163,7 +147,6 @@ public enum HealthCheck {
             }
         }
 
-        // Riavvio
         let days = Fmt.days(input.snapshot.uptime)
         if days >= 14 {
             result.append(.init(id: "uptime", severity: .info, title: L.t("health.uptime", days),
@@ -175,6 +158,5 @@ public enum HealthCheck {
 }
 
 extension String {
-    /// "Il processore…" -> "il processore…"
     var lowercasedFirst: String { prefix(1).lowercased() + dropFirst() }
 }

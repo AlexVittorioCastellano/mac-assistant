@@ -1,10 +1,5 @@
 import Foundation
 
-/// Misura lo spazio su disco. Solo lettura: non cancella e non sposta nulla.
-///
-/// Alcune cartelle (Download, Documenti, Scrivania) la prima volta fanno
-/// comparire una richiesta di permesso di macOS. Se l'utente rifiuta, quella
-/// voce viene semplicemente saltata.
 public struct DiskMonitor: Sendable {
     public init() {}
 
@@ -12,14 +7,12 @@ public struct DiskMonitor: Sendable {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         let assets = "/System/Library/AssetsV2"
 
-        // I modelli di Apple Intelligence e Siri sono le cartelle "UAF" (Unified Asset Framework).
         let assetFolders = (try? FileManager.default.contentsOfDirectory(atPath: assets)) ?? []
         let aiFolders = assetFolders.filter { $0.hasPrefix("com_apple_MobileAsset_UAF_") }.map { "\(assets)/\($0)" }
 
-        // Cosa misurare: categoria -> cartelle.
         let plan: [(DiskCategory, [String], String?)] = [
             (.appleAI, aiFolders, nil),
-            (.systemAssets, [assets], nil),  // poi tolgo i modelli AI
+            (.systemAssets, [assets], nil),
             (.applications, ["/Applications"], "/Applications"),
             (.downloads, ["\(home)/Downloads"], "\(home)/Downloads"),
             (.desktop, ["\(home)/Desktop"], "\(home)/Desktop"),
@@ -29,14 +22,13 @@ public struct DiskMonitor: Sendable {
             (.music, ["\(home)/Music"], "\(home)/Music"),
             (.trash, ["\(home)/.Trash"], nil),
             (.caches, ["\(home)/Library/Caches", "/Library/Caches", "/private/var/folders"], nil),
-            (.appData, ["\(home)/Library/Application Support"], nil),  // poi tolgo i backup
+            (.appData, ["\(home)/Library/Application Support"], nil),
             (.iosBackups, ["\(home)/Library/Application Support/MobileSync/Backup"], nil),
             (.otherAIModels, ["\(home)/.ollama", "\(home)/.cache/huggingface", "\(home)/.lmstudio", "\(home)/.cache/lm-studio"], nil),
             (.developer, ["\(home)/Library/Developer"], nil),
             (.swap, ["/private/var/vm"], nil),
         ]
 
-        // Tutte le misure in parallelo (la più lenta, /Applications, ~3 s).
         var sizes: [DiskCategory: UInt64] = [:]
         await withTaskGroup(of: (DiskCategory, UInt64?).self) { group in
             for (category, paths, _) in plan {
@@ -46,7 +38,7 @@ public struct DiskMonitor: Sendable {
                 if let bytes { sizes[category] = bytes }
             }
         }
-        // Evita di contare due volte le cartelle contenute in altre.
+
         if let all = sizes[.systemAssets] { sizes[.systemAssets] = all - min(all, sizes[.appleAI] ?? 0) }
         if let all = sizes[.appData] { sizes[.appData] = all - min(all, sizes[.iosBackups] ?? 0) }
 
@@ -65,9 +57,6 @@ public struct DiskMonitor: Sendable {
             localSnapshotCount: await Self.localSnapshotCount())
     }
 
-    // MARK: - Misure
-
-    /// Somma di `du -sk` sulle cartelle esistenti. `nil` se nessuna è leggibile.
     public static func size(of paths: [String]) async -> UInt64? {
         let existing = paths.filter { FileManager.default.fileExists(atPath: $0) }
         guard !existing.isEmpty else { return 0 }
@@ -78,7 +67,6 @@ public struct DiskMonitor: Sendable {
         return kilobytes.isEmpty ? nil : kilobytes.reduce(0, +) * 1024
     }
 
-    /// Spazio totale, libero e "eliminabile" (purgeable) del disco di avvio.
     public static func volumeCapacity() -> (total: UInt64, free: UInt64, purgeable: UInt64) {
         let keys: Set<URLResourceKey> = [.volumeTotalCapacityKey, .volumeAvailableCapacityKey,
                                          .volumeAvailableCapacityForImportantUsageKey]
@@ -89,7 +77,6 @@ public struct DiskMonitor: Sendable {
         return (total, free, important > free ? important - free : 0)
     }
 
-    /// Dati del contenitore APFS del disco di avvio (via `diskutil`).
     static func apfsContainer() async -> (total: UInt64, free: UInt64, macOS: UInt64)? {
         guard let output = await Shell.run("/usr/sbin/diskutil", ["apfs", "list", "-plist"]),
               let data = output.data(using: .utf8),
@@ -98,10 +85,9 @@ public struct DiskMonitor: Sendable {
         return parseContainers(containers)
     }
 
-    /// Separato per poterlo testare.
     static func parseContainers(_ containers: [[String: Any]]) -> (total: UInt64, free: UInt64, macOS: UInt64)? {
         func roles(_ v: [String: Any]) -> [String] { v["Roles"] as? [String] ?? [] }
-        // Il contenitore di avvio è quello con i volumi "System" e "Data".
+
         guard let boot = containers.first(where: { c in
             let all = (c["Volumes"] as? [[String: Any]] ?? []).flatMap(roles)
             return all.contains("System") && all.contains("Data")
@@ -116,7 +102,6 @@ public struct DiskMonitor: Sendable {
         return (total, free, macOS)
     }
 
-    /// Istantanee locali di Time Machine.
     static func localSnapshotCount() async -> Int {
         guard let output = await Shell.run("/usr/bin/tmutil", ["listlocalsnapshots", "/"]) else { return 0 }
         return output.split(separator: "\n").filter { $0.contains("com.apple.TimeMachine") }.count

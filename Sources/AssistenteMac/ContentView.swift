@@ -19,11 +19,7 @@ struct ContentView: View {
             } else if model.isWorking || !model.choices.isEmpty || !model.findings.isEmpty || !model.answer.isEmpty
                         || model.notice != nil || !model.cleanupItems.isEmpty {
                 Divider()
-                // Dentro un MenuBarExtra uno ScrollView senza altezza si riduce a
-                // zero. Le risposte brevi si mostrano così come sono; quelle
-                // lunghe (es. il controllo generale) scorrono in un'area di
-                // altezza FISSA, calcolata perché il riquadro stia sullo schermo
-                // anche di un MacBook da 13".
+
                 if isLongResult {
                     ScrollView {
                         results.frame(maxWidth: .infinity, alignment: .leading)
@@ -38,10 +34,9 @@ struct ContentView: View {
         }
         .padding(14)
         .frame(width: 400)
-        // Cambiando lingua tutto si ridisegna con i nuovi testi.
+
         .id(model.languageCode ?? "auto")
-        // Trascinando un'immagine (es. lo screenshot di un errore) sul riquadro
-        // l'app ne legge il testo e lo spiega.
+
         .dropDestination(for: URL.self) { urls, _ in
             guard let url = urls.first, let data = try? Data(contentsOf: url) else { return false }
             model.explainImage(data)
@@ -49,12 +44,10 @@ struct ContentView: View {
         }
         .onAppear {
             fieldFocused = true
-            model.prewarmTextRecognition()  // così "Spiega un messaggio" è subito pronto
+            model.prewarmTextRecognition()
         }
     }
 
-    /// Sotto un risultato: leggi ad alta voce e, per il controllo generale,
-    /// il riepilogo da copiare o condividere con chi ti aiuta.
     @ViewBuilder private func resultActions(advice: [String]) -> some View {
         HStack(spacing: 8) {
             let reading = model.speech.speakingID == "result"
@@ -76,17 +69,14 @@ struct ContentView: View {
         .buttonStyle(.bordered)
     }
 
-    /// Stima prudente: molte righe (o il grafico) = risultato lungo.
     private var isLongResult: Bool {
         let rows = model.findings.count + Finding.advice(from: model.findings).count + model.cleanupItems.count * 2
         return rows + (model.chart != nil ? 5 : 0) > 11
     }
 
-    /// Stima dell'altezza dei risultati, per non lasciare spazio vuoto sotto
-    /// (se la stima è bassa, il contenuto scorre: nessun problema).
     private var estimatedResultsHeight: CGFloat {
         let advice = Finding.advice(from: model.findings)
-        var h: CGFloat = 50  // pulsanti sotto il risultato e margini
+        var h: CGFloat = 50
         h += CGFloat(model.findings.count) * 30
         h += advice.reduce(0) { $0 + 22 * CGFloat(1 + $1.count / 55) } + (advice.isEmpty ? 0 : 30)
         h += model.answer.isEmpty ? 0 : 22 * CGFloat(1 + model.answer.count / 55)
@@ -95,8 +85,6 @@ struct ContentView: View {
         return h
     }
 
-    /// Altezza dell'area a scorrimento: quanto resta sullo schermo tolta la
-    /// parte fissa del riquadro (campo, pulsanti, piè di pagina ≈ 300 punti).
     private var scrollHeight: CGFloat {
         let screen = NSScreen.main?.visibleFrame.height ?? 800
         return max(300, min(620, screen - 330))
@@ -115,7 +103,7 @@ struct ContentView: View {
                 .textFieldStyle(.roundedBorder)
                 .focused($fieldFocused)
                 .onSubmit { model.ask() }
-            // Domanda a voce: premi per parlare, premi di nuovo per chiedere.
+
             Button {
                 model.toggleVoice()
             } label: {
@@ -139,10 +127,7 @@ struct ContentView: View {
     }
 
     private var quickActions: some View {
-        // Etichette brevi per farci stare tre pulsanti; la domanda completa
-        // compare passandoci sopra con il mouse.
         VStack(spacing: 8) {
-            // Il pulsante principale: un controllo generale in un clic.
             Button {
                 model.ask(Assistant.healthQuestion)
             } label: {
@@ -154,7 +139,6 @@ struct ContentView: View {
             .controlSize(.large)
             .help(L.t("ui.button.health.help"))
 
-            // Griglia 2×2: pulsanti grandi e facili da colpire.
             Grid(horizontalSpacing: 8, verticalSpacing: 8) {
                 GridRow {
                     quickButton(L.t("ui.button.slow"), question: Assistant.slowMacQuestion, icon: "tortoise")
@@ -232,7 +216,6 @@ struct ContentView: View {
                 }
             }
             if !model.choices.isEmpty {
-                // Processi tra cui scegliere: un clic fa la domanda.
                 VStack(alignment: .leading, spacing: 6) {
                     ForEach(model.choices, id: \.self) { choice in
                         Button { model.ask(choice.question) } label: {
@@ -265,7 +248,7 @@ struct ContentView: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            // Impostazioni in un menu, così il piè di pagina resta pulito.
+
             Menu {
                 Toggle(L.t("ui.settings.alerts"), isOn: Binding(get: { model.alerts.enabled },
                                                           set: { model.alerts.enabled = $0 }))
@@ -274,7 +257,7 @@ struct ContentView: View {
                 Divider()
                 Text(model.hotKey != nil ? L.t("ui.settings.hotkey", GlobalHotKey.label)
                                          : L.t("ui.settings.hotkey.taken", GlobalHotKey.label))
-                // Lingua: automatica o una di quelle disponibili.
+
                 Picker(L.t("ui.settings.language"), selection: $model.languageCode) {
                     Text(L.t("ui.settings.language.auto")).tag(String?.none)
                     ForEach(L.available, id: \.code) { pack in
@@ -293,10 +276,8 @@ struct ContentView: View {
             .help(L.t("ui.settings"))
         }
     }
-
 }
 
-/// Il modello può rispondere con un po' di Markdown (grassetti, elenchi).
 func markdown(_ text: String) -> AttributedString {
     (try? AttributedString(markdown: text, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)))
         ?? AttributedString(text)
@@ -313,7 +294,6 @@ private struct FindingRow: View {
         }
     }
 
-    /// Il semaforo del controllo generale: grande, in un riquadro colorato.
     private var headline: some View {
         HStack(spacing: 10) {
             Image(systemName: finding.symbol ?? icon)
@@ -330,7 +310,6 @@ private struct FindingRow: View {
     private var row: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             if let swatch = finding.swatch {
-                // Pallino dello stesso colore del blocco nella barra (fa da legenda).
                 SwatchDot(swatch: swatch)
                     .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + 4 }
             }
@@ -366,8 +345,6 @@ private struct FindingRow: View {
     }
 }
 
-/// Icona di un elemento: quella del Finder per un file/cartella/app
-/// (come la mostra il Finder), altrimenti un simbolo SF.
 struct ItemIcon: View {
     let path: String?
     let symbol: String
@@ -390,8 +367,6 @@ struct ItemIcon: View {
     }
 }
 
-/// Banner in cima al riquadro per un avviso attivo, con "Vedi" che apre la
-/// funzione giusta.
 private struct AlertBanner: View {
     let alert: MacAlert
     let action: () -> Void

@@ -1,22 +1,19 @@
 import Foundation
 import Security
 
-/// Chi ha firmato un programma, letto dalla firma digitale (sul Mac, senza rete:
-/// niente controllo di notarizzazione, che potrebbe contattare Apple).
 public enum CodeTrust: Sendable, Equatable {
-    /// Parte di macOS o app di Apple.
     case apple
-    /// Scaricata dall'App Store.
+
     case appStore
-    /// Firmata da uno sviluppatore registrato presso Apple (con il suo nome).
+
     case identifiedDeveloper(String)
-    /// Firmata, ma da nessuno che Apple conosca (es. compilata in casa).
+
     case unverified
-    /// Senza firma.
+
     case unsigned
-    /// Firma presente ma non valida: il programma è stato modificato.
+
     case broken
-    /// Il file non esiste.
+
     case missing
 
     public var isTrusted: Bool {
@@ -32,7 +29,6 @@ public enum CodeTrust: Sendable, Equatable {
         guard SecStaticCodeCreateWithPath(URL(fileURLWithPath: path) as CFURL, [], &code) == errSecSuccess,
               let code else { return .unsigned }
 
-        // Validità della firma (senza controllare ogni risorsa: è molto più veloce).
         let flags = SecCSFlags(rawValue: kSecCSDoNotValidateResources)
         let validity = SecStaticCodeCheckValidity(code, flags, nil)
         if validity == errSecCSUnsigned { return .unsigned }
@@ -51,7 +47,6 @@ public enum CodeTrust: Sendable, Equatable {
         return .unverified
     }
 
-    /// "Developer ID Application: Google LLC (EQHXZ8M8AV)" -> "Google LLC"
     static func developerName(_ code: SecStaticCode) -> String? {
         var info: CFDictionary?
         guard SecCodeCopySigningInformation(code, SecCSFlags(rawValue: kSecCSSigningInformation), &info) == errSecSuccess,

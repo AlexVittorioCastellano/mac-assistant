@@ -1,58 +1,46 @@
 import Foundation
 
-/// Un avviso da mostrare all'utente (notifica + banner nel riquadro).
 public struct MacAlert: Sendable, Equatable, Identifiable {
     public enum Kind: String, Sendable { case cpuHog, memory, heat, disk }
 
-    /// Stabile per lo stesso problema (es. "cpuHog:Spotify"): serve a non ripeterlo.
     public var id: String
     public var kind: Kind
     public var title: String
     public var body: String
-    /// La domanda da fare se l'utente preme "Vedi".
+
     public var question: String
 }
 
-/// Funzione "Avvisi prima che sia tardi".
-///
-/// Riceve una misura al minuto e decide quando avvisare. È una macchina a
-/// stati pura (nessun timer, nessuna notifica): così si può testare il
-/// passare del tempo senza aspettare. Regole pensate per NON disturbare:
-/// - si avvisa solo per problemi che DURANO (non per un picco di pochi secondi);
-/// - lo stesso avviso non si ripete prima di `repeatAfter`.
 public struct AlertMonitor: Sendable {
     public struct Rules: Sendable {
-        /// Un'app che usa almeno questo processore (100 = un core intero)…
         public var cpuThreshold: Double = 80
-        /// …per almeno questo tempo.
+
         public var cpuDuration: TimeInterval = 10 * 60
         public var memoryDuration: TimeInterval = 5 * 60
         public var heatDuration: TimeInterval = 5 * 60
-        /// Spazio libero sotto cui avvisare (in proporzione e in assoluto).
+
         public var diskFreeRatio: Double = 0.10
         public var diskFreeBytes: UInt64 = 10 * 1_073_741_824
-        /// Tempo minimo prima di ripetere lo stesso avviso.
+
         public var repeatAfter: TimeInterval = 6 * 3600
         public init() {}
     }
 
     public var rules = Rules()
-    /// Da quando dura ogni condizione (chiave = id dell'avviso).
+
     private var since: [String: Date] = [:]
-    /// Quando è stato mandato l'ultimo avviso per ogni id.
+
     private var lastSent: [String: Date] = [:]
-    /// Avvisi la cui condizione è ancora vera (per il banner e l'icona).
+
     public private(set) var active: [MacAlert] = []
 
     public init(rules: Rules = Rules()) { self.rules = rules }
 
-    /// Una misura. Restituisce gli avvisi NUOVI da notificare adesso.
     public mutating func update(snapshot s: SystemSnapshot, diskFree: UInt64, diskTotal: UInt64,
                                 now: Date = Date()) -> [MacAlert] {
-        var current: [MacAlert] = []   // condizioni vere e durate abbastanza
-        var seen = Set<String>()       // condizioni vere adesso (anche se non ancora durate)
+        var current: [MacAlert] = []
+        var seen = Set<String>()
 
-        /// Da quanto dura una condizione, in parole ("da 25 minuti").
         func elapsed(_ id: String) -> String {
             let minutes = Int(now.timeIntervalSince(since[id] ?? now) / 60)
             switch minutes {
@@ -71,7 +59,6 @@ public struct AlertMonitor: Sendable {
             if now.timeIntervalSince(start) >= duration { current.append(makeAlert()) }
         }
 
-        // App dell'utente che occupa il processore a lungo (mai processi di macOS).
         for p in s.processes where !p.isSystem && p.cpuPercent >= rules.cpuThreshold {
             let id = "cpuHog:\(p.name)"
             check({ MacAlert(id: id, kind: .cpuHog,
@@ -98,7 +85,6 @@ public struct AlertMonitor: Sendable {
                          question: Assistant.diskQuestion) },
               id: "disk", isTrue: lowDisk, duration: 0)
 
-        // Le condizioni finite si dimenticano: se tornano, il conteggio riparte.
         since = since.filter { seen.contains($0.key) }
         active = current
 

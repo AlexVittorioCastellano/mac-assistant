@@ -1,12 +1,8 @@
 import AssistenteCore
 import Foundation
 
-/// Prove di qualità con il modello vero: `assistente-cli --eval Evals/it.json`.
-/// Per ogni caso controlla a quale funzione arriva la domanda, se si attiva
-/// una guida verificata e cosa contiene (o non contiene) la risposta.
 enum Eval {
     struct File: Decodable {
-        /// Lingua delle domande (es. "it", "en"): l'app gira in quella lingua.
         let language: String?
         let cases: [Case]
     }
@@ -14,14 +10,14 @@ enum Eval {
     struct Case: Decodable {
         var question: String?
         var turns: [String]?
-        /// Testo di un messaggio da spiegare ("Spiegami questo messaggio").
+
         var message: String?
         var intent: String
         var guide: Bool?
         var contains: [String]?
         var containsAny: [String]?
         var notContains: [String]?
-        /// Per le conversazioni: se l'ultimo turno deve basarsi su una guida.
+
         var lastGuide: Bool?
 
         var allTurns: [String] { turns ?? [question ?? message ?? ""] }
@@ -57,7 +53,6 @@ enum Eval {
         return failures == 0
     }
 
-    /// Esegue un caso e restituisce i problemi trovati (vuoto = superato).
     static func check(_ c: Case, assistant: Assistant) async -> [String] {
         var problems: [String] = []
         var answer = ""
@@ -118,7 +113,7 @@ enum Eval {
         if let any = c.containsAny, !any.contains(where: { text.contains(normalize($0)) }) {
             problems.append("manca almeno uno tra \(any.map { "«\($0)»" }.joined(separator: ", "))")
         }
-        // "Non contiene" a inizio parola: "tema" non deve scattare dentro "sistema".
+
         for s in c.notContains ?? [] where IntentRouter.hasStem(text, normalize(s)) {
             problems.append("contiene «\(s)» (non dovrebbe)")
         }
@@ -134,7 +129,6 @@ enum Eval {
         return last
     }
 
-    /// Minuscole e senza accenti; i simboli dei tasti restano uguali.
     static func normalize(_ s: String) -> String {
         s.replacingOccurrences(of: "’", with: "'")
             .replacingOccurrences(of: "**", with: "")

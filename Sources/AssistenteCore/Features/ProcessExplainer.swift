@@ -1,35 +1,22 @@
 import Foundation
 
-/// Funzione 2: "Cos'è questo processo?"
-///
-/// Come per la funzione 1: il codice trova il processo, capisce che tipo è
-/// e decide se si può chiudere; l'AI spiega solo a cosa serve.
 public enum ProcessExplainer {
-
-    /// Il processo trovato, con i dati per spiegarlo.
     public struct Details: Sendable, Equatable {
         public var group: ProcessGroup
         public var note: String?
-        /// `false` se trovato solo per nome parziale (es. "AirDrop" dentro
-        /// "AirDropHandoffIntentsExtension"): potrebbe non essere quello cercato.
+
         public var isExactMatch = true
     }
 
-    // MARK: Ricerca
-
-    /// Trova un processo per nome tra quelli in esecuzione.
-    /// Ordine: nome esatto → nome dell'app (es. "Google Chrome" per i suoi
-    /// Helper) → nome che contiene il testo cercato (se c'è un solo risultato).
     public static func find(_ name: String, in samples: [ProcessSample]) -> Details? {
         func same(_ a: String, _ b: String) -> Bool { a.caseInsensitiveCompare(b) == .orderedSame }
 
-        // 1. Nome esatto: chiedere di "Google Chrome Helper" spiega l'Helper.
         var matching = samples.filter { same($0.name, name) }
-        // 2. Nome dell'app: "Google Chrome" comprende anche i suoi Helper.
+
         if matching.isEmpty {
             matching = samples.filter { same(ProcessLister.logicalName($0.name), name) }
         }
-        // 3. Nome parziale, solo se non è ambiguo.
+
         var exact = true
         if matching.isEmpty {
             let partial = samples.filter { $0.name.localizedCaseInsensitiveContains(name) }
@@ -37,7 +24,6 @@ public enum ProcessExplainer {
         }
         guard !matching.isEmpty else { return nil }
 
-        // Il processo "principale" (se c'è) decide nome e tipo.
         let logical = ProcessLister.logicalName(matching[0].name)
         let main = matching.first { $0.name == logical } ?? matching[0]
         let displayName = matching.allSatisfy { $0.name == main.name } ? main.name : logical
@@ -54,10 +40,7 @@ public enum ProcessExplainer {
         return Details(group: group, note: KnownProcesses.note(for: main.name), isExactMatch: exact)
     }
 
-    /// Processi da proporre quando l'utente non ha indicato un nome:
-    /// quelli che pesano di più adesso, senza doppioni.
     public static func suggestions(from samples: [ProcessSample], limit: Int = 8) -> [ProcessGroup] {
-        // Non proponiamo l'assistente stesso.
         let me = ProcessInfo.processInfo.processIdentifier
         let groups = ProcessLister.group(samples).filter { !$0.pids.contains(me) }
         let byCPU = groups.sorted { $0.cpuPercent > $1.cpuPercent }.prefix(limit / 2)
@@ -66,9 +49,6 @@ public enum ProcessExplainer {
         return Array((byCPU + byMem).filter { seen.insert($0.name).inserted }.prefix(limit))
     }
 
-    // MARK: Cosa mostrare (deciso dal codice)
-
-    /// Simbolo per i processi senza un'app da cui prendere l'icona.
     public static func symbol(for g: ProcessGroup) -> String {
         g.isSystem ? "gearshape.fill" : "app.dashed"
     }
@@ -76,7 +56,7 @@ public enum ProcessExplainer {
     public static func findings(for d: Details) -> [Finding] {
         let g = d.group
         var result: [Finding] = []
-        // L'icona del processo accompagna la riga "che tipo è".
+
         let icon = ProcessKind.outermostAppBundlePath(in: g.path)
         let symbol = symbol(for: g)
 
@@ -115,8 +95,6 @@ public enum ProcessExplainer {
         return result
     }
 
-    // MARK: Richiesta all'AI
-
     public static func request(question: String, details d: Details) -> AIRequest {
         let g = d.group
         let kind = switch g.kind {
@@ -132,17 +110,13 @@ public enum ProcessExplainer {
         if let note = d.note {
             prompt += "\n" + L.t("process.prompt.note", note)
         } else if let path = g.path {
-            // Senza una nota, il percorso aiuta il modello a capire (es. "CoreSuggestions").
             prompt += "\n" + L.t("process.prompt.path", path)
         }
         prompt += "\n\n" + L.t("process.prompt.end")
         return AIRequest(instructions: Prompts.base, prompt: prompt)
     }
 
-    /// Messaggio quando il processo non è in esecuzione.
     public static func notFoundMessage(for name: String) -> String {
-        // Alcuni processi (es. kernel_task) sono sempre attivi ma non leggibili
-        // senza permessi di amministratore: non diciamo "non è attivo".
         if let note = KnownProcesses.note(for: name) {
             return L.t("process.notfound.known", name, note)
         }

@@ -164,8 +164,6 @@ a badly translated guide is worse than no guide):
 - **Quality evals with the real model**: 144/144 cases in Italian, 52/52 in English —
   routing, verified guides, exact shortcuts, follow-up questions, off-topic questions,
   scams. Many cases were written as "unseen" questions to measure generalization.
-- Ideas that were measured and rejected are documented in the git history (e.g. letting
-  the model pick the guide: 4/12; sentence embeddings: 11/20).
 
 ## Contributing
 

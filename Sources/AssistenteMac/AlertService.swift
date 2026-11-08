@@ -3,16 +3,11 @@ import Foundation
 import Observation
 import UserNotifications
 
-/// Tiene d'occhio il Mac in background (una misura al minuto, sola lettura)
-/// e manda una notifica quando `AlertMonitor` lo decide.
-/// Nessun dato esce dal Mac: le notifiche sono locali.
 @MainActor
 @Observable
 final class AlertService {
-    /// Avvisi la cui condizione è ancora vera (banner nel riquadro, icona).
     private(set) var active: [MacAlert] = []
 
-    /// Interruttore "Avvisi automatici" (ricordato tra un avvio e l'altro).
     var enabled: Bool {
         didSet {
             UserDefaults.standard.set(enabled, forKey: Self.enabledKey)
@@ -27,13 +22,11 @@ final class AlertService {
     private let interval: Duration
     private let notificationDelegate = NotificationDelegate()
 
-    /// Le notifiche funzionano solo dentro un bundle .app (non con `swift run`).
     private var canNotify: Bool { Bundle.main.bundleIdentifier != nil }
 
     init() {
         enabled = UserDefaults.standard.object(forKey: Self.enabledKey) as? Bool ?? true
-        // Per sviluppatori: ASSISTENTE_AVVISI_RAPIDI=1 accorcia i tempi a pochi
-        // secondi, così si possono provare gli avvisi senza aspettare 10 minuti.
+
         if ProcessInfo.processInfo.environment["ASSISTENTE_AVVISI_RAPIDI"] != nil {
             var rules = AlertMonitor.Rules()
             rules.cpuDuration = 10
@@ -85,8 +78,6 @@ final class AlertService {
     }
 }
 
-/// Mostra le notifiche anche quando l'app è "in primo piano" (un'app nella
-/// barra dei menu lo è sempre, e senza questo macOS non le mostrerebbe).
 private final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter,
                                             willPresent notification: UNNotification) async

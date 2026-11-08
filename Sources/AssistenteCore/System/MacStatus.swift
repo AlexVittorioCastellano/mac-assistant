@@ -1,9 +1,5 @@
 import Foundation
 
-/// Stato di sicurezza e manutenzione del Mac. Solo dati, letti senza
-/// permessi di amministratore e SENZA rete (per questo non usiamo
-/// `softwareupdate`, che contatta i server Apple).
-/// `nil` = non è stato possibile leggerlo.
 public struct MacStatus: Sendable, Equatable {
     public var fileVaultOn: Bool?
     public var firewallOn: Bool?
@@ -11,9 +7,9 @@ public struct MacStatus: Sendable, Equatable {
     public var sipOn: Bool?
     public var backup: BackupStatus
     public var automaticUpdatesOn: Bool?
-    /// Aggiornamenti già trovati da macOS e non ancora installati.
+
     public var pendingUpdates: Int?
-    /// `nil` sui Mac senza batteria.
+
     public var battery: BatteryHealth?
 
     public init(fileVaultOn: Bool? = nil, firewallOn: Bool? = nil, gatekeeperOn: Bool? = nil, sipOn: Bool? = nil,
@@ -32,13 +28,12 @@ public struct MacStatus: Sendable, Equatable {
 
 public enum BackupStatus: Sendable, Equatable {
     case notConfigured
-    /// Configurato; data dell'ultimo backup se nota.
+
     case configured(lastBackup: Date?)
     case unknown
 }
 
 public struct BatteryHealth: Sendable, Equatable {
-    /// Capacità attuale rispetto a quella da nuova (100 = come nuova).
     public var healthPercent: Int
     public var cycleCount: Int
 
@@ -73,8 +68,6 @@ public struct MacStatusMonitor: Sendable {
             battery: Self.parseBattery(await battery))
     }
 
-    // MARK: - Interpretazione (separata per poterla testare)
-
     static func flag(_ output: String?, on: String, off: String) async -> Bool? {
         guard let output else { return nil }
         if output.localizedCaseInsensitiveContains(off) { return false }
@@ -88,7 +81,6 @@ public struct MacStatusMonitor: Sendable {
         return .configured(lastBackup: lastBackupDate())
     }
 
-    /// Data dell'ultimo backup dalle preferenze di Time Machine (se leggibili).
     static func lastBackupDate() -> Date? {
         let url = URL(fileURLWithPath: "/Library/Preferences/com.apple.TimeMachine.plist")
         guard let data = try? Data(contentsOf: url),
@@ -113,8 +105,7 @@ public struct MacStatusMonitor: Sendable {
         guard let data = output?.data(using: .utf8),
               let list = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [[String: Any]],
               let b = list.first else { return nil }
-        // Sui Mac Apple Silicon le capacità stanno in "BatteryData", il numero
-        // di cicli al livello principale: cerchiamo in entrambi.
+
         let batteryData = b["BatteryData"] as? [String: Any] ?? [:]
         func int(_ key: String) -> Int? { (b[key] as? Int) ?? (batteryData[key] as? Int) }
         let design = int("DesignCapacity") ?? 0

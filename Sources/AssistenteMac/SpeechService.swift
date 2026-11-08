@@ -2,13 +2,11 @@ import AssistenteCore
 import AVFoundation
 import Observation
 
-/// "Leggi ad alta voce": usa la sintesi vocale del Mac nella lingua dell'app.
-/// Tutto sul Mac; premendo di nuovo si ferma.
 @MainActor
 @Observable
 final class SpeechService: NSObject, AVSpeechSynthesizerDelegate {
     private(set) var isSpeaking = false
-    /// Cosa si sta leggendo (per mostrare "Smetti di leggere" sul pulsante giusto).
+
     private(set) var speakingID: String?
     private let synthesizer = AVSpeechSynthesizer()
 

@@ -1,14 +1,6 @@
 import Foundation
 
-/// Funzione "Caccia alle app sospette": programmi che partono da soli e app
-/// installate, controllati con la firma digitale e con regole semplici.
-///
-/// Tutto deciso dal codice (niente AI) e in sola lettura: l'app spiega cosa
-/// ha trovato e come toglierlo, ma non elimina nulla.
 public enum SecurityScan {
-
-    /// Software noto come indesiderato (finti "pulitori", adware…).
-    /// Nomi in minuscolo; si cercano nel nome dell'app o del programma.
     static let knownUnwanted = [
         "mackeeper", "advanced mac cleaner", "advancedmaccleaner", "mac auto fixer", "macautofixer",
         "mac cleanup pro", "maccleanuppro", "smart mac booster", "mac tonic", "mactonic",
@@ -16,10 +8,8 @@ public enum SecurityScan {
         "genieo", "vsearch", "bundlore", "adload", "mughthesec",
     ]
 
-    /// Programmi che eseguono comandi o script (spesso usati dagli adware).
     static let scriptRunners: Set<String> = ["bash", "sh", "zsh", "python", "python3", "osascript", "curl", "perl", "ruby", "node"]
 
-    /// Cartelle dove un programma serio non si installa.
     static let oddLocations = ["/tmp/", "/private/tmp/", "/Users/Shared/", "/private/var/folders/", "/var/folders/"]
 
     static func isKnownUnwanted(_ text: String) -> Bool {
@@ -33,12 +23,10 @@ public enum SecurityScan {
         public var advice: String?
     }
 
-    /// Una firma rotta non prova cattive intenzioni: lo diciamo con onestà.
     static var brokenExplanation: String { L.t("security.broken") }
 
     static var removeBackground: String { L.t("security.remove") }
 
-    /// Verdetto su un programma in background.
     public static func verdict(for item: BackgroundItem, trust: CodeTrust) -> Verdict {
         let program = item.executable ?? ""
         let name = displayName(item)
@@ -75,11 +63,10 @@ public enum SecurityScan {
         case .identifiedDeveloper(let dev):
             return Verdict(severity: .ok, title: L.t("security.bg.developer", name, dev), advice: nil)
         case .broken:
-            return Verdict(severity: .critical, title: L.t("security.bg.generic", name), advice: nil)  // gestito sopra
+            return Verdict(severity: .critical, title: L.t("security.bg.generic", name), advice: nil)
         }
     }
 
-    /// Verdetto su un'app installata (`nil` = tutto a posto, non serve mostrarla).
     public static func verdict(for app: InstalledApp) -> Verdict? {
         if isKnownUnwanted(app.name) {
             return Verdict(severity: .critical, title: L.t("security.app.unwanted", app.name),
@@ -97,10 +84,8 @@ public enum SecurityScan {
         }
     }
 
-    /// Nome leggibile: dal programma, altrimenti dall'etichetta.
     static func displayName(_ item: BackgroundItem) -> String {
         if let exe = item.executable, !exe.isEmpty {
-            // Se sta dentro un'app, il nome dell'app è più chiaro.
             if let app = ProcessKind.outermostAppBundlePath(in: exe) {
                 return URL(fileURLWithPath: app).deletingPathExtension().lastPathComponent
             }
@@ -109,13 +94,11 @@ public enum SecurityScan {
         return item.label
     }
 
-    // MARK: Cosa mostrare
-
     public static func findings(for result: SecurityScanner.Result) -> [Finding] {
         var rows: [Finding] = []
         for (i, entry) in result.items.enumerated() {
             let (item, trust) = entry
-            // Gli elementi di Apple sono parte di macOS: non li elenchiamo.
+
             if item.label.hasPrefix("com.apple.") && trust == .apple { continue }
             let v = verdict(for: item, trust: trust)
             let icon = item.executable.flatMap(ProcessKind.outermostAppBundlePath(in:))
@@ -128,7 +111,6 @@ public enum SecurityScan {
                                 iconPath: app.path))
         }
 
-        // Problemi prima (ordine stabile).
         let sorted = rows.enumerated()
             .sorted { ($0.element.severity, -$0.offset) > ($1.element.severity, -$1.offset) }
             .map(\.element)
@@ -155,7 +137,6 @@ public enum SecurityScan {
         return [headline] + sorted + summary
     }
 
-    /// Quante cose sospette (per il controllo generale).
     public static func problemCount(_ result: SecurityScanner.Result) -> Int {
         findings(for: result).filter { $0.id != "overall" && $0.severity >= .warning }.count
     }

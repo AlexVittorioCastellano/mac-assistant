@@ -1,13 +1,6 @@
 import Foundation
 
-/// Funzione 3: "Dove è finito lo spazio?"
-///
-/// Il codice misura le cartelle e decide cosa mostrare e quali consigli dare
-/// (tutti sicuri: l'app non cancella mai nulla). L'AI spiega il quadro in
-/// poche frasi, compreso cosa sono i "Dati di sistema".
 public enum DiskSpaceAnalysis {
-
-    /// Una voce mostrata all'utente (categoria misurata, macOS o "altro").
     struct Entry {
         var id: String
         var label: String
@@ -36,7 +29,6 @@ public enum DiskSpaceAnalysis {
         }
     }
 
-    /// Consigli: solo azioni sicure che fa l'utente, mai cancellazioni automatiche.
     static func advice(_ c: DiskCategory) -> String? {
         switch c {
         case .appleAI, .downloads, .trash, .applications, .pictures, .caches, .iosBackups, .otherAIModels, .developer, .swap:
@@ -48,27 +40,22 @@ public enum DiskSpaceAnalysis {
         }
     }
 
-    /// Tutte le voci, dalla più grande, compresi macOS e "altro".
     static func entries(_ u: DiskUsage) -> [Entry] {
         var list = u.items.map {
             Entry(id: $0.category.rawValue, label: label($0.category), bytes: $0.bytes,
                   iconPath: $0.path, symbol: symbol($0.category), advice: advice($0.category))
         }
         list.append(Entry(id: "macos", label: L.t("disk.label.macos"), bytes: u.macOSBytes, symbol: "apple.logo"))
-        // Non chiamarlo "Altro": si confonderebbe con "Il resto" del grafico.
+
         list.append(Entry(id: "other", label: L.t("disk.label.other"),
                           bytes: u.otherBytes, symbol: "ellipsis.circle"))
         return list.sorted { $0.bytes > $1.bytes }
     }
 
-    /// Circa quello che Impostazioni chiama "Dati di sistema".
     public static func systemDataBytes(_ u: DiskUsage) -> UInt64 {
         u.items.filter { $0.category.isSystemData }.reduce(0) { $0 + $1.bytes } + u.otherBytes
     }
 
-    // MARK: Cosa mostrare
-
-    /// Quanto è grave: critico sotto il 10% (o 10 GB) liberi, attenzione sotto il 20%.
     static func level(_ u: DiskUsage) -> Finding.Severity {
         let gb: UInt64 = 1_073_741_824
         let freeRatio = u.totalBytes > 0 ? Double(u.freeBytes) / Double(u.totalBytes) : 1
@@ -76,20 +63,13 @@ public enum DiskSpaceAnalysis {
         return freeRatio < 0.2 ? .warning : .ok
     }
 
-    /// Quante voci hanno un colore proprio nel grafico; le altre vanno in "Il resto".
-    /// Massimo 5: oltre, i colori diventano difficili da distinguere.
     public static let coloredEntries = 5
 
-    /// Le voci colorate e quelle raggruppate in "Il resto".
     static func split(_ u: DiskUsage) -> (top: [Entry], rest: [Entry]) {
         let all = entries(u).filter { $0.bytes > 0 }
         return (Array(all.prefix(coloredEntries)), Array(all.dropFirst(coloredEntries)))
     }
 
-    /// Barra segmentata dello spazio USATO (le voci più grandi e il resto),
-    /// più la capacità del disco per l'indicatore "usati X su Y".
-    /// Lo spazio libero non è un blocco: su un disco quasi vuoto renderebbe
-    /// le voci strisce illeggibili.
     public static func chart(for u: DiskUsage) -> SegmentedChart {
         let (top, rest) = split(u)
         var segments = top.enumerated().map { i, e in
@@ -109,8 +89,7 @@ public enum DiskSpaceAnalysis {
 
         let summary = L.t("disk.free", Fmt.size(u.freeBytes), Fmt.size(u.totalBytes))
         let severity = level(u)
-        // Con tanto spazio libero, i consigli di pulizia sarebbero inutili:
-        // lo diciamo chiaramente e mostriamo solo le informazioni.
+
         let plenty = severity == .ok
         result.append(.init(id: "free", severity: severity, title: summary,
                             advice: plenty ? L.t("disk.free.plenty") : L.t("disk.free.low"),
@@ -122,7 +101,6 @@ public enum DiskSpaceAnalysis {
                                 symbol: "arrow.3.trianglepath"))
         }
 
-        // Le righe hanno lo stesso ordine e lo stesso colore dei blocchi della barra.
         let (top, rest) = split(u)
         for (i, e) in top.enumerated() {
             result.append(.init(id: e.id, severity: .info, title: L.t("disk.row", e.label, Fmt.size(e.bytes)),
@@ -131,12 +109,11 @@ public enum DiskSpaceAnalysis {
         }
         let restBytes = rest.reduce(0) { $0 + $1.bytes }
         if restBytes > 0 {
-            // Nomino le voci raggruppate più grandi, così "il resto" non è un mistero.
             let names = rest.filter { $0.bytes >= gb }.prefix(3).map(\.label)
             let detail = names.isEmpty ? "" : " (\(names.joined(separator: ", ")))"
             var row = Finding(id: "rest", severity: .info, title: L.t("disk.rest", detail, Fmt.size(restBytes)),
                               symbol: "square.grid.2x2", swatch: .rest)
-            // Consigli delle voci raggruppate, se lo spazio scarseggia (es. un Cestino pieno).
+
             if !plenty {
                 row.moreAdvice = rest.filter { $0.bytes >= gb }.compactMap(\.advice)
             }
@@ -161,8 +138,6 @@ public enum DiskSpaceAnalysis {
         }
         return result
     }
-
-    // MARK: Richiesta all'AI
 
     public static func request(question: String, usage u: DiskUsage) -> AIRequest {
         let gb: UInt64 = 1_073_741_824

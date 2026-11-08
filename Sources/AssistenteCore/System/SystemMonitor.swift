@@ -1,13 +1,9 @@
 import Foundation
 import Darwin
 
-/// Raccoglie i dati di sistema (CPU, memoria, temperatura, processi).
-/// Solo lettura. Nessun dato viene salvato o inviato.
 public struct SystemMonitor: Sendable {
     public init() {}
 
-    /// Misura lo stato attuale. Per la CPU servono due letture a distanza
-    /// di `sampleInterval`: l'uso è la differenza tra le due.
     public func snapshot(sampleInterval: Duration = .milliseconds(500)) async throws -> SystemSnapshot {
         let before = Self.cpuTicks()
         try await Task.sleep(for: sampleInterval)
@@ -24,8 +20,6 @@ public struct SystemMonitor: Sendable {
         )
     }
 
-    // MARK: - CPU
-
     struct CPUTicks { var busy: UInt64; var total: UInt64 }
 
     static func cpuTicks() -> CPUTicks? {
@@ -37,7 +31,7 @@ public struct SystemMonitor: Sendable {
             }
         }
         guard result == KERN_SUCCESS else { return nil }
-        // Ordine: user, system, idle, nice
+
         let t = info.cpu_ticks
         let user = UInt64(t.0), system = UInt64(t.1), idle = UInt64(t.2), nice = UInt64(t.3)
         return CPUTicks(busy: user + system + nice, total: user + system + idle + nice)
@@ -47,8 +41,6 @@ public struct SystemMonitor: Sendable {
         guard let a, let b, b.total > a.total else { return 0 }
         return Double(b.busy - a.busy) / Double(b.total - a.total) * 100
     }
-
-    // MARK: - Memoria
 
     static func memory() -> MemoryInfo {
         let total = ProcessInfo.processInfo.physicalMemory
@@ -66,7 +58,7 @@ public struct SystemMonitor: Sendable {
         var used: UInt64 = 0, cached: UInt64 = 0, compressed: UInt64 = 0
         if result == KERN_SUCCESS {
             let page = UInt64(pageSize)
-            // Stessa formula di Monitoraggio Attività.
+
             let app = UInt64(stats.internal_page_count) - UInt64(stats.purgeable_count)
             compressed = UInt64(stats.compressor_page_count) * page
             used = (app + UInt64(stats.wire_count)) * page + compressed
@@ -94,8 +86,6 @@ public struct SystemMonitor: Sendable {
         default: return .normal
         }
     }
-
-    // MARK: - Temperatura
 
     static func thermal(_ state: ProcessInfo.ThermalState) -> ThermalLevel {
         switch state {

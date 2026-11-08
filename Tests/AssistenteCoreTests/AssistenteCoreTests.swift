@@ -28,8 +28,8 @@ import Testing
         #expect(chrome?.instanceCount == 2)
         #expect(chrome?.cpuPercent == 45.5)
         #expect(chrome?.isSystem == false)
-        #expect(groups.first { $0.name == "launchd_fake" }?.isSystem == true)  // root senza percorso
-        // Processo di sistema che gira come utente normale: va riconosciuto dal percorso.
+        #expect(groups.first { $0.name == "launchd_fake" }?.isSystem == true)
+
         #expect(groups.first { $0.name == "suggestd" }?.isSystem == true)
     }
 }
@@ -46,11 +46,10 @@ import Testing
     }
 
     @Test func appsInApplicationsFolders() {
-        // Il bundle non esiste qui: il nome viene dal nome della cartella.
         #expect(ProcessKind.classify(path: "/Applications/Foo Bar.app/Contents/MacOS/Foo", user: "alex") == .app(name: "Foo Bar"))
         #expect(ProcessKind.classify(path: "/Applications/Foo Bar.app/Contents/Frameworks/X.framework/Helpers/Foo Helper.app/Contents/MacOS/Foo Helper", user: "alex")
                 == .appComponent(appName: "Foo Bar"))
-        // App di Apple in /System/Applications (es. Mail): si possono chiudere.
+
         #expect(ProcessKind.classify(path: "/System/Applications/Zzz.app/Contents/MacOS/Zzz", user: "alex") == .app(name: "Zzz"))
     }
 }
@@ -76,7 +75,7 @@ import Testing
 
     @Test func findsAppIncludingHelpers() throws {
         let d = try #require(ProcessExplainer.find("Google Chrome", in: samples))
-        #expect(d.group.instanceCount == 1)  // nome esatto: solo il processo principale
+        #expect(d.group.instanceCount == 1)
         let helper = try #require(ProcessExplainer.find("Google Chrome Helper (Renderer)", in: samples))
         #expect(helper.group.kind == .appComponent(appName: "Google Chrome"))
     }
@@ -104,7 +103,7 @@ import Testing
             ProcessSample(pid: 9, cpuPercent: 1, residentBytes: 1, user: "root", name: "trustd_fixture", path: "/usr/libexec/trustd_fixture")]))
         let r = ProcessExplainer.request(question: "Cos'è?", details: d)
         #expect(r.prompt.contains("Non chiuderlo"))
-        #expect(r.prompt.contains("/usr/libexec/trustd_fixture"))  // niente nota: serve il percorso
+        #expect(r.prompt.contains("/usr/libexec/trustd_fixture"))
     }
 }
 
@@ -186,9 +185,8 @@ import Testing
     }
 
     @Test func processNamesNeedATriggerPhrase() {
-        // "mail" senza "cos'è" ecc. non è una domanda su un processo.
         #expect(IntentRouter.route("Come mando una mail?", runningNames: running) == .chat)
-        // Il nome deve essere una parola intera: "bird" non è in "birdwatching".
+
         #expect(IntentRouter.route("Cos'è birdwatching?", runningNames: running) == .process("birdwatching"))
     }
 
@@ -199,7 +197,6 @@ import Testing
     }
 
     @Test func keywordsMatchOnlyAtWordStart() {
-        // "ingrandisco" non è "disco", "programma" non è "RAM".
         #expect(IntentRouter.route("Come ingrandisco le scritte?", runningNames: running) == .chat)
         #expect(IntentRouter.route("Come tolgo un programma?", runningNames: running) == .chat)
         #expect(IntentRouter.route("Il computer è lentissimo", runningNames: running) == .slowMac)
@@ -239,7 +236,7 @@ import Testing
 
     @Test func otherIsWhatIsLeft() {
         let u = usage()
-        // usati 300 GB - macOS 20 - voci (25 + 7 + 2 + 0,1) = 245,9 GB
+
         #expect(u.otherBytes == (300 << 30) - (20 << 30) - (34 << 30) - (100 << 20))
     }
 
@@ -248,28 +245,28 @@ import Testing
         #expect(f.first?.id == "free")
         #expect(f.first?.severity == .ok)
         let ids = f.map(\.id)
-        // "altro" (245 GB) prima dei modelli AI (25 GB), poi macOS, Download…
+
         #expect(ids.firstIndex(of: "other")! < ids.firstIndex(of: "appleAI")!)
         #expect(ids.firstIndex(of: "appleAI")! < ids.firstIndex(of: "downloads")!)
-        // Il Cestino (piccolo) finisce in "Il resto".
+
         #expect(!ids.contains("trash"))
         #expect(ids.contains("rest"))
         #expect(f.contains { $0.id == "systemdata" })
-        // Nessun consiglio dice di cancellare qualcosa al posto dell'utente.
+
         #expect(!Finding.advice(from: f).contains { $0.localizedCaseInsensitiveContains("ho cancellato") })
     }
 
     @Test func chartSplitsUsedSpaceAndMatchesList() {
         let u = usage()
         let chart = DiskSpaceAnalysis.chart(for: u)
-        // 5 voci colorate + il resto; lo spazio libero non è un blocco.
+
         #expect(chart.segments.count == 6)
         #expect(chart.segments.map(\.swatch).prefix(5) == [.series(0), .series(1), .series(2), .series(3), .series(4)])
         #expect(chart.segments.last?.swatch == .rest)
         #expect(chart.totalBytes == u.usedBytes)
         #expect(chart.capacityBytes == u.totalBytes)
         #expect(chart.capacitySummary == "Usati 300,0 GB su 500,0 GB (60%)")
-        // Le righe dell'elenco usano gli stessi colori nello stesso ordine.
+
         let rows = DiskSpaceAnalysis.findings(for: u).compactMap(\.swatch)
         #expect(rows == chart.segments.map(\.swatch))
     }
@@ -333,12 +330,12 @@ import Testing
         #expect(MacHelpChat.shortcuts(in: "Nel Finder premi ⌘⇧.") == ["⌘⇧."])
         #expect(MacHelpChat.shortcuts(in: "Tieni premuto il tasto ⌘.") == ["⌘"])
         #expect(!MacHelpChat.answerNeedsGuide("2. Premi ⌘⇧.", guides: MacHelpChat.guides(for: "file nascosti")))
-        // Corretta: nessun riquadro.
+
         #expect(!MacHelpChat.answerNeedsGuide("1. Premi **⌘⇧3** per tutto lo schermo.", guides: guides))
-        // Manca ⇧: serve il riquadro.
+
         #expect(MacHelpChat.answerNeedsGuide("1. Premi il tasto ⌘ e il tasto 3.", guides: guides))
         #expect(MacHelpChat.answerNeedsGuide("Premi ⌘3.", guides: guides))
-        // Senza guide non si può verificare nulla.
+
         #expect(!MacHelpChat.answerNeedsGuide("Premi ⌘3.", guides: []))
     }
 
@@ -377,10 +374,10 @@ import Testing
                                backup: .notConfigured, automaticUpdatesOn: true,
                                battery: BatteryHealth(healthPercent: 72, cycleCount: 900))
         let f = HealthCheck.findings(for: input(status: status, free: 20 << 30))
-        // FileVault, Gatekeeper, backup, batteria, spazio = 5; il firewall spento è solo un'informazione.
+
         #expect(f.first?.title == "Ci sono 5 cose da sistemare")
         #expect(f.first?.severity == .critical)
-        // Le voci critiche per prime, nell'ordine fisso (spazio prima di Gatekeeper).
+
         #expect(f[1].id == "disk")
         #expect(f[2].id == "gatekeeper")
         #expect(f.first { $0.id == "firewall" }?.severity == .info)
@@ -415,14 +412,14 @@ import Testing
         let b = try #require(MacStatusMonitor.parseBattery(plist))
         #expect(b.healthPercent == 80)
         #expect(b.cycleCount == 3)
-        #expect(MacStatusMonitor.parseBattery("") == nil)  // Mac senza batteria
+        #expect(MacStatusMonitor.parseBattery("") == nil)
     }
 
     @Test func routesHealthQuestions() {
         #expect(IntentRouter.route("Controlla il mio Mac") == .healthCheck)
         #expect(IntentRouter.route("Il mio Mac sta bene?") == .healthCheck)
         #expect(IntentRouter.route("Il Mac è sicuro?") == .healthCheck)
-        // "Centro di Controllo" non è un controllo generale.
+
         #expect(IntentRouter.route("Come apro il Centro di Controllo?") == .chat)
     }
 }
@@ -443,7 +440,6 @@ import Testing
             ])
     }
 
-    /// Una misura al minuto per `minutes` minuti; restituisce tutti gli avvisi mandati.
     func run(_ m: inout AlertMonitor, minutes: Int, startingAt start: Int = 0,
              _ s: SystemSnapshot, free: UInt64 = 300 << 30) -> [MacAlert] {
         (start..<(start + minutes)).flatMap { i in
@@ -460,24 +456,24 @@ import Testing
     @Test func longCpuUseAlertsOnceThenWaits() {
         var m = AlertMonitor()
         let sent = run(&m, minutes: 30, snap(hog: 150))
-        #expect(sent.map(\.id) == ["cpuHog:Spotify"])     // una volta sola, non ogni minuto
-        #expect(m.active.map(\.id) == ["cpuHog:Spotify"])  // ma resta attivo per il banner
+        #expect(sent.map(\.id) == ["cpuHog:Spotify"])
+        #expect(m.active.map(\.id) == ["cpuHog:Spotify"])
         #expect(sent.first?.title == "«Spotify» lavora molto da 10 minuti")
-        // Il banner dice da quanto dura davvero, non il minimo richiesto.
+
         #expect(m.active.first?.title == "«Spotify» lavora molto da 29 minuti")
     }
 
     @Test func repeatsOnlyAfterTheQuietPeriod() {
         var m = AlertMonitor()
-        let sent = run(&m, minutes: 7 * 60, snap(hog: 150))   // 7 ore di fila
+        let sent = run(&m, minutes: 7 * 60, snap(hog: 150))
         #expect(sent.count == 2)
     }
 
     @Test func conditionThatStopsResetsTheTimer() {
         var m = AlertMonitor()
         _ = run(&m, minutes: 8, snap(hog: 150))
-        _ = run(&m, minutes: 1, startingAt: 8, snap(hog: 0))     // si calma
-        #expect(run(&m, minutes: 8, startingAt: 9, snap(hog: 150)).isEmpty)  // riparte da zero
+        _ = run(&m, minutes: 1, startingAt: 8, snap(hog: 0))
+        #expect(run(&m, minutes: 8, startingAt: 9, snap(hog: 150)).isEmpty)
     }
 
     @Test func neverAlertsAboutSystemProcesses() {
@@ -530,8 +526,6 @@ import Testing
         #expect(p.contains("Non suggerire mai comandi nel Terminale"))
     }
 
-    /// Prova vera del riconoscimento del testo: disegna una frase in
-    /// un'immagine e controlla che Vision la legga (tutto sul Mac).
     @Test func readsTextFromAnImage() async throws {
         let image = NSImage(size: NSSize(width: 900, height: 120), flipped: false) { rect in
             NSColor.white.setFill(); rect.fill()
@@ -548,9 +542,6 @@ import Testing
 }
 
 @Suite struct VoiceTests {
-    /// Prova vera della trascrizione: il Mac "dice" una domanda con la voce
-    /// italiana di sistema e la trascrive (tutto sul Mac). Si salta se manca
-    /// la voce italiana.
     @Test func transcribesAnItalianQuestion() async throws {
         let file = FileManager.default.temporaryDirectory.appendingPathComponent("assistente-voce-test.aiff")
         let say = Process()
@@ -648,11 +639,10 @@ import Testing
         #expect(!Cleanup.isSafeToTouch("/Users/prova/.ssh/id_rsa", home: home))
         #expect(!Cleanup.isSafeToTouch("/Applications/Safari.app", home: home))
         #expect(!Cleanup.isSafeToTouch("/Users/prova", home: home))
-        #expect(!Cleanup.isSafeToTouch("/Users/prova/Downloads/../Library/x", home: home))  // trucco con ../
-        #expect(!Cleanup.isSafeToTouch("/Users/provaaltro/Downloads/a", home: home))       // prefisso simile
+        #expect(!Cleanup.isSafeToTouch("/Users/prova/Downloads/../Library/x", home: home))
+        #expect(!Cleanup.isSafeToTouch("/Users/provaaltro/Downloads/a", home: home))
     }
 
-    /// Crea una finta cartella utente con dei file e simula il passare del tempo.
     @Test func proposesInstallersAndOldDownloads() async throws {
         let home = FileManager.default.temporaryDirectory.appendingPathComponent("home-\(UUID().uuidString)").path
         let downloads = "\(home)/Downloads"
@@ -662,20 +652,17 @@ import Testing
         FileManager.default.createFile(atPath: "\(downloads)/vecchio.pdf", contents: Data(count: 2_000_000))
         FileManager.default.createFile(atPath: "\(downloads)/piccolo.txt", contents: Data(count: 100))
 
-        // Oggi: niente da proporre (appena scaricati).
         #expect(await Cleanup.candidates(home: home).isEmpty)
 
-        // Fra 100 giorni: l'installer (spuntato) e il PDF mai aperto (non spuntato).
         let later = Date().addingTimeInterval(100 * 86_400)
         let items = await Cleanup.candidates(home: home, now: later)
         let installer = try #require(items.first { $0.name == "Setup.dmg" })
         #expect(installer.reason == .installer && installer.preselected)
         let pdf = try #require(items.first { $0.name == "vecchio.pdf" })
         #expect(!pdf.preselected)
-        #expect(!items.contains { $0.name == "piccolo.txt" })  // troppo piccolo per valerne la pena
+        #expect(!items.contains { $0.name == "piccolo.txt" })
     }
 
-    /// Prova vera: sposta nel Cestino un file creato apposta e lo rimette a posto.
     @Test func movesToTrashAndUndoes() throws {
         let home = FileManager.default.temporaryDirectory.appendingPathComponent("home-\(UUID().uuidString)").path
         try FileManager.default.createDirectory(atPath: "\(home)/Downloads", withIntermediateDirectories: true)
@@ -711,9 +698,6 @@ import Testing
         #expect(L.packs["en"] != nil)
     }
 
-    /// Ogni lingua deve avere le stesse chiavi e gli stessi segnaposto
-    /// dell'inglese (la lingua di riserva): così una traduzione incompleta
-    /// o con un {0} dimenticato viene fermata dai test.
     @Test func everyPackMatchesEnglish() throws {
         let en = try #require(L.packs["en"])
         for (code, pack) in L.packs where code != "en" {
@@ -773,7 +757,6 @@ import Testing
     }
 
     @Test func scamsAreRecognizedWhateverTheLanguage() {
-        // Pagina truffa in inglese, utente italiano: va riconosciuta lo stesso.
         L.$taskLanguage.withValue("it") {
             let f = MessageExplainer.findings(for: "WARNING! Your Mac is infected. Call Apple Support")
             #expect(f.contains { $0.id == "scam" && $0.title.contains("TRUFFA") })

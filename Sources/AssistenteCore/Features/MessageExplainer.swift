@@ -1,19 +1,6 @@
 import Foundation
 
-/// Funzione "Spiegami questo messaggio": l'utente incolla lo screenshot (o il
-/// testo) di un avviso o di un errore; l'app lo legge e lo spiega.
-///
-/// Come per la chat: per i messaggi più comuni di macOS il codice riconosce il
-/// messaggio e fornisce una spiegazione verificata; le truffe le riconosce il
-/// codice, non l'AI, e vengono segnalate sempre in modo chiaro.
-///
-/// Gli schemi per riconoscere i messaggi stanno nei pacchetti lingua e si
-/// cercano in TUTTE le lingue insieme (una pagina truffa in inglese va
-/// riconosciuta anche da chi usa il Mac in italiano); titolo e consiglio
-/// arrivano nella lingua dell'utente.
 public enum MessageExplainer {
-
-    /// Gravità e icona non dipendono dalla lingua.
     static let meta: [String: (severity: Finding.Severity, symbol: String)] = [
         "scam": (.critical, "exclamationmark.octagon.fill"),
         "unverified": (.warning, "checkmark.shield"),
@@ -28,7 +15,6 @@ public enum MessageExplainer {
         "icloudfull": (.info, "icloud"),
     ]
 
-    /// Ordine fisso dei messaggi (la truffa per prima).
     static let order = ["scam", "unverified", "damaged", "diskfull", "memory", "notresponding",
                         "panic", "permission", "keychain", "accessory", "icloudfull"]
 
@@ -44,12 +30,10 @@ public enum MessageExplainer {
         IntentRouter.normalize(s).replacingOccurrences(of: "\n", with: " ")
     }
 
-    /// Schemi di un messaggio, da tutti i pacchetti lingua.
     static func patterns(for id: String) -> [String] {
         L.packs.values.flatMap { pack in pack.messages.filter { $0.id == id }.flatMap(\.patterns) }
     }
 
-    /// Testi di un messaggio nella lingua corrente (o in inglese).
     static func texts(for id: String) -> (title: String, advice: String) {
         let message = L.current.messages.first { $0.id == id }
             ?? L.packs[L.fallbackCode]?.messages.first { $0.id == id }
@@ -72,7 +56,7 @@ public enum MessageExplainer {
                                          title: L.t("message.read", quoted.count > 180 ? quoted.prefix(180) + "…" : quoted),
                                          symbol: "text.viewfinder")]
         let matches = match(text)
-        // Una truffa vince su tutto: niente altri consigli che potrebbero confondere.
+
         let shown = matches.contains { $0.id == "scam" } ? matches.filter { $0.id == "scam" } : matches
         for k in shown.prefix(2) {
             result.append(Finding(id: k.id, severity: k.severity, title: k.title, advice: k.advice, symbol: k.symbol))

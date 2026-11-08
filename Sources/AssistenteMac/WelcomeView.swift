@@ -2,15 +2,11 @@ import AppKit
 import AssistenteCore
 import SwiftUI
 
-/// Benvenuto al primo avvio: tre pagine brevi (cosa fa, dove trovarla,
-/// preferenze). Si può rivedere dal menu delle impostazioni.
 struct WelcomeView: View {
     let alerts: AlertService
     let hotKeyWorks: Bool
     let onDone: () -> Void
 
-    // Stato della pagina nel view model del benvenuto (niente @State: in
-    // macOS 27 è una macro che richiede Xcode).
     @Bindable var state: WelcomeState
 
     var body: some View {
@@ -25,7 +21,6 @@ struct WelcomeView: View {
             .frame(maxWidth: .infinity, minHeight: 250, alignment: .top)
 
             HStack {
-                // Puntini di avanzamento
                 HStack(spacing: 6) {
                     ForEach(0..<3) { i in
                         Circle().fill(i == state.page ? Color.accentColor : Color.secondary.opacity(0.3))
@@ -49,7 +44,6 @@ struct WelcomeView: View {
 
     private var page1: some View {
         VStack(alignment: .leading, spacing: 14) {
-            // L'icona dell'app (nel pacchetto .app; con swift run è quella generica).
             Image(nsImage: NSApp.applicationIconImage)
                 .resizable()
                 .frame(width: 64, height: 64)
@@ -114,12 +108,11 @@ struct WelcomeView: View {
 @Observable
 final class WelcomeState {
     var page = 0
-    /// Scelta dell'utente: applicata solo quando preme «Inizia», non prima.
+
     var launchAtLogin: Bool
     init(launchAtLogin: Bool) { self.launchAtLogin = launchAtLogin }
 }
 
-/// Mostra il benvenuto in una finestra normale (al primo avvio o su richiesta).
 @MainActor
 final class WelcomeWindow {
     private static let shownKey = "benvenutoMostrato"
@@ -129,8 +122,7 @@ final class WelcomeWindow {
 
     func show(alerts: AlertService, hotKeyWorks: Bool) {
         if let window { window.makeKeyAndOrderFront(nil); NSApp.activate(); return }
-        // Al primo avvio proponiamo l'avvio automatico già acceso (ma lo
-        // applichiamo solo quando l'utente preme «Inizia»).
+
         let state = WelcomeState(launchAtLogin: Self.wasShown ? LaunchAtLogin.isEnabled : LaunchAtLogin.isAvailable)
         let view = WelcomeView(alerts: alerts, hotKeyWorks: hotKeyWorks, onDone: { [weak self] in
             if LaunchAtLogin.isEnabled != state.launchAtLogin { LaunchAtLogin.isEnabled = state.launchAtLogin }
@@ -142,8 +134,7 @@ final class WelcomeWindow {
         window.isReleasedWhenClosed = false
         window.center()
         self.window = window
-        // Un'app della barra dei menu non "ruba" il primo piano da sola: la
-        // finestra di benvenuto deve comunque vedersi sopra le altre.
+
         window.level = .floating
         window.orderFrontRegardless()
         window.makeKey()

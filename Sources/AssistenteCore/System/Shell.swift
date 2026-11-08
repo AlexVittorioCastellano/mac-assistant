@@ -1,10 +1,6 @@
 import Foundation
 
-/// Esecuzione di comandi di sistema di SOLA LETTURA (du, tmutil, fdesetup…).
 enum Shell {
-    /// Esegue un comando di sola lettura su un thread separato (per non
-    /// bloccare quelli di Swift Concurrency) e ne restituisce l'output.
-    /// `nil` se il comando fallisce senza produrre nulla.
     static func run(_ tool: String, _ arguments: [String]) async -> String? {
         await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .userInitiated).async {
@@ -19,8 +15,7 @@ enum Shell {
                 let data = pipe.fileHandleForReading.readDataToEndOfFile()
                 process.waitUntilExit()
                 let text = String(decoding: data, as: UTF8.self)
-                // `du` esce con errore anche se una sola sottocartella è protetta:
-                // teniamo comunque i numeri che ha prodotto.
+
                 continuation.resume(returning: text.isEmpty && process.terminationStatus != 0 ? nil : text)
             }
         }

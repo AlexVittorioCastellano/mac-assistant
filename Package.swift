@@ -10,16 +10,11 @@ let package = Package(
         .executable(name: "assistente-cli", targets: ["assistente-cli"]),
     ],
     targets: [
-        // Logica condivisa: raccolta dati di sistema, AI, funzioni.
-        // Non dipende da SwiftUI, così è testabile e riusabile.
-        // Languages/: un pacchetto JSON per lingua (testi, parole chiave, guide).
+
         .target(name: "AssistenteCore", resources: [.copy("Languages")]),
 
-        // App nella barra dei menu (solo interfaccia).
         .executableTarget(name: "AssistenteMac", dependencies: ["AssistenteCore"]),
 
-        // Piccolo strumento da terminale per sviluppatori: prova le funzioni
-        // senza dover aprire l'interfaccia.
         .executableTarget(name: "assistente-cli", dependencies: ["AssistenteCore"]),
 
         .testTarget(name: "AssistenteCoreTests", dependencies: ["AssistenteCore"]),

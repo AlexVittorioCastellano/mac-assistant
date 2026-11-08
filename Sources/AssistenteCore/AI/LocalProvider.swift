@@ -1,10 +1,6 @@
 import Foundation
 import FoundationModels
 
-/// Provider on-device basato sul framework Foundation Models di Apple.
-///
-/// Requisiti: Mac con Apple Silicon, Apple Intelligence attiva.
-/// Privacy: tutto avviene sul Mac, niente viene inviato in rete.
 public struct LocalProvider: AIProvider {
     public init() {}
 
@@ -34,16 +30,9 @@ public struct LocalProvider: AIProvider {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
-                    // Una sessione nuova per ogni richiesta: le domande v1 sono
-                    // indipendenti e così il contesto (limitato) resta piccolo.
-                    //
-                    // Guardrail "permissive": con quelle predefinite il filtro
-                    // sull'output bloccava a caso risposte innocue (es. "il tuo Mac
-                    // funziona bene"). I nostri prompt contengono solo dati di sistema
-                    // e i filtri di sicurezza di base restano comunque attivi.
                     let model = SystemLanguageModel(guardrails: .permissiveContentTransformations)
                     let session = LanguageModelSession(model: model, instructions: request.instructions)
-                    // Temperatura bassa: vogliamo spiegazioni fedeli ai dati, non creative.
+
                     let options = GenerationOptions(temperature: 0.3)
                     for try await snapshot in session.streamResponse(to: request.prompt, options: options) {
                         continuation.yield(snapshot.content)
@@ -61,13 +50,11 @@ public struct LocalProvider: AIProvider {
         LocalChatSession(instructions: instructions)
     }
 
-    /// Guardrail "permissive" (vedi `streamResponse`).
     static func makeSession(instructions: String) -> LanguageModelSession {
         let model = SystemLanguageModel(guardrails: .permissiveContentTransformations)
         return LanguageModelSession(model: model, instructions: instructions)
     }
 
-    /// Traduce gli errori del framework in messaggi semplici.
     static func friendly(_ error: Error) -> Error {
         if error is SystemLanguageModel.Error {
             return AIError(L.t("error.ai.notReadyShort"))
@@ -90,9 +77,6 @@ public struct LocalProvider: AIProvider {
     }
 }
 
-/// Conversazione on-device. Il modello ha un contesto limitato (qualche
-/// migliaio di parole): quando si riempie, la conversazione ricomincia da capo
-/// e lo diciamo all'utente.
 actor LocalChatSession: AIChatSession {
     private let instructions: String
     private var session: LanguageModelSession
@@ -111,16 +95,12 @@ actor LocalChatSession: AIChatSession {
 
     private func run(_ prompt: String, _ continuation: AsyncThrowingStream<String, Error>.Continuation) async {
         do {
-            // "Greedy": sceglie sempre la parola più probabile. Nelle prove copiava
-            // le scorciatoie dalla guida senza errori (6/6, contro 5/6 con
-            // temperatura 0.3) e dà la stessa risposta alla stessa domanda.
             let options = GenerationOptions(samplingMode: .greedy)
             for try await snapshot in session.streamResponse(to: prompt, options: options) {
                 continuation.yield(snapshot.content)
             }
             continuation.finish()
         } catch LanguageModelError.contextSizeExceeded {
-            // Conversazione troppo lunga: ripartiamo da zero.
             session = LocalProvider.makeSession(instructions: instructions)
             continuation.finish(throwing: AIError(
                 L.t("error.ai.chatTooLong")))
