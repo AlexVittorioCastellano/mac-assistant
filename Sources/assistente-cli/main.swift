@@ -16,11 +16,14 @@ do {
     switch try await assistant.prepare(question: question) {
     case .message(let text):
         print(text)
-    case .diagnosis(let findings, let request):
+    case .choices(let message, let options):
+        print(message)
+        for o in options { print("  - \(o.label)") }
+    case .result(let findings, let request):
         for f in findings { print("• [\(f.severity)] \(f.title)") }
         if showPrompt { print("\n--- prompt ---\n\(request.prompt)\n--------------") }
         print()
-        let advice = SlowMacDiagnosis.advice(from: findings)
+        let advice = Finding.advice(from: findings)
         if case .unavailable(let reason) = assistant.provider.availability {
             print("(\(reason))")
         } else {

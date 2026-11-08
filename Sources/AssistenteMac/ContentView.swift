@@ -10,7 +10,7 @@ struct ContentView: View {
             header
             inputRow
             quickActions
-            if model.isWorking || !model.findings.isEmpty || !model.answer.isEmpty || model.notice != nil {
+            if model.isWorking || !model.choices.isEmpty || !model.findings.isEmpty || !model.answer.isEmpty || model.notice != nil {
                 Divider()
                 // Niente ScrollView: dentro un MenuBarExtra non ha un'altezza
                 // naturale e si riduce a zero (i risultati sparivano).
@@ -21,7 +21,7 @@ struct ContentView: View {
             footer
         }
         .padding(14)
-        .frame(width: 380)
+        .frame(width: 400)
         .onAppear { fieldFocused = true }
     }
 
@@ -48,13 +48,21 @@ struct ContentView: View {
     }
 
     private var quickActions: some View {
+        HStack(spacing: 8) {
+            quickButton(Assistant.slowMacQuestion, icon: "tortoise")
+            quickButton(Assistant.processQuestion, icon: "questionmark.app")
+        }
+        .controlSize(.small)
+        .disabled(model.isWorking)
+    }
+
+    private func quickButton(_ question: String, icon: String) -> some View {
         Button {
-            model.ask(Assistant.slowMacQuestion)
+            model.ask(question)
         } label: {
-            Label(Assistant.slowMacQuestion, systemImage: "tortoise")
+            Label(question, systemImage: icon)
         }
         .buttonStyle(.bordered)
-        .disabled(model.isWorking)
     }
 
     @ViewBuilder private var results: some View {
@@ -67,7 +75,7 @@ struct ContentView: View {
                     .textSelection(.enabled)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            let advice = SlowMacDiagnosis.advice(from: model.findings)
+            let advice = Finding.advice(from: model.findings)
             if !advice.isEmpty && !model.isWorking {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Cosa puoi fare").font(.subheadline.bold())
@@ -81,6 +89,16 @@ struct ContentView: View {
                 Label(notice, systemImage: "info.circle")
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+            }
+            if !model.choices.isEmpty {
+                // Processi tra cui scegliere: un clic fa la domanda.
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(model.choices, id: \.self) { choice in
+                        Button(choice.label) { model.ask(choice.question) }
+                            .buttonStyle(.link)
+                    }
+                }
+                .padding(.leading, 24)
             }
             if model.isWorking {
                 HStack(spacing: 6) {

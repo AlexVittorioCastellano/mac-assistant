@@ -10,6 +10,7 @@ import SwiftUI
 final class AssistantViewModel {
     var question = ""
     var findings: [Finding] = []
+    var choices: [Choice] = []
     var answer = ""
     var notice: String?
     var isWorking = false
@@ -28,6 +29,7 @@ final class AssistantViewModel {
 
         task?.cancel()
         findings = []
+        choices = []
         answer = ""
         notice = nil
         isWorking = true
@@ -40,7 +42,10 @@ final class AssistantViewModel {
                 switch reply {
                 case .message(let text):
                     notice = text
-                case .diagnosis(let found, let request):
+                case .choices(let message, let options):
+                    notice = message
+                    choices = options
+                case .result(let found, let request):
                     findings = found  // mostrati subito, prima dell'AI
                     if case .unavailable(let reason) = assistant.provider.availability {
                         notice = reason

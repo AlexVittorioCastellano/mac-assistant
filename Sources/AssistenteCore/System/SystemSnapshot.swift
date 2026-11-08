@@ -69,13 +69,16 @@ public struct ProcessSample: Sendable, Equatable {
     public var residentBytes: UInt64
     public var user: String
     public var name: String
+    /// Percorso completo dell'eseguibile, se noto.
+    public var path: String?
 
-    public init(pid: Int32, cpuPercent: Double, residentBytes: UInt64, user: String, name: String) {
+    public init(pid: Int32, cpuPercent: Double, residentBytes: UInt64, user: String, name: String, path: String? = nil) {
         self.pid = pid
         self.cpuPercent = cpuPercent
         self.residentBytes = residentBytes
         self.user = user
         self.name = name
+        self.path = path
     }
 }
 
@@ -86,17 +89,22 @@ public struct ProcessGroup: Sendable, Equatable {
     public var instanceCount: Int
     public var cpuPercent: Double
     public var residentBytes: UInt64
-    /// Processo di sistema (utente root o di servizio) e non un'app dell'utente.
+    /// Processo di macOS e non un'app dell'utente: non va mai suggerito di chiuderlo.
     public var isSystem: Bool
     public var pids: [Int32]
+    public var path: String?
+    public var kind: ProcessKind
 
     public init(name: String, instanceCount: Int, cpuPercent: Double,
-                residentBytes: UInt64, isSystem: Bool, pids: [Int32]) {
+                residentBytes: UInt64, isSystem: Bool, pids: [Int32],
+                path: String? = nil, kind: ProcessKind? = nil) {
         self.name = name
         self.instanceCount = instanceCount
         self.cpuPercent = cpuPercent
         self.residentBytes = residentBytes
         self.isSystem = isSystem
         self.pids = pids
+        self.path = path
+        self.kind = kind ?? (isSystem ? .macOS : .unknown)
     }
 }

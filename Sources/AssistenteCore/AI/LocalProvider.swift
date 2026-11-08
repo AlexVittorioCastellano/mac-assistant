@@ -36,7 +36,13 @@ public struct LocalProvider: AIProvider {
                 do {
                     // Una sessione nuova per ogni richiesta: le domande v1 sono
                     // indipendenti e così il contesto (limitato) resta piccolo.
-                    let session = LanguageModelSession(instructions: request.instructions)
+                    //
+                    // Guardrail "permissive": con quelle predefinite il filtro
+                    // sull'output bloccava a caso risposte innocue (es. "il tuo Mac
+                    // funziona bene"). I nostri prompt contengono solo dati di sistema
+                    // e i filtri di sicurezza di base restano comunque attivi.
+                    let model = SystemLanguageModel(guardrails: .permissiveContentTransformations)
+                    let session = LanguageModelSession(model: model, instructions: request.instructions)
                     // Temperatura bassa: vogliamo spiegazioni fedeli ai dati, non creative.
                     let options = GenerationOptions(temperature: 0.3)
                     for try await snapshot in session.streamResponse(to: request.prompt, options: options) {
@@ -61,7 +67,7 @@ public struct LocalProvider: AIProvider {
         case .contextSizeExceeded:
             return AIError("La richiesta è troppo lunga per il modello sul Mac.")
         case .guardrailViolation, .refusal:
-            return AIError("Il modello non ha voluto rispondere a questa domanda.")
+            return AIError("Questa volta non sono riuscito a scrivere una spiegazione, ma qui sopra trovi cosa ho controllato.")
         case .unsupportedLanguageOrLocale:
             return AIError("Il modello non supporta la lingua impostata sul Mac.")
         case .rateLimited:

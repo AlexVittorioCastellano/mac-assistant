@@ -1,27 +1,5 @@
 import Foundation
 
-/// Un problema (o una conferma) individuato nei dati, in parole semplici.
-public struct Finding: Sendable, Equatable, Identifiable {
-    public enum Severity: Int, Sendable, Comparable {
-        case ok, info, warning, critical
-        public static func < (a: Self, b: Self) -> Bool { a.rawValue < b.rawValue }
-    }
-
-    public var id: String
-    public var severity: Severity
-    public var title: String
-    /// Cosa può fare l'utente. Scritto dal codice, non dall'AI:
-    /// così i consigli sono sempre corretti e sicuri.
-    public var advice: String?
-
-    public init(id: String, severity: Severity, title: String, advice: String? = nil) {
-        self.id = id
-        self.severity = severity
-        self.title = title
-        self.advice = advice
-    }
-}
-
 /// Funzione 1: "Perché il Mac è lento?"
 ///
 /// Due fasi:
@@ -33,12 +11,6 @@ public struct Finding: Sendable, Equatable, Identifiable {
 public enum SlowMacDiagnosis {
 
     // MARK: Fase 1: regole
-
-    /// I consigli pratici, senza ripetizioni, nell'ordine dei problemi.
-    public static func advice(from findings: [Finding]) -> [String] {
-        var seen = Set<String>()
-        return findings.compactMap(\.advice).filter { seen.insert($0).inserted }
-    }
 
     public static func findings(for s: SystemSnapshot) -> [Finding] {
         var result: [Finding] = []
@@ -90,7 +62,7 @@ public enum SlowMacDiagnosis {
         if let top = s.topByMemory(1).first, s.memory.totalBytes > 0,
            Double(top.residentBytes) / Double(s.memory.totalBytes) >= 0.25 {
             result.append(.init(id: "topmem", severity: .info,
-                                title: "«\(top.name)» occupa molta memoria (\(Fmt.gb(top.residentBytes)))",
+                                title: "«\(top.name)» occupa molta memoria (\(Fmt.size(top.residentBytes)))",
                                 advice: isSystem(top) ? nil : "Se non ti serve, chiudi «\(top.name)» per liberare memoria."))
         }
 
@@ -124,13 +96,7 @@ public enum SlowMacDiagnosis {
 
     // MARK: Fase 2: richiesta all'AI
 
-    static let instructions = """
-    Sei un assistente che aiuta persone non esperte a capire il proprio Mac.
-    Rispondi sempre in italiano, con frasi brevi, chiare e senza gergo tecnico.
-    Basati solo sui dati forniti: non inventare numeri, programmi o cause.
-    Non dire mai di aver chiuso programmi o cambiato impostazioni: puoi solo dare consigli.
-    Le attività di macOS in background fanno parte del sistema: non suggerire mai di chiuderle.
-    """
+    static let instructions = Prompts.base
 
     public static func request(question: String, snapshot s: SystemSnapshot, findings: [Finding]) -> AIRequest {
         // App dell'utente e attività di macOS sono elencate separatamente:
@@ -142,7 +108,7 @@ public enum SlowMacDiagnosis {
             return chosen.isEmpty ? "nessuna" : chosen.map { "\($0.name) \(value($0))" }.joined(separator: ", ")
         }
         let cpu: (ProcessGroup) -> String = { Fmt.percent($0.cpuPercent) }
-        let mem: (ProcessGroup) -> String = { Fmt.gb($0.residentBytes) }
+        let mem: (ProcessGroup) -> String = { Fmt.size($0.residentBytes) }
 
         let pressure = switch s.memory.pressure {
             case .normal: "normale"

@@ -20,7 +20,7 @@ Fai una domanda in italiano sul tuo Mac e ricevi una risposta chiara e veloce.
 | Funzione | Stato |
 |---|---|
 | "Perché il Mac è lento?": legge processore, memoria, temperatura e processi e spiega cosa succede | ✅ |
-| "Cos'è questo processo?" | 🔜 |
+| "Cos'è questo processo?": dice cos'è, se fa parte di macOS o di un'app e se si può chiudere | ✅ |
 | "Dove è finito lo spazio?" (Dati di sistema, snapshot, modelli AI) | 🔜 |
 | Chat libera su come fare cose sul Mac | 🔜 |
 
@@ -74,6 +74,8 @@ Principi:
    Il modello on-device è piccolo: gli chiediamo solo di spiegare in italiano
    semplice. Così non può inventare dati né suggerire azioni pericolose
    (per esempio chiudere processi di macOS).
+   Se un processo fa parte di macOS lo decidono il percorso e la firma digitale
+   di Apple (`ProcessKind`), non il modello.
 3. **Pronto per il cloud, senza segreti nel codice.** In futuro potrà esistere
    un `CloudProvider` opzionale che parla con un backend separato dopo il login
    dell'utente. Il client non conterrà mai chiavi: autenticazione e limiti li
@@ -84,7 +86,7 @@ Principi:
 
 I contributi sono benvenuti! Alcune idee semplici per iniziare:
 
-- aggiungere spiegazioni in `Features/KnownProcesses.swift`;
+- aggiungere spiegazioni in `Features/KnownProcesses.swift` (una frase semplice, solo cose certe);
 - migliorare le parole chiave in `Features/IntentRouter.swift`;
 - aggiungere test in `Tests/`.
 
@@ -95,6 +97,12 @@ Regole:
 - nessun dato deve lasciare il Mac in modalità locale; niente telemetria;
 - mai committare chiavi, token o URL privati;
 - prima di aprire una pull request: `./scripts/test.sh`.
+
+### Limiti noti
+
+- `kernel_task` (e pochi altri processi del kernel) non è leggibile senza
+  permessi di amministratore: il suo carico rientra comunque nel totale del
+  processore e nella temperatura.
 
 ### Licenza
 
@@ -118,7 +126,7 @@ answers are in Italian by design.)
 | Feature | Status |
 |---|---|
 | "Why is my Mac slow?": reads CPU, memory, thermal state and processes, and explains | ✅ |
-| "What is this process?" | 🔜 |
+| "What is this process?": what it is, whether it belongs to macOS or an app, and whether it's safe to quit | ✅ |
 | "Where did my disk space go?" | 🔜 |
 | Free-form chat about using the Mac | 🔜 |
 
