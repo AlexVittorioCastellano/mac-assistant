@@ -72,8 +72,8 @@ struct ContentView: View {
     @ViewBuilder private var results: some View {
         VStack(alignment: .leading, spacing: 10) {
             if let chart = model.chart {
-                SegmentedBar(chart: chart)
-                    .padding(.bottom, 2)
+                DiskChartView(chart: chart, hover: $model.chartHover)
+                    .padding(.bottom, 4)
             }
             ForEach(model.findings) { finding in
                 FindingRow(finding: finding)

@@ -90,7 +90,8 @@ public enum DiskSpaceAnalysis {
                   iconPath: $0.path, symbol: symbol($0.category), advice: advice($0.category))
         }
         list.append(Entry(id: "macos", label: "macOS", bytes: u.macOSBytes, symbol: "apple.logo"))
-        list.append(Entry(id: "other", label: "Altro (dati di altre app e file sparsi)",
+        // Non chiamarlo "Altro": si confonderebbe con "Il resto" del grafico.
+        list.append(Entry(id: "other", label: "Dati di altre app e file sparsi",
                           bytes: u.otherBytes, symbol: "ellipsis.circle"))
         return list.sorted { $0.bytes > $1.bytes }
     }

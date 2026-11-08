@@ -103,7 +103,7 @@ Regole:
 - La prima volta che misuri lo spazio, macOS può chiedere il permesso di
   leggere le cartelle Download, Documenti e Scrivania. Se lo neghi, quelle voci
   vengono saltate. Le cartelle dei dati di altre app (`~/Library/Containers`)
-  non vengono lette: finiscono nella voce "Altro".
+  non vengono lette: finiscono nella voce "Dati di altre app e file sparsi".
 - `kernel_task` (e pochi altri processi del kernel) non è leggibile senza
   permessi di amministratore: il suo carico rientra comunque nel totale del
   processore e nella temperatura.

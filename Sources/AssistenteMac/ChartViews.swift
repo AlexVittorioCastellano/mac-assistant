@@ -1,5 +1,6 @@
 import AppKit
 import AssistenteCore
+import Charts
 import SwiftUI
 
 /// Colori dei grafici.
@@ -40,88 +41,102 @@ enum ChartPalette {
                 green: CGFloat((hex >> 8) & 0xff) / 255,
                 blue: CGFloat(hex & 0xff) / 255, alpha: 1)
     }
-
-    /// Testo leggibile sopra un blocco colorato: bianco o quasi nero,
-    /// quello con più contrasto.
-    static func label(on swatch: ChartSwatch, dark: Bool) -> Color {
-        let hex: UInt32
-        switch swatch {
-        case .series(let i): hex = dark ? series[i % series.count].dark : series[i % series.count].light
-        case .rest: hex = dark ? rest.dark : rest.light
-        }
-        func lin(_ c: UInt32) -> Double {
-            let v = Double(c) / 255
-            return v <= 0.04045 ? v / 12.92 : pow((v + 0.055) / 1.055, 2.4)
-        }
-        let l = 0.2126 * lin((hex >> 16) & 0xff) + 0.7152 * lin((hex >> 8) & 0xff) + 0.0722 * lin(hex & 0xff)
-        let whiteContrast = 1.05 / (l + 0.05)
-        let blackContrast = (l + 0.05) / (0.0 + 0.05)
-        return whiteContrast >= blackContrast ? .white : Color(white: 0.08)
-    }
 }
 
-/// Il grafico dello spazio: un indicatore sottile "usati X su Y" e sotto
-/// una barra segmentata che mostra come è diviso lo spazio usato. Ogni
-/// blocco ha la percentuale dentro se ci sta; passando il mouse si leggono
-/// nome e quantità. Le righe sotto (con il pallino dello stesso colore)
-/// fanno da legenda.
-struct SegmentedBar: View {
+/// Il grafico dello spazio: una ciambella che mostra come è diviso lo spazio
+/// usato e, accanto, quanto è pieno il disco ("usati X su Y" + indicatore).
+///
+/// Al centro della ciambella c'è il totale usato; passando il mouse su una
+/// fetta, il centro mostra il nome e la quantità di quella voce. Le righe
+/// sotto (con il pallino dello stesso colore) fanno da legenda e riportano
+/// i numeri esatti.
+struct DiskChartView: View {
     let chart: SegmentedChart
-    @Environment(\.colorScheme) private var colorScheme
-
-    private let height: CGFloat = 26
-    private let gap: CGFloat = 2
+    /// Punto della ciambella sotto il mouse (in byte cumulativi), se c'è.
+    @Binding var hover: Double?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        HStack(alignment: .center, spacing: 16) {
+            donut
             if let summary = chart.capacitySummary, let capacity = chart.capacityBytes {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(summary).font(.callout.weight(.medium))
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(summary)
+                        .font(.callout.weight(.medium))
+                        .fixedSize(horizontal: false, vertical: true)
                     CapacityMeter(fraction: Double(chart.totalBytes) / Double(max(capacity, 1)), level: chart.level)
+                    Text("Il grafico mostra come è diviso lo spazio usato. Passa il mouse sulle fette per i dettagli.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                Text("Come è diviso lo spazio usato")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 2)
             }
-            bar
         }
     }
 
-    private var bar: some View {
-        GeometryReader { geo in
-            let visible = chart.segments.filter { $0.bytes > 0 }
-            let available = geo.size.width - gap * CGFloat(max(visible.count - 1, 0))
-            HStack(spacing: gap) {
-                ForEach(visible) { segment in
-                    block(segment, width: max(3, available * share(segment)))
+    private var visible: [SegmentedChart.Segment] { chart.segments.filter { $0.bytes > 0 } }
+
+    /// La fetta sotto il mouse: si trova sommando le fette fino al punto indicato.
+    private var hovered: SegmentedChart.Segment? {
+        guard let hover else { return nil }
+        var running = 0.0
+        for s in visible {
+            running += Double(s.bytes)
+            if hover <= running { return s }
+        }
+        return nil
+    }
+
+    private var donut: some View {
+        Chart(visible) { segment in
+            SectorMark(angle: .value("Spazio", Double(segment.bytes)),
+                       innerRadius: .ratio(0.62),
+                       angularInset: 1.5)  // piccolo stacco tra le fette
+                .cornerRadius(4)
+                .foregroundStyle(ChartPalette.color(segment.swatch))
+                // La fetta sotto il mouse resta piena, le altre si attenuano.
+                .opacity(hovered == nil || hovered?.id == segment.id ? 1 : 0.35)
+        }
+        .chartLegend(.hidden)
+        .chartAngleSelection(value: $hover)
+        .chartBackground { proxy in
+            GeometryReader { geo in
+                if let frame = proxy.plotFrame {
+                    let rect = geo[frame]
+                    centerLabel
+                        .frame(width: rect.width * 0.55)
+                        .position(x: rect.midX, y: rect.midY)
                 }
             }
         }
-        .frame(height: height)
+        .frame(width: 132, height: 132)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Spazio usato: " + chart.segments.map(chart.description).joined(separator: ", "))
     }
 
-    private func share(_ s: SegmentedChart.Segment) -> CGFloat {
-        chart.totalBytes > 0 ? CGFloat(Double(s.bytes) / Double(chart.totalBytes)) : 0
-    }
-
-    private func block(_ s: SegmentedChart.Segment, width: CGFloat) -> some View {
-        RoundedRectangle(cornerRadius: 4)
-            .fill(ChartPalette.color(s.swatch))
-            .frame(width: width)
-            .overlay(alignment: .leading) {
-                // Percentuale solo se il blocco è abbastanza largo da contenerla.
-                if width >= 38 {
-                    Text(Fmt_percent(share(s) * 100))
-                        .font(.caption2.weight(.semibold))
-                        .monospacedDigit()
-                        .foregroundStyle(ChartPalette.label(on: s.swatch, dark: colorScheme == .dark))
-                        .padding(.leading, 5)
-                }
+    /// Centro della ciambella: il totale, oppure la fetta sotto il mouse.
+    @ViewBuilder private var centerLabel: some View {
+        VStack(spacing: 1) {
+            if let s = hovered {
+                Text(chart.amount(of: s))
+                    .font(.headline)
+                    .monospacedDigit()
+                    .minimumScaleFactor(0.7)
+                Text("\(s.label) · \(chart.share(of: s))")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(3)
+                    .minimumScaleFactor(0.7)
+            } else {
+                Text(chart.totalLabel)
+                    .font(.title3.weight(.semibold))
+                    .monospacedDigit()
+                    .minimumScaleFactor(0.7)
+                Text("usati")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
             }
-            .help(chart.description(of: s))
+        }
+        .multilineTextAlignment(.center)
     }
 }
 
@@ -161,9 +176,4 @@ struct SwatchDot: View {
             .fill(ChartPalette.color(swatch))
             .frame(width: 10, height: 10)
     }
-}
-
-/// "35%" con il formato italiano.
-private func Fmt_percent(_ value: CGFloat) -> String {
-    Int(value.rounded()).formatted(.number.locale(Locale(identifier: "it_IT"))) + "%"
 }

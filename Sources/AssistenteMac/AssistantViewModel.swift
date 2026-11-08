@@ -12,6 +12,9 @@ final class AssistantViewModel {
     var findings: [Finding] = []
     var choices: [Choice] = []
     var chart: SegmentedChart?
+    /// Punto del grafico sotto il mouse. Sta qui e non in @State perché in
+    /// macOS 27 @State richiede Xcode per compilare.
+    var chartHover: Double?
     var answer = ""
     var notice: String?
     var isWorking = false
@@ -32,6 +35,7 @@ final class AssistantViewModel {
         findings = []
         choices = []
         chart = nil
+        chartHover = nil
         answer = ""
         notice = nil
         isWorking = true

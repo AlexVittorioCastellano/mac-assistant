@@ -55,7 +55,7 @@ public enum ChartSwatch: Sendable, Equatable, Hashable {
     case rest
 }
 
-/// Un intero diviso in parti, da disegnare come barra segmentata, più
+/// Un intero diviso in parti (es. lo spazio usato, disegnato a ciambella), più
 /// (facoltativo) quanto quell'intero pesa su una capacità (es. usato/disco).
 public struct SegmentedChart: Sendable, Equatable {
     public struct Segment: Sendable, Equatable, Identifiable {
@@ -77,6 +77,17 @@ public struct SegmentedChart: Sendable, Equatable {
         guard let capacityBytes, capacityBytes > 0 else { return nil }
         let share = Double(totalBytes) / Double(capacityBytes) * 100
         return "Usati \(Fmt.size(totalBytes)) su \(Fmt.size(capacityBytes)) (\(Fmt.percent(share)))"
+    }
+
+    /// "104,3 GB": il totale, per il centro del grafico.
+    public var totalLabel: String { Fmt.size(totalBytes) }
+
+    /// "24,3 GB": quantità di una parte.
+    public func amount(of s: Segment) -> String { Fmt.size(s.bytes) }
+
+    /// "35%": quota di una parte sul totale.
+    public func share(of s: Segment) -> String {
+        Fmt.percent(totalBytes > 0 ? Double(s.bytes) / Double(totalBytes) * 100 : 0)
     }
 
     /// Descrizione per VoiceOver e per il passaggio del mouse.
