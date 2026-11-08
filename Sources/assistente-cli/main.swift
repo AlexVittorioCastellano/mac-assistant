@@ -19,7 +19,11 @@ do {
     case .choices(let message, let options):
         print(message)
         for o in options { print("  - \(o.label)") }
-    case .result(let findings, let request):
+    case .result(let findings, let request, let chart):
+        if let chart {
+            for seg in chart.segments { print("▇ \(chart.description(of: seg))") }
+            print()
+        }
         for f in findings { print("• [\(f.severity)] \(f.title)") }
         if showPrompt { print("\n--- prompt ---\n\(request.prompt)\n--------------") }
         print()

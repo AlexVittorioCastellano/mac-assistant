@@ -231,11 +231,27 @@ import Testing
         // "altro" (245 GB) prima dei modelli AI (25 GB), poi macOS, Download…
         #expect(ids.firstIndex(of: "other")! < ids.firstIndex(of: "appleAI")!)
         #expect(ids.firstIndex(of: "appleAI")! < ids.firstIndex(of: "downloads")!)
-        // Il Cestino sotto 1 GB non si mostra.
+        // Il Cestino (piccolo) finisce in "Il resto".
         #expect(!ids.contains("trash"))
+        #expect(ids.contains("rest"))
         #expect(f.contains { $0.id == "systemdata" })
         // Nessun consiglio dice di cancellare qualcosa al posto dell'utente.
         #expect(!Finding.advice(from: f).contains { $0.localizedCaseInsensitiveContains("ho cancellato") })
+    }
+
+    @Test func chartSplitsUsedSpaceAndMatchesList() {
+        let u = usage()
+        let chart = DiskSpaceAnalysis.chart(for: u)
+        // 5 voci colorate + il resto; lo spazio libero non è un blocco.
+        #expect(chart.segments.count == 6)
+        #expect(chart.segments.map(\.swatch).prefix(5) == [.series(0), .series(1), .series(2), .series(3), .series(4)])
+        #expect(chart.segments.last?.swatch == .rest)
+        #expect(chart.totalBytes == u.usedBytes)
+        #expect(chart.capacityBytes == u.totalBytes)
+        #expect(chart.capacitySummary == "Usati 300,0 GB su 500,0 GB (60%)")
+        // Le righe dell'elenco usano gli stessi colori nello stesso ordine.
+        let rows = DiskSpaceAnalysis.findings(for: u).compactMap(\.swatch)
+        #expect(rows == chart.segments.map(\.swatch))
     }
 
     @Test func lowSpaceIsCriticalAndGivesCleanupAdvice() {

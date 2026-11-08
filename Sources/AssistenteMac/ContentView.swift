@@ -71,6 +71,10 @@ struct ContentView: View {
 
     @ViewBuilder private var results: some View {
         VStack(alignment: .leading, spacing: 10) {
+            if let chart = model.chart {
+                SegmentedBar(chart: chart)
+                    .padding(.bottom, 2)
+            }
             ForEach(model.findings) { finding in
                 FindingRow(finding: finding)
             }
@@ -146,6 +150,11 @@ private struct FindingRow: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
+            if let swatch = finding.swatch {
+                // Pallino dello stesso colore del blocco nella barra (fa da legenda).
+                SwatchDot(swatch: swatch)
+                    .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + 4 }
+            }
             Group {
                 if finding.iconPath != nil || finding.symbol != nil {
                     ItemIcon(path: finding.iconPath, symbol: finding.symbol ?? icon, tint: color)

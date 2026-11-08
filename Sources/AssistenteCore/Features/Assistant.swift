@@ -4,7 +4,7 @@ import Foundation
 public enum AssistantReply: Sendable {
     /// Risultato pronto: i `findings` si mostrano subito, la `aiRequest`
     /// si passa al provider per la spiegazione.
-    case result(findings: [Finding], aiRequest: AIRequest)
+    case result(findings: [Finding], aiRequest: AIRequest, chart: SegmentedChart? = nil)
     /// L'utente deve scegliere tra alcune opzioni (es. quale processo).
     /// Ogni opzione ha un'etichetta e la domanda da fare se viene scelta.
     case choices(message: String, options: [Choice])
@@ -58,7 +58,8 @@ public struct Assistant: Sendable {
         case .diskSpace:
             let usage = await disk.usage()
             return .result(findings: DiskSpaceAnalysis.findings(for: usage),
-                           aiRequest: DiskSpaceAnalysis.request(question: question, usage: usage))
+                           aiRequest: DiskSpaceAnalysis.request(question: question, usage: usage),
+                           chart: DiskSpaceAnalysis.chart(for: usage))
 
         case .process(nil):
             let options = ProcessExplainer.suggestions(from: samples).map {

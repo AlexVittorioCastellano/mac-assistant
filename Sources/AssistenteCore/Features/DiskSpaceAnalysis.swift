@@ -110,7 +110,34 @@ public enum DiskSpaceAnalysis {
         return freeRatio < 0.2 ? .warning : .ok
     }
 
-    public static func findings(for u: DiskUsage, maxEntries: Int = 7) -> [Finding] {
+    /// Quante voci hanno un colore proprio nel grafico; le altre vanno in "Il resto".
+    /// Massimo 5: oltre, i colori diventano difficili da distinguere.
+    public static let coloredEntries = 5
+
+    /// Le voci colorate e quelle raggruppate in "Il resto".
+    static func split(_ u: DiskUsage) -> (top: [Entry], rest: [Entry]) {
+        let all = entries(u).filter { $0.bytes > 0 }
+        return (Array(all.prefix(coloredEntries)), Array(all.dropFirst(coloredEntries)))
+    }
+
+    /// Barra segmentata dello spazio USATO (le voci più grandi e il resto),
+    /// più la capacità del disco per l'indicatore "usati X su Y".
+    /// Lo spazio libero non è un blocco: su un disco quasi vuoto renderebbe
+    /// le voci strisce illeggibili.
+    public static func chart(for u: DiskUsage) -> SegmentedChart {
+        let (top, rest) = split(u)
+        var segments = top.enumerated().map { i, e in
+            SegmentedChart.Segment(id: e.id, label: e.label, bytes: e.bytes, swatch: .series(i))
+        }
+        let restBytes = rest.reduce(0) { $0 + $1.bytes }
+        if restBytes > 0 {
+            segments.append(.init(id: "rest", label: "Il resto", bytes: restBytes, swatch: .rest))
+        }
+        return SegmentedChart(totalBytes: segments.reduce(0) { $0 + $1.bytes }, segments: segments,
+                              capacityBytes: u.totalBytes, level: level(u))
+    }
+
+    public static func findings(for u: DiskUsage) -> [Finding] {
         var result: [Finding] = []
         let gb: UInt64 = 1_073_741_824
 
@@ -129,9 +156,25 @@ public enum DiskSpaceAnalysis {
                                 symbol: "arrow.3.trianglepath"))
         }
 
-        for e in entries(u).filter({ $0.bytes >= gb }).prefix(maxEntries) {
+        // Le righe hanno lo stesso ordine e lo stesso colore dei blocchi della barra.
+        let (top, rest) = split(u)
+        for (i, e) in top.enumerated() {
             result.append(.init(id: e.id, severity: .info, title: "\(e.label): \(Fmt.size(e.bytes))",
-                                advice: plenty ? nil : e.advice, iconPath: e.iconPath, symbol: e.symbol))
+                                advice: plenty ? nil : e.advice, iconPath: e.iconPath, symbol: e.symbol,
+                                swatch: .series(i)))
+        }
+        let restBytes = rest.reduce(0) { $0 + $1.bytes }
+        if restBytes > 0 {
+            // Nomino le voci raggruppate più grandi, così "il resto" non è un mistero.
+            let names = rest.filter { $0.bytes >= gb }.prefix(3).map(\.label)
+            let detail = names.isEmpty ? "" : " (\(names.joined(separator: ", ")))"
+            var row = Finding(id: "rest", severity: .info, title: "Il resto\(detail): \(Fmt.size(restBytes))",
+                              symbol: "square.grid.2x2", swatch: .rest)
+            // Consigli delle voci raggruppate, se lo spazio scarseggia (es. un Cestino pieno).
+            if !plenty {
+                row.moreAdvice = rest.filter { $0.bytes >= gb }.compactMap(\.advice)
+            }
+            result.append(row)
         }
 
         let systemData = systemDataBytes(u)

@@ -11,6 +11,7 @@ final class AssistantViewModel {
     var question = ""
     var findings: [Finding] = []
     var choices: [Choice] = []
+    var chart: SegmentedChart?
     var answer = ""
     var notice: String?
     var isWorking = false
@@ -30,6 +31,7 @@ final class AssistantViewModel {
         task?.cancel()
         findings = []
         choices = []
+        chart = nil
         answer = ""
         notice = nil
         isWorking = true
@@ -45,8 +47,9 @@ final class AssistantViewModel {
                 case .choices(let message, let options):
                     notice = message
                     choices = options
-                case .result(let found, let request):
+                case .result(let found, let request, let newChart):
                     findings = found  // mostrati subito, prima dell'AI
+                    chart = newChart
                     if case .unavailable(let reason) = assistant.provider.availability {
                         notice = reason
                         return
