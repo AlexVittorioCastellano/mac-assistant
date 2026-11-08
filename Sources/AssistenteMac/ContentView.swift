@@ -70,11 +70,24 @@ struct ContentView: View {
 
     private var inputRow: some View {
         HStack {
-            TextField(model.isChatting ? "Scrivi un altro messaggio…" : "Fai una domanda sul tuo Mac…",
+            TextField(model.isListening ? "Ti ascolto… premi di nuovo il microfono quando hai finito"
+                      : model.isChatting ? "Scrivi un altro messaggio…" : "Fai una domanda sul tuo Mac…",
                       text: $model.question)
                 .textFieldStyle(.roundedBorder)
                 .focused($fieldFocused)
                 .onSubmit { model.ask() }
+            // Domanda a voce: premi per parlare, premi di nuovo per chiedere.
+            Button {
+                model.toggleVoice()
+            } label: {
+                Image(systemName: model.isListening ? "mic.circle.fill" : "mic.circle")
+                    .font(.title2)
+                    .foregroundStyle(model.isListening ? Color.red : Color.secondary)
+                    .symbolEffect(.pulse, isActive: model.isListening)
+            }
+            .buttonStyle(.plain)
+            .help(model.isListening ? "Ho finito: fai la domanda" : "Fai la domanda a voce (resta tutto sul Mac)")
+            .accessibilityLabel(model.isListening ? "Ferma l'ascolto e chiedi" : "Fai una domanda a voce")
             Button {
                 model.ask()
             } label: {

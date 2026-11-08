@@ -539,3 +539,23 @@ import Testing
         #expect(MessageExplainer.findings(for: text).contains { $0.id == "diskfull" })
     }
 }
+
+@Suite struct VoiceTests {
+    /// Prova vera della trascrizione: il Mac "dice" una domanda con la voce
+    /// italiana di sistema e la trascrive (tutto sul Mac). Si salta se manca
+    /// la voce italiana.
+    @Test func transcribesAnItalianQuestion() async throws {
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("assistente-voce-test.aiff")
+        let say = Process()
+        say.executableURL = URL(fileURLWithPath: "/usr/bin/say")
+        say.arguments = ["-v", "Alice", "-o", file.path, "Come faccio uno screenshot di una finestra?"]
+        try say.run()
+        say.waitUntilExit()
+        guard say.terminationStatus == 0, await VoiceTranscriber.isAvailable() else { return }
+        defer { try? FileManager.default.removeItem(at: file) }
+
+        let text = try await VoiceTranscriber.transcribe(fileAt: file)
+        #expect(IntentRouter.normalize(text).contains("screenshot"))
+        #expect(IntentRouter.route(text) == .chat)
+    }
+}

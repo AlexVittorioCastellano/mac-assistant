@@ -3,6 +3,7 @@
 //       swift run assistente-cli --chat "Come faccio uno screenshot?"   (poi altre domande, una per riga)
 //       swift run assistente-cli --eval Evals/casi.json   (prove di qualità con il modello vero)
 //       swift run assistente-cli --messaggio screenshot.png   (o il testo del messaggio)
+//       swift run assistente-cli --voce domanda.m4a   (trascrive un file audio, sul Mac)
 //       swift run assistente-cli --guide "Come mando un file all'iPhone?"  (quale guida verificata si attiva)
 //       swift run assistente-cli --prompt "..."   (mostra anche il prompt inviato al modello)
 import AssistenteCore
@@ -40,6 +41,19 @@ if let i = CommandLine.arguments.firstIndex(of: "--eval") {
 var messageInput: String?
 if let i = CommandLine.arguments.firstIndex(of: "--messaggio") {
     messageInput = CommandLine.arguments.dropFirst(i + 1).joined(separator: " ")
+}
+
+// --voce <file audio>: trascrive (sul Mac) e mostra il testo riconosciuto.
+if let i = CommandLine.arguments.firstIndex(of: "--voce"), CommandLine.arguments.indices.contains(i + 1) {
+    let start = Date()
+    do {
+        let text = try await VoiceTranscriber.transcribe(fileAt: URL(fileURLWithPath: CommandLine.arguments[i + 1]))
+        print("🎤 «\(text)» (\(String(format: "%.1f", Date().timeIntervalSince(start))) s)")
+        exit(0)
+    } catch {
+        print("Errore: \(error.localizedDescription)")
+        exit(1)
+    }
 }
 
 // --guide: mostra solo quale guida verificata si attiva (utile per chi

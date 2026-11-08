@@ -1,5 +1,6 @@
 import AppKit
 import AssistenteCore
+import AVFoundation
 import Observation
 import os
 import SwiftUI
@@ -35,6 +36,11 @@ final class AssistantViewModel {
     /// Testo della rotellina di attesa (dipende da cosa stiamo facendo).
     var workingLabel = "Controllo il Mac…"
     private var lastPrewarm = Date.distantPast
+
+    /// Domanda a voce: `true` mentre il microfono ascolta.
+    var isListening = false
+    private var dictation: LiveDictation?
+    private var listenTimeout: Task<Void, Never>?
 
     /// Chat libera: messaggi e conversazione in corso (che ricorda il contesto).
     var messages: [ChatMessage] = []
@@ -93,6 +99,72 @@ final class AssistantViewModel {
             try? await Task.sleep(for: .seconds(4))
             if isWorking && findings.isEmpty && notice == nil {
                 workingLabel = "Leggo il messaggio… la prima volta può volerci una ventina di secondi"
+            }
+        }
+    }
+
+    // MARK: Domanda a voce
+
+    /// Premi una volta per parlare, di nuovo per fare la domanda.
+    func toggleVoice() {
+        if isListening { finishListening() } else { startListening() }
+    }
+
+    private func startListening() {
+        // Il microfono richiede l'app vera (con la descrizione del permesso
+        // nell'Info.plist): con `swift run` macOS chiuderebbe l'app.
+        guard Bundle.main.bundleIdentifier != nil else {
+            notice = "La domanda a voce funziona solo nell'app vera: creala con ./scripts/crea-app.sh."
+            return
+        }
+        Task {
+            guard await AVCaptureDevice.requestAccess(for: .audio) else {
+                notice = "Per fare domande a voce consenti il microfono in Impostazioni di Sistema → Privacy e sicurezza → Microfono."
+                return
+            }
+            guard await VoiceTranscriber.isAvailable() else {
+                notice = "Il riconoscimento vocale in italiano non è disponibile su questo Mac."
+                return
+            }
+            task?.cancel()
+            clearResults()
+            question = ""
+            let dictation = LiveDictation()
+            self.dictation = dictation
+            isListening = true
+            do {
+                try await dictation.start { [weak self] text in
+                    Task { @MainActor in
+                        guard let self, self.isListening else { return }
+                        self.question = text  // il testo compare mentre si parla
+                    }
+                }
+            } catch {
+                isListening = false
+                self.dictation = nil
+                notice = error.localizedDescription
+                return
+            }
+            // Sicurezza: dopo 30 secondi si ferma da solo.
+            listenTimeout = Task {
+                try? await Task.sleep(for: .seconds(30))
+                if isListening { finishListening() }
+            }
+        }
+    }
+
+    private func finishListening() {
+        guard let dictation else { return }
+        isListening = false
+        listenTimeout?.cancel()
+        self.dictation = nil
+        Task {
+            let text = await dictation.stop()
+            question = text
+            if text.isEmpty {
+                notice = "Non ho sentito niente. Premi il microfono e parla vicino al Mac."
+            } else {
+                ask(text)  // la domanda parte; resta visibile nel campo per correggerla
             }
         }
     }

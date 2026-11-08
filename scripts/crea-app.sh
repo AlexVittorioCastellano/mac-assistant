@@ -32,6 +32,11 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>CFBundleDevelopmentRegion</key><string>it</string>
     <key>LSMinimumSystemVersion</key><string>27.0</string>
     <key>LSArchitecturePriority</key><array><string>arm64</string></array>
+    <!-- Permessi (macOS li chiede la prima volta) -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Assistente Mac usa il microfono solo quando premi il pulsante per fare una domanda a voce. L'audio resta sul tuo Mac.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>Assistente Mac trasforma la tua voce in testo direttamente sul Mac, senza inviarla a nessuno.</string>
     <!-- Solo barra dei menu: niente icona nel Dock -->
     <key>LSUIElement</key><true/>
 </dict>
