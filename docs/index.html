@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mac Assistant</title>
+<meta name="description" content="A friendly assistant in your Mac's menu bar. Ask about your Mac in your own language. The AI runs on your Mac: no cloud, no account.">
+<meta property="og:title" content="Mac Assistant">
+<meta property="og:description" content="Ask your Mac, in your language. The AI runs on your Mac: no cloud, no account.">
+<meta property="og:image" content="https://migattenoalecs.github.io/mac-assistant/icona.png">
+<link rel="icon" href="icona.png">
+<style>
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --text: #15171a;
+  --muted: #5d636b;
+  --line: #e3e6ea;
+  --accent: #2a6fdb;
+  --accent-text: #ffffff;
+  --good: #1f9d63;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111214;
+    --surface: #1b1d20;
+    --text: #eef0f2;
+    --muted: #a3a9b1;
+    --line: #2b2e33;
+    --accent: #4a8cf0;
+    --accent-text: #ffffff;
+    --good: #3fbf82;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 17px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+header { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 18px; color: var(--text); }
+.brand img { width: 34px; height: 34px; }
+nav { display: flex; gap: 16px; align-items: center; font-size: 15px; }
+.lang { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 8px; padding: 4px 10px; font: inherit; cursor: pointer; }
+.hero { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center; padding: 40px 0 64px; }
+h1 { font-size: clamp(36px, 5.2vw, 56px); line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 18px; }
+.lead { font-size: 20px; color: var(--muted); margin: 0 0 28px; max-width: 34em; }
+.buttons { display: flex; flex-wrap: wrap; gap: 12px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 20px; border-radius: 12px; font-weight: 600; font-size: 16px; }
+.btn:hover { text-decoration: none; }
+.primary { background: var(--accent); color: var(--accent-text); }
+.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--line); }
+.note { margin-top: 14px; font-size: 14px; color: var(--muted); }
+.demo { justify-self: center; background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 10px; box-shadow: 0 18px 50px rgba(0,0,0,0.12); }
+.demo img { display: block; width: 100%; max-width: 360px; border-radius: 14px; }
+section { padding: 56px 0; border-top: 1px solid var(--line); }
+h2 { font-size: 30px; letter-spacing: -0.01em; margin: 0 0 8px; }
+.sub { color: var(--muted); margin: 0 0 32px; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+.card .icon { font-size: 26px; }
+.card h3 { margin: 10px 0 6px; font-size: 18px; }
+.card p { margin: 0; color: var(--muted); font-size: 15px; }
+.shots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.shots img { width: 100%; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); }
+.privacy { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.privacy div { padding: 4px 0; }
+.privacy b { display: block; margin-bottom: 4px; }
+.privacy span { color: var(--muted); font-size: 15px; }
+ol { padding-left: 22px; margin: 0; }
+ol li { margin-bottom: 8px; }
+.box { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px 24px; max-width: 760px; }
+footer { padding: 36px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+[data-l] { display: none; }
+html[lang="en"] [data-l="en"], html[lang="it"] [data-l="it"] { display: revert; }
+html[lang="en"] [data-l="it"], html[lang="it"] [data-l="en"] { display: none !important; }
+@media (max-width: 860px) {
+  .hero { grid-template-columns: 1fr; gap: 36px; padding-top: 16px; }
+  .grid, .shots, .privacy { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .grid, .shots, .privacy { grid-template-columns: 1fr; }
+  nav a.hide-small { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="#"><img src="icona.png" alt="">Mac Assistant</a>
+    <nav>
+      <a class="hide-small" href="https://github.com/MigatteNoAlecs/mac-assistant">GitHub</a>
+      <button class="lang" id="lang" type="button">Italiano</button>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <div>
+      <h1><span data-l="en">Ask your Mac,<br>in your language.</span><span data-l="it">Chiedi al tuo Mac,<br>nella tua lingua.</span></h1>
+      <p class="lead">
+        <span data-l="en">A friendly assistant in your menu bar. Why is it slow? What is this process? Where did my space go? Is this pop-up a scam? The AI runs on your Mac: no cloud, no account, no tracking.</span>
+        <span data-l="it">Un assistente gentile nella barra dei menu. Perché è lento? Cos'è questo processo? Dove è finito lo spazio? Questo avviso è una truffa? L'AI lavora sul tuo Mac: niente cloud, niente account, niente tracciamento.</span>
+      </p>
+      <div class="buttons">
+        <a class="btn primary" href="https://github.com/MigatteNoAlecs/mac-assistant/releases/latest/download/MacAssistant.zip">
+          <span data-l="en">Download for Mac</span><span data-l="it">Scarica per Mac</span>
+        </a>
+        <a class="btn secondary" href="https://github.com/MigatteNoAlecs/mac-assistant">
+          <span data-l="en">Source code</span><span data-l="it">Codice sorgente</span>
+        </a>
+      </div>
+      <p class="note">
+        <span data-l="en">Free and open source · macOS 27 · Apple Silicon · Apple Intelligence</span>
+        <span data-l="it">Gratis e open source · macOS 27 · Apple Silicon · Apple Intelligence</span>
+      </p>
+    </div>
+    <div class="demo">
+      <img data-l="en" src="immagini/demo-en.gif" alt="Mac Assistant demo">
+      <img data-l="it" src="immagini/demo-it.gif" alt="Demo di Mac Assistant">
+    </div>
+  </div>
+
+  <section>
+    <h2><span data-l="en">What it does</span><span data-l="it">Cosa fa</span></h2>
+    <p class="sub"><span data-l="en">Made for people who just want their Mac to work.</span><span data-l="it">Pensato per chi vuole solo che il Mac funzioni.</span></p>
+    <div class="grid">
+      <div class="card"><div class="icon">🩺</div>
+        <h3><span data-l="en">Check my Mac</span><span data-l="it">Controlla il mio Mac</span></h3>
+        <p><span data-l="en">Speed, space, backup, encryption, updates, battery and suspicious apps in one click.</span><span data-l="it">Velocità, spazio, backup, cifratura, aggiornamenti, batteria e app sospette in un clic.</span></p></div>
+      <div class="card"><div class="icon">🐢</div>
+        <h3><span data-l="en">Why is it slow?</span><span data-l="it">Perché è lento?</span></h3>
+        <p><span data-l="en">Reads processor, memory and temperature, and tells you what's going on.</span><span data-l="it">Legge processore, memoria e temperatura e ti dice cosa sta succedendo.</span></p></div>
+      <div class="card"><div class="icon">💾</div>
+        <h3><span data-l="en">Where did my space go?</span><span data-l="it">Dove è finito lo spazio?</span></h3>
+        <p><span data-l="en">A clear chart, “System Data” explained, and a cleanup that only moves files to the Trash.</span><span data-l="it">Un grafico chiaro, i “Dati di sistema” spiegati e una pulizia che sposta i file solo nel Cestino.</span></p></div>
+      <div class="card"><div class="icon">📸</div>
+        <h3><span data-l="en">Explain a message</span><span data-l="it">Spiega un messaggio</span></h3>
+        <p><span data-l="en">Screenshot any alert and get it explained. Fake “your Mac is infected” pages are flagged.</span><span data-l="it">Fai uno screenshot di un avviso e te lo spiega. Le false pagine “il tuo Mac è infetto” vengono smascherate.</span></p></div>
+      <div class="card"><div class="icon">💬</div>
+        <h3><span data-l="en">How do I…?</span><span data-l="it">Come si fa…?</span></h3>
+        <p><span data-l="en">Ask anything about using the Mac. Common answers come from checked guides.</span><span data-l="it">Chiedi qualsiasi cosa sull'uso del Mac. Le risposte più comuni vengono da guide controllate.</span></p></div>
+      <div class="card"><div class="icon">🔔</div>
+        <h3><span data-l="en">Alerts and voice</span><span data-l="it">Avvisi e voce</span></h3>
+        <p><span data-l="en">A heads-up when a problem lasts, questions by voice, answers read aloud, ⌥Space from anywhere.</span><span data-l="it">Un avviso quando un problema dura, domande a voce, risposte lette ad alta voce, ⌥Spazio da ovunque.</span></p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span data-l="en">A closer look</span><span data-l="it">Più da vicino</span></h2>
+    <p class="sub"><span data-l="en">Light and dark, in English and Italian.</span><span data-l="it">Chiaro e scuro, in italiano e in inglese.</span></p>
+    <div class="shots">
+      <img data-l="en" src="immagini/controllo-en.png" alt="Check my Mac">
+      <img data-l="en" src="immagini/spazio-en-scuro.png" alt="Disk space">
+      <img data-l="en" src="immagini/pulizia-en.png" alt="Cleanup">
+      <img data-l="it" src="immagini/controllo-it.png" alt="Controlla il mio Mac">
+      <img data-l="it" src="immagini/spazio-it-scuro.png" alt="Spazio disco">
+      <img data-l="it" src="immagini/pulizia-it.png" alt="Pulizia">
+    </div>
+  </section>
+
+  <section>
+    <h2><span data-l="en">Private by design</span><span data-l="it">Privato per davvero</span></h2>
+    <p class="sub"><span data-l="en">Nothing you ask, say or screenshot leaves your Mac.</span><span data-l="it">Niente di quello che chiedi, dici o fotografi lascia il tuo Mac.</span></p>
+    <div class="privacy">
+      <div><b><span data-l="en">On-device AI</span><span data-l="it">AI sul Mac</span></b>
+        <span><span data-l="en">Apple Intelligence, text recognition and speech all run locally.</span><span data-l="it">Apple Intelligence, lettura del testo e voce lavorano in locale.</span></span></div>
+      <div><b><span data-l="en">No account, no tracking</span><span data-l="it">Niente account, niente tracciamento</span></b>
+        <span><span data-l="en">No sign-up, no analytics, no API keys.</span><span data-l="it">Nessuna registrazione, nessuna statistica, nessuna chiave API.</span></span></div>
+      <div><b><span data-l="en">Hands off</span><span data-l="it">Non tocca nulla</span></b>
+        <span><span data-l="en">It never quits apps or deletes files on its own. Cleanup asks first and can be undone.</span><span data-l="it">Non chiude app e non cancella file da solo. La pulizia chiede prima e si può annullare.</span></span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span data-l="en">First launch</span><span data-l="it">Primo avvio</span></h2>
+    <p class="sub"><span data-l="en">The app isn't notarized by Apple yet, so macOS asks you to confirm once.</span><span data-l="it">L'app non è ancora notarizzata da Apple, quindi macOS ti chiede una conferma la prima volta.</span></p>
+    <div class="box">
+      <ol data-l="en">
+        <li>Download and unzip <b>MacAssistant.zip</b>, then move <b>Mac Assistant</b> to Applications.</li>
+        <li>Open it. If macOS says it can't verify the developer, open <b>System Settings → Privacy &amp; Security</b>, scroll down and click <b>Open Anyway</b>.</li>
+        <li>Look for the speech bubble in the menu bar, or press <b>⌥Space</b>.</li>
+      </ol>
+      <ol data-l="it">
+        <li>Scarica ed estrai <b>MacAssistant.zip</b>, poi sposta <b>Mac Assistant</b> in Applicazioni.</li>
+        <li>Aprila. Se macOS dice che non può verificare lo sviluppatore, apri <b>Impostazioni di Sistema → Privacy e sicurezza</b>, scorri in basso e premi <b>Apri comunque</b>.</li>
+        <li>Cerca il fumetto nella barra dei menu, oppure premi <b>⌥Spazio</b>.</li>
+      </ol>
+    </div>
+  </section>
+
+  <footer>
+    <span>Mac Assistant · <span data-l="en">MIT license</span><span data-l="it">licenza MIT</span> · © 2026 Alex Castellano</span>
+    <a href="https://github.com/MigatteNoAlecs/mac-assistant">github.com/MigatteNoAlecs/mac-assistant</a>
+  </footer>
+</div>
+<script>
+(function () {
+  var root = document.documentElement;
+  var saved = null;
+  try { saved = localStorage.getItem("lang"); } catch (e) {}
+  var lang = saved || ((navigator.language || "en").toLowerCase().indexOf("it") === 0 ? "it" : "en");
+  var button = document.getElementById("lang");
+  function apply(l) {
+    root.lang = l;
+    button.textContent = l === "it" ? "English" : "Italiano";
+    document.title = "Mac Assistant";
+  }
+  apply(lang);
+  button.addEventListener("click", function () {
+    lang = lang === "it" ? "en" : "it";
+    try { localStorage.setItem("lang", lang); } catch (e) {}
+    apply(lang);
+  });
+})();
+</script>
+</body>
+</html>

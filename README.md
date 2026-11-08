@@ -18,13 +18,13 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/MigatteNoAlecs/mac-assistant/releases/latest/download/MacAssistant.zip"><b>Download for Mac</b></a> ·
+  <a href="https://migattenoalecs.github.io/mac-assistant/">Website</a> ·
   🇬🇧 <a href="#english">English</a> · 🇮🇹 <a href="#italiano">Italiano</a>
 </p>
 
 <p align="center">
-  <img src="docs/immagini/controllo-en.png" width="260" alt="Check my Mac">
-  <img src="docs/immagini/spazio-en-scuro.png" width="260" alt="Where did my disk space go">
-  <img src="docs/immagini/messaggio-en.png" width="260" alt="Explain a message: scam detected">
+  <img src="docs/immagini/demo-en.gif" width="340" alt="Mac Assistant demo">
 </p>
 
 ---
@@ -79,6 +79,13 @@ finds, and suggests what *you* can do. It never quits apps or deletes files on i
 - Apple Intelligence turned on (System Settings → Apple Intelligence & Siri).
   Without it you still get every check, chart and piece of advice — just not the
   AI-written explanation.
+
+## Download
+
+Grab **[MacAssistant.zip](https://github.com/MigatteNoAlecs/mac-assistant/releases/latest/download/MacAssistant.zip)**
+from the [latest release](https://github.com/MigatteNoAlecs/mac-assistant/releases/latest), unzip it and move
+**Mac Assistant** to Applications. The app isn't notarized yet: the first time, macOS asks you to confirm in
+**System Settings → Privacy & Security → Open Anyway**.
 
 ## Build and run
 
@@ -202,9 +209,12 @@ inviati, niente account, niente chiavi API. È pensato per chi non è esperto e 
 da solo: legge, spiega e suggerisce.
 
 <p align="center">
-  <img src="docs/immagini/controllo-it.png" width="260" alt="Controlla il mio Mac">
-  <img src="docs/immagini/spazio-it.png" width="260" alt="Dove è finito lo spazio">
-  <img src="docs/immagini/chat-it-scuro.png" width="260" alt="Chat con guide verificate">
+  <img src="docs/immagini/demo-it.gif" width="340" alt="Demo di Mac Assistant">
+</p>
+
+<p align="center">
+  <a href="https://github.com/MigatteNoAlecs/mac-assistant/releases/latest/download/MacAssistant.zip"><b>Scarica per Mac</b></a> ·
+  <a href="https://migattenoalecs.github.io/mac-assistant/">Sito</a>
 </p>
 
 ### Cosa fa
@@ -220,6 +230,12 @@ da solo: legge, spiega e suggerisce.
   smascherate** in qualunque lingua.
 - 💬 **Chat** con ~40 guide verificate per lingua, 🔔 **avvisi** quando un problema dura,
   🎤 **domanda a voce**, 🔊 **lettura ad alta voce**, ⌨️ **⌥Spazio** da qualunque app.
+
+### Scaricare l'app
+
+Scarica **MacAssistant.zip** dall'[ultima versione](https://github.com/MigatteNoAlecs/mac-assistant/releases/latest),
+estrailo e sposta **Mac Assistant** in Applicazioni. L'app non è ancora notarizzata: la prima volta macOS chiede
+una conferma in **Impostazioni di Sistema → Privacy e sicurezza → Apri comunque**.
 
 ### Requisiti e installazione
 

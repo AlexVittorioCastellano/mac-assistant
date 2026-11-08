@@ -4,7 +4,7 @@ cd "$(dirname "$0")/.."
 
 CONFIG=${CONFIG:-release}
 BUNDLE_ID=${BUNDLE_ID:-com.alexcastellano.AssistenteMac}
-VERSION=${VERSION:-0.1.0}
+VERSION=${VERSION:-1.0.0}
 APP="build/Mac Assistant.app"
 
 swift build -c "$CONFIG" --product AssistenteMac

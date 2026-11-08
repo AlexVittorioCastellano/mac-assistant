@@ -10,6 +10,7 @@ struct AssistenteMacApp: App {
         NSApplication.shared.setActivationPolicy(.accessory)
         model.appDidLaunch()
         DemoScreenshots.runIfRequested()
+        DemoGIF.runIfRequested()
     }
 
     var body: some Scene {
