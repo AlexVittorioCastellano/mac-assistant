@@ -21,7 +21,7 @@ Fai una domanda in italiano sul tuo Mac e ricevi una risposta chiara e veloce.
 |---|---|
 | "Perché il Mac è lento?": legge processore, memoria, temperatura e processi e spiega cosa succede | ✅ |
 | "Cos'è questo processo?": dice cos'è, se fa parte di macOS o di un'app e se si può chiudere | ✅ |
-| "Dove è finito lo spazio?" (Dati di sistema, snapshot, modelli AI) | 🔜 |
+| "Dove è finito lo spazio?": divide lo spazio occupato in voci (modelli di Apple Intelligence, app, Download, cache…) e spiega i "Dati di sistema" | ✅ |
 | Chat libera su come fare cose sul Mac | 🔜 |
 
 ### Requisiti
@@ -100,6 +100,10 @@ Regole:
 
 ### Limiti noti
 
+- La prima volta che misuri lo spazio, macOS può chiedere il permesso di
+  leggere le cartelle Download, Documenti e Scrivania. Se lo neghi, quelle voci
+  vengono saltate. Le cartelle dei dati di altre app (`~/Library/Containers`)
+  non vengono lette: finiscono nella voce "Altro".
 - `kernel_task` (e pochi altri processi del kernel) non è leggibile senza
   permessi di amministratore: il suo carico rientra comunque nel totale del
   processore e nella temperatura.
@@ -127,7 +131,7 @@ answers are in Italian by design.)
 |---|---|
 | "Why is my Mac slow?": reads CPU, memory, thermal state and processes, and explains | ✅ |
 | "What is this process?": what it is, whether it belongs to macOS or an app, and whether it's safe to quit | ✅ |
-| "Where did my disk space go?" | 🔜 |
+| "Where did my disk space go?": breaks down used space (Apple Intelligence models, apps, Downloads, caches…) and explains "System Data" | ✅ |
 | Free-form chat about using the Mac | 🔜 |
 
 ### Requirements

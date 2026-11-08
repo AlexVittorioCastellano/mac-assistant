@@ -3,6 +3,7 @@ import Foundation
 /// Cosa vuole l'utente.
 public enum Intent: Sendable, Equatable {
     case slowMac
+    case diskSpace
     /// Spiegare un processo. `nil` = l'utente non ha indicato quale.
     case process(String?)
     case notYetSupported
@@ -16,6 +17,19 @@ public enum IntentRouter {
         "ventol", "scalda", "caldo", "cpu", "processore", "ram", "memoria", "pesante",
         "girella", "rotella", "pallina",
     ]
+
+    static let diskKeywords = [
+        "spazio", "disco", "archiviazione", "dati di sistema", "storage", "snapshot",
+        "istantane", "gb liber", "pieno", "piena", "occupa",
+    ]
+
+    /// Parole che indicano chiaramente la lentezza (vincono su "disco"):
+    /// "il disco è lento" riguarda la velocità, non lo spazio.
+    /// Anche "RAM", "CPU" e "processore" indicano la lentezza: "quale app occupa
+    /// più RAM" non riguarda il disco. "Memoria" invece è ambigua in italiano
+    /// ("memoria piena" di solito vuol dire disco pieno).
+    static let strongSlowKeywords = ["lento", "lenta", "lentezza", "rallent", "bloccat", "si blocca",
+                                     "ventol", "scalda", "caldo", "ram", "cpu", "processore"]
 
     /// Frasi che indicano una domanda su un processo.
     static let processTriggers = [
@@ -51,12 +65,21 @@ public enum IntentRouter {
                 }
                 return .process(name)
             }
-            // 3. Domande tipo "cosa fa il Mac quando è lento" restano sulla lentezza.
-            if isAboutSlowness(text) { return .slowMac }
+            // 3. Domande tipo "cosa fa il Mac quando è lento" o "cos'è Dati di
+            //    sistema" non riguardano un processo.
+            if let topic = topic(of: text) { return topic }
             // 4. Altrimenti, il nome è quello che resta tolte le parole di contorno.
             return .process(candidateName(in: question))
         }
-        return isAboutSlowness(text) ? .slowMac : .notYetSupported
+        return topic(of: text) ?? .notYetSupported
+    }
+
+    /// Lentezza o spazio su disco (o nessuno dei due).
+    static func topic(of normalized: String) -> Intent? {
+        let strongSlow = strongSlowKeywords.contains { normalized.contains($0) }
+        let disk = diskKeywords.contains { normalized.contains($0) }
+        if disk && !strongSlow { return .diskSpace }
+        return isAboutSlowness(normalized) ? .slowMac : nil
     }
 
     static func isAboutSlowness(_ normalized: String) -> Bool {

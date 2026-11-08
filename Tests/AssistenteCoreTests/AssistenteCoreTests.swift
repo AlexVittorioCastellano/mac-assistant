@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import AssistenteCore
 
@@ -188,7 +189,81 @@ import Testing
         #expect(IntentRouter.route("Cos'è birdwatching?", runningNames: running) == .process("birdwatching"))
     }
 
+    @Test(arguments: ["Dove è finito lo spazio?", "Il disco è pieno", "Cosa sono i Dati di sistema?",
+                      "Ho la memoria piena", "Cos'è dati di sistema?", "Quanto spazio occupano gli snapshot?"])
+    func recognisesDiskSpace(_ q: String) {
+        #expect(IntentRouter.route(q, runningNames: running) == .diskSpace)
+    }
+
+    @Test func slownessWinsOverDiskWords() {
+        #expect(IntentRouter.route("Il disco è lento", runningNames: running) == .slowMac)
+        #expect(IntentRouter.route("Quale app occupa più RAM?", runningNames: running) == .slowMac)
+    }
+
     @Test func otherQuestionsAreNotYetSupported() {
         #expect(IntentRouter.route("Come faccio uno screenshot?") == .notYetSupported)
+    }
+}
+
+@Suite struct DiskSpaceTests {
+    let gb: UInt64 = 1 << 30
+
+    func usage(free: UInt64 = 200 << 30, snapshots: Int = 0) -> DiskUsage {
+        DiskUsage(totalBytes: 500 << 30, freeBytes: free, purgeableBytes: 3 << 30, macOSBytes: 20 << 30,
+                  items: [DiskItem(category: .appleAI, bytes: 25 << 30),
+                          DiskItem(category: .downloads, bytes: 7 << 30, path: "/Users/x/Downloads"),
+                          DiskItem(category: .caches, bytes: 2 << 30),
+                          DiskItem(category: .trash, bytes: 100 << 20)],
+                  localSnapshotCount: snapshots)
+    }
+
+    @Test func otherIsWhatIsLeft() {
+        let u = usage()
+        // usati 300 GB - macOS 20 - voci (25 + 7 + 2 + 0,1) = 245,9 GB
+        #expect(u.otherBytes == (300 << 30) - (20 << 30) - (34 << 30) - (100 << 20))
+    }
+
+    @Test func findingsAreSortedAndHaveSafeAdvice() {
+        let f = DiskSpaceAnalysis.findings(for: usage())
+        #expect(f.first?.id == "free")
+        #expect(f.first?.severity == .ok)
+        let ids = f.map(\.id)
+        // "altro" (245 GB) prima dei modelli AI (25 GB), poi macOS, Download…
+        #expect(ids.firstIndex(of: "other")! < ids.firstIndex(of: "appleAI")!)
+        #expect(ids.firstIndex(of: "appleAI")! < ids.firstIndex(of: "downloads")!)
+        // Il Cestino sotto 1 GB non si mostra.
+        #expect(!ids.contains("trash"))
+        #expect(f.contains { $0.id == "systemdata" })
+        // Nessun consiglio dice di cancellare qualcosa al posto dell'utente.
+        #expect(!Finding.advice(from: f).contains { $0.localizedCaseInsensitiveContains("ho cancellato") })
+    }
+
+    @Test func lowSpaceIsCriticalAndGivesCleanupAdvice() {
+        let f = DiskSpaceAnalysis.findings(for: usage(free: 5 << 30))
+        #expect(f.first?.severity == .critical)
+        #expect(Finding.advice(from: f).contains { $0.contains("Download") })
+    }
+
+    @Test func plentyOfSpaceGivesNoCleanupAdvice() {
+        let advice = Finding.advice(from: DiskSpaceAnalysis.findings(for: usage()))
+        #expect(advice == ["Hai ancora molto spazio libero: non serve liberarne adesso."])
+    }
+
+    @Test func snapshotsAreMentioned() {
+        #expect(DiskSpaceAnalysis.findings(for: usage(snapshots: 3)).contains { $0.id == "snapshots" })
+    }
+
+    @Test func parsesBootContainer() throws {
+        let containers: [[String: Any]] = [
+            ["CapacityCeiling": NSNumber(value: 5 << 30), "CapacityFree": NSNumber(value: 4 << 30),
+             "Volumes": [["Roles": ["Recovery"], "CapacityInUse": NSNumber(value: 1 << 30)]]],
+            ["CapacityCeiling": NSNumber(value: 1000 << 30), "CapacityFree": NSNumber(value: 800 << 30),
+             "Volumes": [["Roles": ["System"], "CapacityInUse": NSNumber(value: 12 << 30)],
+                         ["Roles": ["Preboot"], "CapacityInUse": NSNumber(value: 9 << 30)],
+                         ["Roles": ["Data"], "CapacityInUse": NSNumber(value: 80 << 30)]]],
+        ]
+        let c = try #require(DiskMonitor.parseContainers(containers))
+        #expect(c.total == 1000 << 30)
+        #expect(c.macOS == 21 << 30)
     }
 }

@@ -31,14 +31,18 @@ public struct Choice: Sendable, Equatable, Hashable {
 public struct Assistant: Sendable {
     public let provider: any AIProvider
     public let monitor: SystemMonitor
+    public let disk: DiskMonitor
 
-    public init(provider: any AIProvider = LocalProvider(), monitor: SystemMonitor = SystemMonitor()) {
+    public init(provider: any AIProvider = LocalProvider(), monitor: SystemMonitor = SystemMonitor(),
+                disk: DiskMonitor = DiskMonitor()) {
         self.provider = provider
         self.monitor = monitor
+        self.disk = disk
     }
 
     public static let slowMacQuestion = "Perché il Mac è lento?"
     public static let processQuestion = "Cos'è questo processo?"
+    public static let diskQuestion = "Dove è finito lo spazio?"
 
     public func prepare(question: String) async throws -> AssistantReply {
         let samples = try ProcessLister.list()
@@ -50,6 +54,11 @@ public struct Assistant: Sendable {
             let findings = SlowMacDiagnosis.findings(for: snapshot)
             return .result(findings: findings,
                            aiRequest: SlowMacDiagnosis.request(question: question, snapshot: snapshot, findings: findings))
+
+        case .diskSpace:
+            let usage = await disk.usage()
+            return .result(findings: DiskSpaceAnalysis.findings(for: usage),
+                           aiRequest: DiskSpaceAnalysis.request(question: question, usage: usage))
 
         case .process(nil):
             let options = ProcessExplainer.suggestions(from: samples).map {
@@ -69,8 +78,8 @@ public struct Assistant: Sendable {
                            aiRequest: ProcessExplainer.request(question: question, details: details))
 
         case .notYetSupported:
-            return .message("Per ora so rispondere a domande sulla lentezza del Mac e sui processi "
-                            + "(es. «Cos'è mds_stores?»). Le altre funzioni arriveranno presto!")
+            return .message("Per ora so rispondere a domande sulla lentezza del Mac, sui processi "
+                            + "(es. «Cos'è mds_stores?») e sullo spazio su disco. La chat libera arriverà presto!")
         }
     }
 

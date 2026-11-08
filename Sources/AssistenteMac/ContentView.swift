@@ -48,21 +48,25 @@ struct ContentView: View {
     }
 
     private var quickActions: some View {
+        // Etichette brevi per farci stare tre pulsanti; la domanda completa
+        // compare passandoci sopra con il mouse.
         HStack(spacing: 8) {
-            quickButton(Assistant.slowMacQuestion, icon: "tortoise")
-            quickButton(Assistant.processQuestion, icon: "questionmark.app")
+            quickButton("Mac lento", question: Assistant.slowMacQuestion, icon: "tortoise")
+            quickButton("Processi", question: Assistant.processQuestion, icon: "questionmark.app")
+            quickButton("Spazio disco", question: Assistant.diskQuestion, icon: "internaldrive")
         }
-        .controlSize(.small)
+        .controlSize(.regular)
         .disabled(model.isWorking)
     }
 
-    private func quickButton(_ question: String, icon: String) -> some View {
+    private func quickButton(_ label: String, question: String, icon: String) -> some View {
         Button {
             model.ask(question)
         } label: {
-            Label(question, systemImage: icon)
+            Label(label, systemImage: icon)
         }
         .buttonStyle(.bordered)
+        .help(question)
     }
 
     @ViewBuilder private var results: some View {
