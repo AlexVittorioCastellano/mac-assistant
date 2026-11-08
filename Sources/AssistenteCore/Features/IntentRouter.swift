@@ -6,6 +6,8 @@ public enum Intent: Sendable, Equatable {
     case diskSpace
     /// "Controlla il mio Mac": semaforo generale.
     case healthCheck
+    /// Caccia alle app sospette (programmi in background, firme).
+    case securityScan
     /// Spiegare un processo. `nil` = l'utente non ha indicato quale.
     case process(String?)
     /// Tutto il resto: chat libera su come usare il Mac.
@@ -33,6 +35,13 @@ public enum IntentRouter {
         "controlla il mio mac", "controlla il mac", "controllo generale", "fai un controllo", "fammi un controllo",
         "check", "salute", "sta bene", "tutto a posto", "tutto ok", "e sicuro", "e protetto", "sicurezza del mac",
         "stato del mac", "va tutto bene",
+    ]
+
+    /// App sospette, malware, programmi che partono da soli.
+    static let securityKeywords = [
+        "app sospett", "programmi sospett", "programma sospett", "sospett", "malware", "adware", "virus",
+        "spyware", "trojan", "in background", "partono da sol", "parte da sol", "si avviano da sol",
+        "mackeeper", "software indesiderat",
     ]
 
     /// Parole che indicano chiaramente la lentezza (vincono su "disco"):
@@ -103,6 +112,7 @@ public enum IntentRouter {
 
     /// Lentezza o spazio su disco (o nessuno dei due).
     static func topic(of normalized: String) -> Intent? {
+        if securityKeywords.contains(where: { hasStem(normalized, $0) }) { return .securityScan }
         if healthKeywords.contains(where: { hasStem(normalized, $0) }) { return .healthCheck }
         let strongSlow = strongSlowKeywords.contains { hasStem(normalized, $0) }
         let disk = diskKeywords.contains { hasStem(normalized, $0) }

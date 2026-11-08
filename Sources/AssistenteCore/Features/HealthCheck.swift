@@ -12,12 +12,16 @@ public enum HealthCheck {
         public var snapshot: SystemSnapshot
         public var disk: (total: UInt64, free: UInt64)
         public var status: MacStatus
+        /// Cose sospette trovate dalla caccia alle app (`nil` = non controllato).
+        public var suspicious: Int?
         public var now: Date
 
-        public init(snapshot: SystemSnapshot, disk: (total: UInt64, free: UInt64), status: MacStatus, now: Date = Date()) {
+        public init(snapshot: SystemSnapshot, disk: (total: UInt64, free: UInt64), status: MacStatus,
+                    suspicious: Int? = nil, now: Date = Date()) {
             self.snapshot = snapshot
             self.disk = disk
             self.status = status
+            self.suspicious = suspicious
             self.now = now
         }
     }
@@ -120,6 +124,16 @@ public enum HealthCheck {
                                 symbol: "flame"))
         } else if s.firewallOn == true {
             result.append(.init(id: "firewall", severity: .ok, title: "Il firewall è acceso", symbol: "flame"))
+        }
+
+        // App sospette
+        if let n = input.suspicious {
+            result.append(n == 0
+                ? .init(id: "apps", severity: .ok, title: "Nessuna app sospetta", symbol: "checkmark.shield.fill")
+                : .init(id: "apps", severity: .warning,
+                        title: n == 1 ? "C'è 1 app o programma da controllare" : "Ci sono \(n) app o programmi da controllare",
+                        advice: "Premi «App sospette» per vedere cosa sono e come toglierli.",
+                        symbol: "exclamationmark.shield.fill"))
         }
 
         // Aggiornamenti

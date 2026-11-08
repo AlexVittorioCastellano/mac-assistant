@@ -51,6 +51,7 @@ public struct Assistant: Sendable {
     public static let processQuestion = "Cos'è questo processo?"
     public static let diskQuestion = "Dove è finito lo spazio?"
     public static let healthQuestion = "Controlla il mio Mac"
+    public static let securityQuestion = "Ci sono app sospette?"
 
     /// - Parameter conversationGuides: guide usate nel turno precedente della
     ///   chat. Una domanda di seguito ("E se non compare?") senza guide proprie
@@ -62,7 +63,7 @@ public struct Assistant: Sendable {
         var intent = IntentRouter.route(question, runningNames: names)
         // "Come chiudo un programma bloccato?" contiene "bloccato" (lentezza), ma
         // è una domanda pratica con una guida pronta: risponde la chat.
-        if intent == .slowMac || intent == .diskSpace || intent == .healthCheck,
+        if intent == .slowMac || intent == .diskSpace || intent == .healthCheck || intent == .securityScan,
            IntentRouter.isHowTo(question), !MacHelpChat.guides(for: question).isEmpty {
             intent = .chat
         }
@@ -74,12 +75,18 @@ public struct Assistant: Sendable {
             return .result(findings: findings,
                            aiRequest: SlowMacDiagnosis.request(question: question, snapshot: snapshot, findings: findings))
 
+        case .securityScan:
+            let result = await SecurityScanner().scan()
+            return .result(findings: SecurityScan.findings(for: result), aiRequest: nil)
+
         case .healthCheck:
             async let snapshot = monitor.snapshot()
             async let macStatus = status.status()
+            async let scan = SecurityScanner().scan()
             let capacity = DiskMonitor.volumeCapacity()
             let input = HealthCheck.Input(snapshot: try await snapshot, disk: (capacity.total, capacity.free),
-                                          status: await macStatus)
+                                          status: await macStatus,
+                                          suspicious: SecurityScan.problemCount(await scan))
             return .result(findings: HealthCheck.findings(for: input), aiRequest: nil)
 
         case .diskSpace:

@@ -1113,6 +1113,38 @@
    "notContains": [
     "truffa"
    ]
+  },
+  {
+   "question": "Ci sono app sospette?",
+   "intent": "securityScan"
+  },
+  {
+   "question": "Ho un virus sul Mac?",
+   "intent": "securityScan"
+  },
+  {
+   "question": "Cosa parte da solo in background?",
+   "intent": "securityScan"
+  },
+  {
+   "question": "Il mio Mac ha dei malware?",
+   "intent": "securityScan"
+  },
+  {
+   "question": "Come tolgo le app che partono da sole all'accensione?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "elementi login"
+   ]
+  },
+  {
+   "question": "Controlla il mio Mac",
+   "intent": "healthCheck",
+   "containsAny": [
+    "app sospett",
+    "app o programm"
+   ]
   }
  ]
 }

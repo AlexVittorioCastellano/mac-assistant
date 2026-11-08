@@ -79,6 +79,7 @@ enum Eval {
                 case .result(let findings, let request, let chart):
                     intent = chart != nil ? "diskSpace"
                         : findings.contains { $0.id == "read" } ? "message"
+                        : findings.contains { $0.id == "bgcount" } ? "securityScan"
                         : findings.contains { $0.id == "overall" } ? "healthCheck"
                         : findings.contains { $0.id == "close" } ? "process" : "slowMac"
                     answer = findings.map(\.title).joined(separator: "\n") + "\n"

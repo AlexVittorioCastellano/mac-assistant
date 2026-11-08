@@ -132,6 +132,10 @@ struct ContentView: View {
                     .buttonStyle(.bordered)
                     .help("Fai uno screenshot di un avviso con ⌃⇧⌘4 e premi qui: ti spiego cosa significa")
                 }
+                GridRow {
+                    quickButton("App sospette", question: Assistant.securityQuestion, icon: "exclamationmark.shield")
+                        .gridCellColumns(2)
+                }
             }
             .controlSize(.regular)
         }

