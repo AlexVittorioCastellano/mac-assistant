@@ -212,15 +212,25 @@ struct ContentView: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            Toggle(isOn: Binding(get: { model.alerts.enabled }, set: { model.alerts.enabled = $0 })) {
-                Text("Avvisi").font(.caption)
+            // Impostazioni in un menu, così il piè di pagina resta pulito.
+            Menu {
+                Toggle("Avvisi automatici", isOn: Binding(get: { model.alerts.enabled },
+                                                          set: { model.alerts.enabled = $0 }))
+                Toggle("Apri all'accensione del Mac", isOn: $model.launchAtLogin)
+                    .disabled(!LaunchAtLogin.isAvailable)
+                Divider()
+                Text(model.hotKey != nil ? "Scorciatoia: \(GlobalHotKey.label)"
+                                         : "Scorciatoia \(GlobalHotKey.label) già usata da un'altra app")
+                Button("Rivedi il benvenuto…") { model.showWelcome() }
+                Divider()
+                Button("Esci da Assistente Mac") { NSApplication.shared.terminate(nil) }
+            } label: {
+                Image(systemName: "gearshape")
             }
-            .toggleStyle(.switch)
-            .controlSize(.mini)
-            .help("Avvisi automatici: l'app ti avvisa se il Mac ha un problema che dura (es. spazio quasi finito)")
-            Button("Esci") { NSApplication.shared.terminate(nil) }
-                .buttonStyle(.borderless)
-                .font(.caption)
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .help("Impostazioni")
         }
     }
 

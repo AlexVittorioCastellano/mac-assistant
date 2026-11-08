@@ -12,8 +12,7 @@ struct AssistenteMacApp: App {
         // Niente icona nel Dock, anche quando si avvia con `swift run`.
         // (Il bundle .app lo indica anche con LSUIElement nell'Info.plist.)
         NSApplication.shared.setActivationPolicy(.accessory)
-        model.alerts.start()
-        model.prewarmTextRecognition()
+        model.appDidLaunch()
     }
 
     var body: some Scene {

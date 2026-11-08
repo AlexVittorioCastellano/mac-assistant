@@ -52,6 +52,36 @@ final class AssistantViewModel {
     /// Avvisi automatici in background.
     let alerts = AlertService()
 
+    /// Scorciatoia ⌥Spazio (`nil` se un'altra app la usa già).
+    private(set) var hotKey: GlobalHotKey?
+    private let welcome = WelcomeWindow()
+
+    /// Interruttore "Apri all'accensione" (lo stato vero lo tiene macOS).
+    var launchAtLogin: Bool = LaunchAtLogin.isEnabled {
+        didSet { LaunchAtLogin.isEnabled = launchAtLogin; launchAtLogin = LaunchAtLogin.isEnabled }
+    }
+
+    /// Da chiamare una volta all'avvio dell'app.
+    func appDidLaunch() {
+        alerts.start()
+        prewarmTextRecognition()
+        hotKey = GlobalHotKey { [weak self] in
+            MainActor.assumeIsolated { self?.toggleQuickPanel() }
+        }
+        if !WelcomeWindow.wasShown { showWelcome() }
+    }
+
+    private let quickPanel = QuickPanel()
+
+    /// ⌥Spazio: apre o chiude il pannello flottante.
+    func toggleQuickPanel() {
+        quickPanel.toggle(model: self)
+    }
+
+    func showWelcome() {
+        welcome.show(alerts: alerts, hotKeyWorks: hotKey != nil)
+    }
+
     private let assistant = Assistant()
     private let log = Logger(subsystem: "AssistenteMac", category: "ui")
     private var task: Task<Void, Never>?

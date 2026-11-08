@@ -14,6 +14,8 @@ Fai una domanda in italiano sul tuo Mac e ricevi una risposta chiara e veloce.
 - 🆓 **Gratis e senza chiavi API.**
 - 🛡️ **Non tocca nulla da solo**: legge i dati del sistema, non chiude
   programmi e non cancella file.
+- ⌨️ **Sempre a portata di mano**: icona nella barra dei menu o ⌥Spazio da
+  qualunque app; si apre da sola all'accensione (se vuoi).
 
 ### Cosa sa fare
 
@@ -44,6 +46,12 @@ cd AssistenteMac
 ./scripts/crea-app.sh          # crea build/AssistenteMac.app
 open build/AssistenteMac.app
 ```
+
+Consiglio: sposta `AssistenteMac.app` nella cartella **Applicazioni** prima di
+attivare "Apri all'accensione", così l'avvio automatico punta al posto giusto.
+
+Una volta aperta: clicca l'icona con il fumetto nella barra dei menu, oppure
+premi **⌥Spazio** da qualunque app.
 
 Per sviluppare:
 
