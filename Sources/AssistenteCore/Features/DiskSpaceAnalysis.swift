@@ -148,7 +148,8 @@ public enum DiskSpaceAnalysis {
         // lo diciamo chiaramente e mostriamo solo le informazioni.
         let plenty = severity == .ok
         result.append(.init(id: "free", severity: severity, title: summary,
-                            advice: plenty ? "Hai ancora molto spazio libero: non serve liberarne adesso." : nil,
+                            advice: plenty ? "Hai ancora molto spazio libero: non serve liberarne adesso."
+                                : "Premi «Pulizia» per scegliere i file da togliere (vanno nel Cestino, recuperabili).",
                             symbol: "internaldrive"))
 
         if u.purgeableBytes >= gb {

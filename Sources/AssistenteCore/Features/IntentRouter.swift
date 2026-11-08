@@ -8,6 +8,8 @@ public enum Intent: Sendable, Equatable {
     case healthCheck
     /// Caccia alle app sospette (programmi in background, firme).
     case securityScan
+    /// Pulizia guidata: proposte di file da togliere.
+    case cleanup
     /// Spiegare un processo. `nil` = l'utente non ha indicato quale.
     case process(String?)
     /// Tutto il resto: chat libera su come usare il Mac.
@@ -35,6 +37,12 @@ public enum IntentRouter {
         "controlla il mio mac", "controlla il mac", "controllo generale", "fai un controllo", "fammi un controllo",
         "check", "salute", "sta bene", "tutto a posto", "tutto ok", "e sicuro", "e protetto", "sicurezza del mac",
         "stato del mac", "va tutto bene",
+    ]
+
+    /// Pulizia: liberare spazio togliendo file.
+    static let cleanupKeywords = [
+        "pulizia", "pulisci", "fai pulizia", "libera spazio", "liberare spazio", "libero spazio",
+        "cosa posso cancellare", "cosa posso eliminare", "cosa posso togliere", "fare spazio",
     ]
 
     /// App sospette, malware, programmi che partono da soli.
@@ -112,6 +120,7 @@ public enum IntentRouter {
 
     /// Lentezza o spazio su disco (o nessuno dei due).
     static func topic(of normalized: String) -> Intent? {
+        if cleanupKeywords.contains(where: { hasStem(normalized, $0) }) { return .cleanup }
         if securityKeywords.contains(where: { hasStem(normalized, $0) }) { return .securityScan }
         if healthKeywords.contains(where: { hasStem(normalized, $0) }) { return .healthCheck }
         let strongSlow = strongSlowKeywords.contains { hasStem(normalized, $0) }

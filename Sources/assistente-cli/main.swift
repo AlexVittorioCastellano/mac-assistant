@@ -95,6 +95,12 @@ do {
                 try await printStream(chat.send(MacHelpChat.prompt(for: line, guides: lineGuides)))
             }
         }
+    case .cleanup(let items):
+        // La CLI propone soltanto: spostare file si fa solo dall'app, con conferma.
+        if items.isEmpty { print("Non ho trovato file da proporti.") }
+        for i in items {
+            print("\(i.preselected ? "☑︎" : "☐") \(i.name) — \(ByteCountFormatter.string(fromByteCount: Int64(i.bytes), countStyle: .file)) — \(i.explanation)")
+        }
     case .choices(let message, let options):
         print(message)
         for o in options { print("  - \(o.label)") }

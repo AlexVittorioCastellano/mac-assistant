@@ -462,7 +462,7 @@
   },
   {
    "question": "Come libero spazio sul disco?",
-   "intent": "diskSpace"
+   "intent": "cleanup"
   },
   {
    "question": "Il Mac si blocca, come chiudo un'app che non risponde?",
@@ -831,7 +831,7 @@
   },
   {
    "question": "Ho poco spazio, cosa posso cancellare?",
-   "intent": "diskSpace"
+   "intent": "cleanup"
   },
   {
    "question": "Quanto pesa macOS sul disco?",
@@ -1145,6 +1145,14 @@
     "app sospett",
     "app o programm"
    ]
+  },
+  {
+   "question": "Fai un po' di pulizia",
+   "intent": "cleanup"
+  },
+  {
+   "question": "Aiutami a fare spazio",
+   "intent": "cleanup"
   }
  ]
 }

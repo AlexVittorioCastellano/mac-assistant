@@ -68,7 +68,7 @@ public struct DiskMonitor: Sendable {
     // MARK: - Misure
 
     /// Somma di `du -sk` sulle cartelle esistenti. `nil` se nessuna è leggibile.
-    static func size(of paths: [String]) async -> UInt64? {
+    public static func size(of paths: [String]) async -> UInt64? {
         let existing = paths.filter { FileManager.default.fileExists(atPath: $0) }
         guard !existing.isEmpty else { return 0 }
         guard let output = await Shell.run("/usr/bin/du", ["-sk"] + existing) else { return nil }

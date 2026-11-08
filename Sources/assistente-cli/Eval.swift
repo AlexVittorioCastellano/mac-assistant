@@ -86,6 +86,8 @@ enum Eval {
                     if let request { answer += try await collect(assistant.explain(request)) }
                 case .choices:
                     intent = "processPicker"
+                case .cleanup:
+                    intent = "cleanup"
                 case .message(let text):
                     intent = "message"
                     answer = text

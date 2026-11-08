@@ -16,7 +16,8 @@ struct ContentView: View {
             if model.isChatting {
                 Divider()
                 ChatView(model: model)
-            } else if model.isWorking || !model.choices.isEmpty || !model.findings.isEmpty || !model.answer.isEmpty || model.notice != nil {
+            } else if model.isWorking || !model.choices.isEmpty || !model.findings.isEmpty || !model.answer.isEmpty
+                        || model.notice != nil || !model.cleanupItems.isEmpty {
                 Divider()
                 // Dentro un MenuBarExtra uno ScrollView senza altezza si riduce a
                 // zero. Le risposte brevi si mostrano così come sono; quelle
@@ -52,7 +53,7 @@ struct ContentView: View {
 
     /// Stima prudente: molte righe (o il grafico) = risultato lungo.
     private var isLongResult: Bool {
-        let rows = model.findings.count + Finding.advice(from: model.findings).count
+        let rows = model.findings.count + Finding.advice(from: model.findings).count + model.cleanupItems.count * 2
         return rows + (model.chart != nil ? 5 : 0) > 11
     }
 
@@ -134,7 +135,7 @@ struct ContentView: View {
                 }
                 GridRow {
                     quickButton("App sospette", question: Assistant.securityQuestion, icon: "exclamationmark.shield")
-                        .gridCellColumns(2)
+                    quickButton("Pulizia", question: Assistant.cleanupQuestion, icon: "sparkles")
                 }
             }
             .controlSize(.regular)
@@ -177,10 +178,17 @@ struct ContentView: View {
                     }
                 }
             }
+            if !model.cleanupItems.isEmpty {
+                CleanupView(model: model)
+            }
             if let notice = model.notice {
                 Label(notice, systemImage: "info.circle")
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                if model.lastTrash != nil {
+                    Button("Annulla: rimetti i file a posto") { model.undoCleanup() }
+                        .controlSize(.small)
+                }
             }
             if !model.choices.isEmpty {
                 // Processi tra cui scegliere: un clic fa la domanda.

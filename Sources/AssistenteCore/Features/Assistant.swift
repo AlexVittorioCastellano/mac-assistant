@@ -10,6 +10,8 @@ public enum AssistantReply: Sendable {
     /// Ogni opzione ha un'etichetta e la domanda da fare se viene scelta.
     case choices(message: String, options: [Choice])
     case message(String)
+    /// Pulizia guidata: file proposti; l'utente sceglie e conferma.
+    case cleanup([CleanupItem])
     /// Chat libera: `prompt` va inviato alla conversazione in corso
     /// (vedi `makeChatSession`), così il modello ricorda i messaggi precedenti.
     /// `guides` sono le guide verificate usate (per la rete di sicurezza).
@@ -52,6 +54,7 @@ public struct Assistant: Sendable {
     public static let diskQuestion = "Dove è finito lo spazio?"
     public static let healthQuestion = "Controlla il mio Mac"
     public static let securityQuestion = "Ci sono app sospette?"
+    public static let cleanupQuestion = "Fai un po' di pulizia"
 
     /// - Parameter conversationGuides: guide usate nel turno precedente della
     ///   chat. Una domanda di seguito ("E se non compare?") senza guide proprie
@@ -63,7 +66,7 @@ public struct Assistant: Sendable {
         var intent = IntentRouter.route(question, runningNames: names)
         // "Come chiudo un programma bloccato?" contiene "bloccato" (lentezza), ma
         // è una domanda pratica con una guida pronta: risponde la chat.
-        if intent == .slowMac || intent == .diskSpace || intent == .healthCheck || intent == .securityScan,
+        if [.slowMac, .diskSpace, .healthCheck, .securityScan, .cleanup].contains(intent),
            IntentRouter.isHowTo(question), !MacHelpChat.guides(for: question).isEmpty {
             intent = .chat
         }
@@ -74,6 +77,9 @@ public struct Assistant: Sendable {
             let findings = SlowMacDiagnosis.findings(for: snapshot)
             return .result(findings: findings,
                            aiRequest: SlowMacDiagnosis.request(question: question, snapshot: snapshot, findings: findings))
+
+        case .cleanup:
+            return .cleanup(await Cleanup.candidates())
 
         case .securityScan:
             let result = await SecurityScanner().scan()

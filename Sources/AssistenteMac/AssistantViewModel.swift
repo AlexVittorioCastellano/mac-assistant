@@ -37,6 +37,15 @@ final class AssistantViewModel {
     var workingLabel = "Controllo il Mac…"
     private var lastPrewarm = Date.distantPast
 
+    /// Pulizia guidata: file proposti, quelli spuntati, conferma e annulla.
+    var cleanupItems: [CleanupItem] = []
+    var cleanupSelected: Set<String> = []
+    var confirmCleanup = false
+    private(set) var lastTrash: Cleanup.TrashResult?
+
+    var selectedCleanupItems: [CleanupItem] { cleanupItems.filter { cleanupSelected.contains($0.id) } }
+    var selectedCleanupBytes: UInt64 { selectedCleanupItems.reduce(0) { $0 + $1.bytes } }
+
     /// Domanda a voce: `true` mentre il microfono ascolta.
     var isListening = false
     private var dictation: LiveDictation?
@@ -245,6 +254,12 @@ final class AssistantViewModel {
                     }
                     if Task.isCancelled { return }
                     log.info("risposta completata: \(self.answer.count) caratteri")
+                case .cleanup(let items):
+                    cleanupItems = items
+                    cleanupSelected = Set(items.filter(\.preselected).map(\.id))
+                    if items.isEmpty {
+                        notice = "Non ho trovato file da proporti: i Download sono in ordine e non ci sono file enormi dimenticati."
+                    }
                 case .chat:
                     break  // gestito sopra
                 }
@@ -298,6 +313,44 @@ final class AssistantViewModel {
         chatGuides = []
     }
 
+    // MARK: Pulizia (sposta nel Cestino solo dopo la conferma)
+
+    func toggleCleanup(_ item: CleanupItem) {
+        if cleanupSelected.contains(item.id) { cleanupSelected.remove(item.id) } else { cleanupSelected.insert(item.id) }
+    }
+
+    /// Chiamata SOLO dal pulsante di conferma dell'avviso.
+    func performCleanup() {
+        let chosen = selectedCleanupItems
+        guard !chosen.isEmpty else { return }
+        let result = Cleanup.moveToTrash(chosen)
+        lastTrash = result
+        let moved = Set(result.moved.map(\.original))
+        cleanupItems.removeAll { moved.contains($0.path) }
+        cleanupSelected.subtract(moved)
+        var text = "Ho spostato \(result.moved.count) file nel Cestino (\(sizeText(result.bytes))). "
+            + "Se ti serve qualcosa, lo ritrovi lì. Per liberare davvero lo spazio, svuota il Cestino: "
+            + "clic destro sul Cestino nel Dock → «Svuota il Cestino»."
+        if !result.refused.isEmpty {
+            text += " Non ho toccato: \(result.refused.joined(separator: ", "))."
+        }
+        notice = text
+        log.info("pulizia: \(result.moved.count) file nel Cestino")
+    }
+
+    func undoCleanup() {
+        guard let lastTrash else { return }
+        let restored = Cleanup.undo(lastTrash)
+        self.lastTrash = nil
+        notice = "Ho rimesso a posto \(restored) file."
+        // Ricarica le proposte, così i file tornano nell'elenco.
+        run(label: "Cerco file da proporti…") { [assistant] in try await assistant.prepare(question: Assistant.cleanupQuestion) }
+    }
+
+    func sizeText(_ bytes: UInt64) -> String {
+        ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)
+    }
+
     private func clearResults() {
         findings = []
         choices = []
@@ -305,5 +358,8 @@ final class AssistantViewModel {
         chartHover = nil
         answer = ""
         notice = nil
+        cleanupItems = []
+        cleanupSelected = []
+        confirmCleanup = false
     }
 }

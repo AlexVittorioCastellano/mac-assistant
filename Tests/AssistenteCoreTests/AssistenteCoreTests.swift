@@ -639,3 +639,64 @@ import Testing
         #expect(IntentRouter.route("Cosa parte da solo in background?") == .securityScan)
     }
 }
+
+@Suite struct CleanupTests {
+    @Test func refusesAnythingOutsideTheUserFolder() {
+        let home = "/Users/prova"
+        #expect(Cleanup.isSafeToTouch("/Users/prova/Downloads/a.dmg", home: home))
+        #expect(!Cleanup.isSafeToTouch("/Users/prova/Library/Preferences/x.plist", home: home))
+        #expect(!Cleanup.isSafeToTouch("/Users/prova/.ssh/id_rsa", home: home))
+        #expect(!Cleanup.isSafeToTouch("/Applications/Safari.app", home: home))
+        #expect(!Cleanup.isSafeToTouch("/Users/prova", home: home))
+        #expect(!Cleanup.isSafeToTouch("/Users/prova/Downloads/../Library/x", home: home))  // trucco con ../
+        #expect(!Cleanup.isSafeToTouch("/Users/provaaltro/Downloads/a", home: home))       // prefisso simile
+    }
+
+    /// Crea una finta cartella utente con dei file e simula il passare del tempo.
+    @Test func proposesInstallersAndOldDownloads() async throws {
+        let home = FileManager.default.temporaryDirectory.appendingPathComponent("home-\(UUID().uuidString)").path
+        let downloads = "\(home)/Downloads"
+        try FileManager.default.createDirectory(atPath: downloads, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(atPath: home) }
+        FileManager.default.createFile(atPath: "\(downloads)/Setup.dmg", contents: Data(count: 2_000_000))
+        FileManager.default.createFile(atPath: "\(downloads)/vecchio.pdf", contents: Data(count: 2_000_000))
+        FileManager.default.createFile(atPath: "\(downloads)/piccolo.txt", contents: Data(count: 100))
+
+        // Oggi: niente da proporre (appena scaricati).
+        #expect(await Cleanup.candidates(home: home).isEmpty)
+
+        // Fra 100 giorni: l'installer (spuntato) e il PDF mai aperto (non spuntato).
+        let later = Date().addingTimeInterval(100 * 86_400)
+        let items = await Cleanup.candidates(home: home, now: later)
+        let installer = try #require(items.first { $0.name == "Setup.dmg" })
+        #expect(installer.reason == .installer && installer.preselected)
+        let pdf = try #require(items.first { $0.name == "vecchio.pdf" })
+        #expect(!pdf.preselected)
+        #expect(!items.contains { $0.name == "piccolo.txt" })  // troppo piccolo per valerne la pena
+    }
+
+    /// Prova vera: sposta nel Cestino un file creato apposta e lo rimette a posto.
+    @Test func movesToTrashAndUndoes() throws {
+        let home = FileManager.default.temporaryDirectory.appendingPathComponent("home-\(UUID().uuidString)").path
+        try FileManager.default.createDirectory(atPath: "\(home)/Downloads", withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(atPath: home) }
+        let path = "\(home)/Downloads/prova-assistente.txt"
+        FileManager.default.createFile(atPath: path, contents: Data("ciao".utf8))
+        let item = CleanupItem(name: "prova-assistente.txt", path: path, bytes: 4, reason: .large, preselected: false)
+        let outside = CleanupItem(name: "fuori", path: "/etc/hosts", bytes: 1, reason: .large, preselected: false)
+
+        let result = Cleanup.moveToTrash([item, outside], home: home)
+        #expect(result.moved.count == 1)
+        #expect(result.refused == ["fuori"])
+        #expect(!FileManager.default.fileExists(atPath: path))
+
+        #expect(Cleanup.undo(result) == 1)
+        #expect(FileManager.default.fileExists(atPath: path))
+    }
+
+    @Test func routesCleanupQuestions() {
+        #expect(IntentRouter.route("Fai un po' di pulizia") == .cleanup)
+        #expect(IntentRouter.route("Ho poco spazio, cosa posso cancellare?") == .cleanup)
+        #expect(IntentRouter.route("Dove è finito lo spazio?") == .diskSpace)
+    }
+}
