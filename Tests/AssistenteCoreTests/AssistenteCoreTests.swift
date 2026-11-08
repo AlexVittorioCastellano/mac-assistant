@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Testing
 @testable import AssistenteCore
@@ -489,5 +490,52 @@ import Testing
         let s = snap(pressure: .critical, thermal: .serious)
         #expect(run(&m, minutes: 4, s).isEmpty)
         #expect(Set(run(&m, minutes: 2, startingAt: 4, s).map(\.kind)) == [.memory, .heat])
+    }
+}
+
+@Suite struct MessageExplainerTests {
+    @Test func recognisesScamsAndShowsOnlyTheScamWarning() {
+        let text = "ATTENZIONE! Il tuo Mac è infetto da 3 virus. Chiama il supporto Apple al numero verde 800 123 456"
+        #expect(MessageExplainer.isScam(text))
+        let f = MessageExplainer.findings(for: text)
+        #expect(f.map(\.id) == ["read", "scam"])
+        #expect(f[1].severity == .critical)
+        #expect(MessageExplainer.request(for: text).prompt.contains("truffa"))
+    }
+
+    @Test(arguments: [
+        "«Foo» non può essere aperto perché lo sviluppatore non può essere verificato.",
+        "Apple could not verify “Foo” is free of malware that may harm your Mac.",
+    ])
+    func recognisesGatekeeperInItalianAndEnglish(_ text: String) {
+        #expect(MessageExplainer.findings(for: text).contains { $0.id == "unverified" })
+        #expect(!MessageExplainer.isScam(text))
+    }
+
+    @Test func unknownMessageOnlyShowsTheTextRead() {
+        let f = MessageExplainer.findings(for: "Errore -36 durante la copia")
+        #expect(f.map(\.id) == ["read"])
+        #expect(f[0].title.contains("Errore -36"))
+    }
+
+    @Test func neverSuggestsTerminalCommands() {
+        let p = MessageExplainer.request(for: "«Foo» è danneggiato e non può essere aperto.").prompt
+        #expect(p.contains("Non suggerire mai comandi nel Terminale"))
+    }
+
+    /// Prova vera del riconoscimento del testo: disegna una frase in
+    /// un'immagine e controlla che Vision la legga (tutto sul Mac).
+    @Test func readsTextFromAnImage() async throws {
+        let image = NSImage(size: NSSize(width: 900, height: 120), flipped: false) { rect in
+            NSColor.white.setFill(); rect.fill()
+            ("Il disco di avvio è quasi pieno" as NSString).draw(
+                at: NSPoint(x: 20, y: 40),
+                withAttributes: [.font: NSFont.systemFont(ofSize: 44), .foregroundColor: NSColor.black])
+            return true
+        }
+        let tiff = try #require(image.tiffRepresentation)
+        let text = try await TextRecognizer.text(inImageData: tiff)
+        #expect(IntentRouter.normalize(text).contains("disco di avvio"))
+        #expect(MessageExplainer.findings(for: text).contains { $0.id == "diskfull" })
     }
 }

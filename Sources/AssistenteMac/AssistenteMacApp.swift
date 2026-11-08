@@ -13,6 +13,7 @@ struct AssistenteMacApp: App {
         // (Il bundle .app lo indica anche con LSUIElement nell'Info.plist.)
         NSApplication.shared.setActivationPolicy(.accessory)
         model.alerts.start()
+        model.prewarmTextRecognition()
     }
 
     var body: some Scene {

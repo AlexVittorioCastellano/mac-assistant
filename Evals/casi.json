@@ -1046,6 +1046,73 @@
    "contains": [
     "batteria"
    ]
+  },
+  {
+   "message": "Your Mac is infected with 3 viruses! Call Apple Support now at +1-888-555-0199",
+   "intent": "message",
+   "contains": [
+    "truffa"
+   ]
+  },
+  {
+   "message": "WARNING! Your computer is locked. Do not restart. Call toll free 1-800-555-0100",
+   "intent": "message",
+   "contains": [
+    "truffa"
+   ]
+  },
+  {
+   "message": "Il tuo iPhone è stato hackerato! Scarica subito l'app di protezione",
+   "intent": "message",
+   "contains": [
+    "truffa"
+   ]
+  },
+  {
+   "message": "«Zoom» vorrebbe accedere alla fotocamera.",
+   "intent": "message",
+   "contains": [
+    "permesso"
+   ],
+   "notContains": [
+    "truffa"
+   ]
+  },
+  {
+   "message": "Aggiornamento software: è disponibile macOS 27.3. Vuoi installarlo ora?",
+   "intent": "message",
+   "notContains": [
+    "truffa"
+   ]
+  },
+  {
+   "message": "«Setup.app» è danneggiato e non può essere aperto. Dovresti spostarlo nel Cestino.",
+   "intent": "message",
+   "contains": [
+    "danneggiat"
+   ],
+   "notContains": [
+    "terminale",
+    "xattr",
+    "sudo"
+   ]
+  },
+  {
+   "message": "Il disco di avvio è quasi pieno. Per avere più spazio disponibile, elimina alcuni file.",
+   "intent": "message",
+   "contains": [
+    "spazio"
+   ]
+  },
+  {
+   "message": "login vorrebbe utilizzare il portachiavi «login». Inserisci la password del portachiavi.",
+   "intent": "message",
+   "contains": [
+    "portachiavi"
+   ],
+   "notContains": [
+    "truffa"
+   ]
   }
  ]
 }

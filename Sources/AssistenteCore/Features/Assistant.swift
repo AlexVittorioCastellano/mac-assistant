@@ -127,6 +127,24 @@ public struct Assistant: Sendable {
         return .chat(prompt: MacHelpChat.prompt(for: question, guides: guides), guides: guides)
     }
 
+    // MARK: Spiegami questo messaggio
+
+    public static let messageQuestion = "Spiegami questo messaggio"
+
+    /// Spiega il testo di un avviso o di un errore.
+    public func explainMessage(_ text: String) -> AssistantReply {
+        let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !t.isEmpty else {
+            return .message("Non ho trovato testo da spiegare. Fai uno screenshot del messaggio con ⌃⇧⌘4 (va negli appunti) e riprova.")
+        }
+        return .result(findings: MessageExplainer.findings(for: t), aiRequest: MessageExplainer.request(for: t))
+    }
+
+    /// Legge il testo nell'immagine (sul Mac) e lo spiega.
+    public func explainMessage(imageData: Data) async throws -> AssistantReply {
+        explainMessage(try await TextRecognizer.text(inImageData: imageData))
+    }
+
     /// Nuova conversazione per la chat libera.
     public func makeChatSession() -> any AIChatSession {
         provider.makeChatSession(instructions: MacHelpChat.instructions)

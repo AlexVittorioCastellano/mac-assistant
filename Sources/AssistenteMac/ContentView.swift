@@ -37,7 +37,17 @@ struct ContentView: View {
         }
         .padding(14)
         .frame(width: 400)
-        .onAppear { fieldFocused = true }
+        // Trascinando un'immagine (es. lo screenshot di un errore) sul riquadro
+        // l'app ne legge il testo e lo spiega.
+        .dropDestination(for: URL.self) { urls, _ in
+            guard let url = urls.first, let data = try? Data(contentsOf: url) else { return false }
+            model.explainImage(data)
+            return true
+        }
+        .onAppear {
+            fieldFocused = true
+            model.prewarmTextRecognition()  // così "Spiega un messaggio" è subito pronto
+        }
     }
 
     /// Stima prudente: molte righe (o il grafico) = risultato lungo.
@@ -92,10 +102,23 @@ struct ContentView: View {
             .controlSize(.large)
             .help("Velocità, spazio, backup, sicurezza, aggiornamenti e batteria in un colpo solo")
 
-            HStack(spacing: 8) {
-            quickButton("Mac lento", question: Assistant.slowMacQuestion, icon: "tortoise")
-            quickButton("Processi", question: Assistant.processQuestion, icon: "questionmark.app")
-            quickButton("Spazio disco", question: Assistant.diskQuestion, icon: "internaldrive")
+            // Griglia 2×2: pulsanti grandi e facili da colpire.
+            Grid(horizontalSpacing: 8, verticalSpacing: 8) {
+                GridRow {
+                    quickButton("Mac lento", question: Assistant.slowMacQuestion, icon: "tortoise")
+                    quickButton("Processi", question: Assistant.processQuestion, icon: "questionmark.app")
+                }
+                GridRow {
+                    quickButton("Spazio disco", question: Assistant.diskQuestion, icon: "internaldrive")
+                    Button {
+                        model.explainClipboard()
+                    } label: {
+                        Label("Spiega un messaggio", systemImage: "text.viewfinder")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .help("Fai uno screenshot di un avviso con ⌃⇧⌘4 e premi qui: ti spiego cosa significa")
+                }
             }
             .controlSize(.regular)
         }
@@ -107,6 +130,7 @@ struct ContentView: View {
             model.ask(question)
         } label: {
             Label(label, systemImage: icon)
+                .frame(maxWidth: .infinity)
         }
         .buttonStyle(.bordered)
         .help(question)
@@ -160,7 +184,7 @@ struct ContentView: View {
             if model.isWorking {
                 HStack(spacing: 6) {
                     ProgressView().controlSize(.small)
-                    Text(model.findings.isEmpty ? "Controllo il Mac…" : "Preparo la spiegazione…")
+                    Text(model.findings.isEmpty ? model.workingLabel : "Preparo la spiegazione…")
                         .foregroundStyle(.secondary)
                 }
             }

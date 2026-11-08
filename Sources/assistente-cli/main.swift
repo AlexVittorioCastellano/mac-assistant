@@ -2,6 +2,7 @@
 // Uso:  swift run assistente-cli "Perché il Mac è lento?"
 //       swift run assistente-cli --chat "Come faccio uno screenshot?"   (poi altre domande, una per riga)
 //       swift run assistente-cli --eval Evals/casi.json   (prove di qualità con il modello vero)
+//       swift run assistente-cli --messaggio screenshot.png   (o il testo del messaggio)
 //       swift run assistente-cli --guide "Come mando un file all'iPhone?"  (quale guida verificata si attiva)
 //       swift run assistente-cli --prompt "..."   (mostra anche il prompt inviato al modello)
 import AssistenteCore
@@ -12,6 +13,7 @@ let showPrompt = args.contains("--prompt")
 let chatMode = args.contains("--chat")
 let guideOnly = args.contains("--guide")
 args.removeAll { $0 == "--prompt" || $0 == "--chat" || $0 == "--guide" }
+if let i = args.firstIndex(of: "--messaggio") { args.removeSubrange(i...) }
 
 /// Stampa una risposta in streaming, solo la parte nuova a ogni passo.
 func printStream(_ stream: AsyncThrowingStream<String, Error>) async throws {
@@ -34,6 +36,12 @@ if let i = CommandLine.arguments.firstIndex(of: "--eval") {
     exit(await Eval.run(path: path) ? 0 : 1)
 }
 
+// --messaggio <immagine o testo>: "Spiegami questo messaggio".
+var messageInput: String?
+if let i = CommandLine.arguments.firstIndex(of: "--messaggio") {
+    messageInput = CommandLine.arguments.dropFirst(i + 1).joined(separator: " ")
+}
+
 // --guide: mostra solo quale guida verificata si attiva (utile per chi
 // aggiunge voci a MacHowTo). Nessuna AI.
 if guideOnly {
@@ -43,10 +51,20 @@ if guideOnly {
 }
 
 let assistant = Assistant()
-print("❓ \(question)\n")
+print("❓ \(messageInput != nil ? Assistant.messageQuestion : question)\n")
 
 do {
-    switch try await assistant.prepare(question: question) {
+    let reply: AssistantReply
+    if let input = messageInput {
+        if FileManager.default.fileExists(atPath: input), let data = FileManager.default.contents(atPath: input) {
+            reply = try await assistant.explainMessage(imageData: data)
+        } else {
+            reply = assistant.explainMessage(input)
+        }
+    } else {
+        reply = try await assistant.prepare(question: question)
+    }
+    switch reply {
     case .message(let text):
         print(text)
     case .chat(let prompt, let firstGuides):

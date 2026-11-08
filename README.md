@@ -21,6 +21,7 @@ Fai una domanda in italiano sul tuo Mac e ricevi una risposta chiara e veloce.
 |---|---|
 | **"Controlla il mio Mac"**: un semaforo in un clic su velocità, spazio, backup di Time Machine, cifratura (FileVault), Gatekeeper, SIP, firewall, aggiornamenti e batteria | ✅ |
 | **Avvisi automatici**: se un problema dura (un'app che occupa il processore da 10 minuti, memoria esaurita, Mac caldo, disco quasi pieno) arriva una notifica in italiano e l'icona nella barra dei menu cambia. Si spengono con l'interruttore «Avvisi» | ✅ |
+| **"Spiega un messaggio"**: fai uno screenshot di un avviso o di un errore (⌃⇧⌘4) e l'app legge il testo sul Mac e lo spiega; riconosce i messaggi più comuni di macOS e **smaschera le truffe** ("Il tuo Mac è infetto, chiama il supporto") | ✅ |
 | "Perché il Mac è lento?": legge processore, memoria, temperatura e processi e spiega cosa succede | ✅ |
 | "Cos'è questo processo?": dice cos'è, se fa parte di macOS o di un'app e se si può chiudere | ✅ |
 | "Dove è finito lo spazio?": divide lo spazio occupato in voci (modelli di Apple Intelligence, app, Download, cache…) e spiega i "Dati di sistema" | ✅ |
@@ -50,6 +51,7 @@ swift run AssistenteMac                         # avvia l'app nella barra dei me
 swift run assistente-cli "Perché il Mac è lento?"   # prova dal terminale
 swift run assistente-cli --prompt               # mostra anche il prompt inviato al modello
 swift run assistente-cli --chat "Come faccio uno screenshot?"   # chat (altre domande una per riga)
+swift run assistente-cli --messaggio screenshot.png             # spiega un messaggio (immagine o testo)
 swift run assistente-cli --guide "Come mando un file all'iPhone?"  # quale guida verificata si attiva
 ASSISTENTE_AVVISI_RAPIDI=1 swift run AssistenteMac  # avvisi con tempi di pochi secondi, per provarli
 ./scripts/test.sh                               # esegue i test (veloci, senza AI)
@@ -93,6 +95,7 @@ Principi:
 I contributi sono benvenuti! Alcune idee semplici per iniziare:
 
 - aggiungere spiegazioni in `Features/KnownProcesses.swift` (una frase semplice, solo cose certe);
+- aggiungere messaggi noti di macOS (e schemi di truffa) in `Features/MessageExplainer.swift`;
 - aggiungere guide in `Features/MacHelpChat.swift` (`MacHowTo`): istruzioni brevi e
   verificate che la chat usa per non sbagliare scorciatoie e menu. Controlla le
   parole chiave con `swift run assistente-cli --guide "la tua domanda"`;
@@ -112,6 +115,10 @@ Regole:
 
 ### Limiti noti
 
+- La prima lettura di un'immagine dopo l'installazione (o un aggiornamento)
+  dell'app può richiedere una ventina di secondi: macOS prepara il modello di
+  riconoscimento del testo. L'app lo prepara in anticipo all'avvio; dopo basta
+  meno di un secondo.
 - La chat usa un modello piccolo che lavora sul Mac: per gli argomenti coperti
   dalle guide verificate le risposte sono molto più affidabili (etichetta verde «Basata su una guida dell'app»);
   per gli altri può sbagliare nomi di menu o pulsanti. Se una risposta contiene
@@ -147,6 +154,7 @@ answers are in Italian by design.)
 |---|---|
 | **"Check my Mac"**: one-click traffic light for speed, disk space, Time Machine backup, FileVault, Gatekeeper, SIP, firewall, updates and battery health | ✅ |
 | **Automatic alerts**: a notification (and a different menu bar icon) when a problem lasts — an app hogging the CPU for 10 minutes, memory exhausted, Mac overheating, disk almost full. Toggle with «Avvisi» | ✅ |
+| **"Explain a message"**: screenshot an alert or error (⌃⇧⌘4); the app reads the text on-device (Vision), explains it, recognizes common macOS messages and **flags tech-support scams** | ✅ |
 | "Why is my Mac slow?": reads CPU, memory, thermal state and processes, and explains | ✅ |
 | "What is this process?": what it is, whether it belongs to macOS or an app, and whether it's safe to quit | ✅ |
 | "Where did my disk space go?": breaks down used space (Apple Intelligence models, apps, Downloads, caches…) and explains "System Data" | ✅ |

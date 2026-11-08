@@ -1,3 +1,4 @@
+import AppKit
 import AssistenteCore
 import Observation
 import os
@@ -31,6 +32,9 @@ final class AssistantViewModel {
     var answer = ""
     var notice: String?
     var isWorking = false
+    /// Testo della rotellina di attesa (dipende da cosa stiamo facendo).
+    var workingLabel = "Controllo il Mac…"
+    private var lastPrewarm = Date.distantPast
 
     /// Chat libera: messaggi e conversazione in corso (che ricorda il contesto).
     var messages: [ChatMessage] = []
@@ -53,21 +57,72 @@ final class AssistantViewModel {
         log.info("ask: \(q, privacy: .public)")
         guard !q.isEmpty else { return }
         question = q
+        let guides = isChatting ? chatGuides : []
+        run { [assistant] in try await assistant.prepare(question: q, conversationGuides: guides) }
+    }
 
+    /// "Spiega un messaggio": prende dagli appunti uno screenshot (o un file
+    /// immagine, o del testo) e lo spiega.
+    func explainClipboard() {
+        let pasteboard = NSPasteboard.general
+        if let data = pasteboard.data(forType: .png) ?? pasteboard.data(forType: .tiff) {
+            explainImage(data)
+        } else if let url = (pasteboard.readObjects(forClasses: [NSURL.self]) as? [URL])?.first,
+                  let data = try? Data(contentsOf: url) {
+            explainImage(data)
+        } else if let text = pasteboard.string(forType: .string), !text.isEmpty {
+            question = Assistant.messageQuestion
+            run(label: "Leggo il messaggio…") { [assistant] in assistant.explainMessage(text) }
+        } else {
+            question = Assistant.messageQuestion
+            endChat()
+            clearResults()
+            notice = "Negli appunti non c'è nessun messaggio. Fai uno screenshot del messaggio con ⌃⇧⌘4 "
+                + "(tieni premuti Controllo, Maiuscole e Comando, poi premi 4 e seleziona il messaggio) "
+                + "e premi di nuovo «Spiega un messaggio». Puoi anche trascinare un'immagine qui."
+        }
+    }
+
+    /// Immagine trascinata sul riquadro o presa dagli appunti.
+    func explainImage(_ data: Data) {
+        question = Assistant.messageQuestion
+        run(label: "Leggo il messaggio…") { [assistant] in try await assistant.explainMessage(imageData: data) }
+        // Se dopo qualche secondo stiamo ancora leggendo, è il primo avvio del
+        // riconoscimento del testo: lo diciamo, così l'attesa non sembra un blocco.
+        Task {
+            try? await Task.sleep(for: .seconds(4))
+            if isWorking && findings.isEmpty && notice == nil {
+                workingLabel = "Leggo il messaggio… la prima volta può volerci una ventina di secondi"
+            }
+        }
+    }
+
+    /// Prepara in anticipo il riconoscimento del testo (al massimo ogni 5 minuti).
+    func prewarmTextRecognition() {
+        guard Date().timeIntervalSince(lastPrewarm) > 300 else { return }
+        lastPrewarm = Date()
+        TextRecognizer.prewarm()
+    }
+
+    /// Esegue una richiesta e mostra la risposta (comune a domande e messaggi).
+    private func run(label: String = "Controllo il Mac…",
+                     _ produce: @escaping @Sendable () async throws -> AssistantReply) {
         task?.cancel()
         clearResults()
+        workingLabel = label
         isWorking = true
+        let q = question
 
         task = Task {
             defer { isWorking = false }
             do {
-                let reply = try await assistant.prepare(question: q, conversationGuides: isChatting ? chatGuides : [])
-                log.info("prepare completato")
+                let reply = try await produce()
+                log.info("risposta pronta")
                 if case .chat(let prompt, let guides) = reply {
                     try await sendToChat(q, prompt: prompt, guides: guides)
                     return
                 }
-                // Una funzione specifica (lentezza, processi, disco) chiude la chat.
+                // Una funzione specifica (lentezza, processi, disco…) chiude la chat.
                 endChat()
                 switch reply {
                 case .message(let text):

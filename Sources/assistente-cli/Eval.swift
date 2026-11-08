@@ -10,6 +10,8 @@ enum Eval {
     struct Case: Decodable {
         var question: String?
         var turns: [String]?
+        /// Testo di un messaggio da spiegare ("Spiegami questo messaggio").
+        var message: String?
         var intent: String
         var guide: Bool?
         var contains: [String]?
@@ -18,7 +20,7 @@ enum Eval {
         /// Per le conversazioni: se l'ultimo turno deve basarsi su una guida.
         var lastGuide: Bool?
 
-        var allTurns: [String] { turns ?? [question ?? ""] }
+        var allTurns: [String] { turns ?? [question ?? message ?? ""] }
     }
 
     static func run(path: String) async -> Bool {
@@ -54,7 +56,9 @@ enum Eval {
 
         for turn in c.allTurns {
             do {
-                let reply = try await assistant.prepare(question: turn, conversationGuides: chatGuides)
+                let reply = c.message != nil
+                    ? assistant.explainMessage(turn)
+                    : try await assistant.prepare(question: turn, conversationGuides: chatGuides)
                 switch reply {
                 case .chat(let prompt, let guides):
                     intent = "chat"
@@ -74,6 +78,7 @@ enum Eval {
                     }
                 case .result(let findings, let request, let chart):
                     intent = chart != nil ? "diskSpace"
+                        : findings.contains { $0.id == "read" } ? "message"
                         : findings.contains { $0.id == "overall" } ? "healthCheck"
                         : findings.contains { $0.id == "close" } ? "process" : "slowMac"
                     answer = findings.map(\.title).joined(separator: "\n") + "\n"
