@@ -32,6 +32,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>CFBundleShortVersionString</key><string>${VERSION}</string>
     <key>CFBundleVersion</key><string>${VERSION}</string>
     <key>CFBundleDevelopmentRegion</key><string>it</string>
+    <key>CFBundleLocalizations</key><array><string>it</string><string>en</string></array>
     <key>LSMinimumSystemVersion</key><string>27.0</string>
     <key>LSArchitecturePriority</key><array><string>arm64</string></array>
     <!-- Permessi (macOS li chiede la prima volta) -->
@@ -44,6 +45,17 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 </dict>
 </plist>
 PLIST
+
+# Descrizioni dei permessi nelle lingue disponibili (macOS sceglie quella del Mac).
+mkdir -p "$APP/Contents/Resources/it.lproj" "$APP/Contents/Resources/en.lproj"
+cat > "$APP/Contents/Resources/it.lproj/InfoPlist.strings" <<STRINGS
+"NSMicrophoneUsageDescription" = "Assistente Mac usa il microfono solo quando premi il pulsante per fare una domanda a voce. L'audio resta sul tuo Mac.";
+"NSSpeechRecognitionUsageDescription" = "Assistente Mac trasforma la tua voce in testo direttamente sul Mac, senza inviarla a nessuno.";
+STRINGS
+cat > "$APP/Contents/Resources/en.lproj/InfoPlist.strings" <<STRINGS
+"NSMicrophoneUsageDescription" = "Assistente Mac uses the microphone only when you press the button to ask a question by voice. The audio stays on your Mac.";
+"NSSpeechRecognitionUsageDescription" = "Assistente Mac turns your voice into text right on your Mac, without sending it to anyone.";
+STRINGS
 
 # Firma ad-hoc (locale). Per la distribuzione servirà una firma Developer ID.
 codesign --force --sign - "$APP"

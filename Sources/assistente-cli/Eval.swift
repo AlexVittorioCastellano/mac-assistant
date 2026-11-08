@@ -1,11 +1,15 @@
 import AssistenteCore
 import Foundation
 
-/// Prove di qualità con il modello vero: `assistente-cli --eval Evals/casi.json`.
+/// Prove di qualità con il modello vero: `assistente-cli --eval Evals/it.json`.
 /// Per ogni caso controlla a quale funzione arriva la domanda, se si attiva
 /// una guida verificata e cosa contiene (o non contiene) la risposta.
 enum Eval {
-    struct File: Decodable { let cases: [Case] }
+    struct File: Decodable {
+        /// Lingua delle domande (es. "it", "en"): l'app gira in quella lingua.
+        let language: String?
+        let cases: [Case]
+    }
 
     struct Case: Decodable {
         var question: String?
@@ -29,6 +33,13 @@ enum Eval {
             print("Non riesco a leggere \(path)")
             return false
         }
+        return await L.$taskLanguage.withValue(file.language ?? L.current.code) {
+            await runCases(file)
+        }
+    }
+
+    static func runCases(_ file: File) async -> Bool {
+        print("Lingua: \(L.current.name)\n")
         let assistant = Assistant()
         var failures = 0
         for (n, c) in file.cases.enumerated() {

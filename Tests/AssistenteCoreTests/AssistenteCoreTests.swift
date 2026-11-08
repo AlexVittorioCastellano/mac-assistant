@@ -700,3 +700,87 @@ import Testing
         #expect(IntentRouter.route("Dove è finito lo spazio?") == .diskSpace)
     }
 }
+
+@Suite struct LocalizationTests {
+    func placeholders(_ s: String) -> Set<String> {
+        Set((0..<10).map { "{\($0)}" }.filter { s.contains($0) })
+    }
+
+    @Test func italianAndEnglishPacksLoad() {
+        #expect(L.packs["it"] != nil)
+        #expect(L.packs["en"] != nil)
+    }
+
+    /// Ogni lingua deve avere le stesse chiavi e gli stessi segnaposto
+    /// dell'inglese (la lingua di riserva): così una traduzione incompleta
+    /// o con un {0} dimenticato viene fermata dai test.
+    @Test func everyPackMatchesEnglish() throws {
+        let en = try #require(L.packs["en"])
+        for (code, pack) in L.packs where code != "en" {
+            #expect(Set(pack.strings.keys) == Set(en.strings.keys), "chiavi diverse in \(code)")
+            for (key, text) in pack.strings {
+                if let english = en.strings[key] {
+                    #expect(placeholders(text) == placeholders(english), "segnaposto diversi in \(code): \(key)")
+                }
+            }
+            #expect(Set(pack.processes.keys) == Set(en.processes.keys), "processi diversi in \(code)")
+            #expect(Set(pack.messages.map(\.id)) == Set(en.messages.map(\.id)), "messaggi diversi in \(code)")
+            #expect(!pack.guides.isEmpty && !pack.router.slow.isEmpty && !pack.router.processTriggers.isEmpty)
+        }
+    }
+
+    @Test func routesEnglishQuestions() {
+        L.$taskLanguage.withValue("en") {
+            #expect(IntentRouter.route("Why is my Mac so slow?") == .slowMac)
+            #expect(IntentRouter.route("Where did my disk space go?") == .diskSpace)
+            #expect(IntentRouter.route("How much free space do I have?") == .diskSpace)
+            #expect(IntentRouter.route("Clean up my Mac") == .cleanup)
+            #expect(IntentRouter.route("Check my Mac") == .healthCheck)
+            #expect(IntentRouter.route("Are there any suspicious apps?") == .securityScan)
+            #expect(IntentRouter.route("What is mds_stores?", runningNames: ["mds_stores"]) == .process("mds_stores"))
+            #expect(IntentRouter.route("What is this process?") == .process(nil))
+            #expect(IntentRouter.route("How do I take a screenshot?") == .chat)
+            #expect(IntentRouter.isFollowUp("And what if it doesn't show up?"))
+        }
+    }
+
+    @Test func quickButtonQuestionsRouteInEveryLanguage() {
+        for code in L.packs.keys {
+            L.$taskLanguage.withValue(code) {
+                #expect(IntentRouter.route(Assistant.slowMacQuestion) == .slowMac, "\(code)")
+                #expect(IntentRouter.route(Assistant.diskQuestion) == .diskSpace, "\(code)")
+                #expect(IntentRouter.route(Assistant.healthQuestion) == .healthCheck, "\(code)")
+                #expect(IntentRouter.route(Assistant.securityQuestion) == .securityScan, "\(code)")
+                #expect(IntentRouter.route(Assistant.cleanupQuestion) == .cleanup, "\(code)")
+                #expect(IntentRouter.route(Assistant.processQuestion) == .process(nil), "\(code)")
+            }
+        }
+    }
+
+    @Test func englishTextsAndNumbers() {
+        L.$taskLanguage.withValue("en") {
+            #expect(Fmt.gb(2_576_980_378) == "2.4 GB")
+            let f = SlowMacDiagnosis.findings(for: SystemSnapshot(
+                cpuUsagePercent: 90, coreCount: 8,
+                memory: MemoryInfo(totalBytes: 16 << 30, usedBytes: 8 << 30, cachedBytes: 0, compressedBytes: 0,
+                                   swapUsedBytes: 0, pressure: .normal),
+                thermal: .nominal, uptime: 3600, processes: []))
+            #expect(f.first?.title == "The processor is maxed out (90%)")
+            #expect(MacHelpChat.guides(for: "How do I take a screenshot?").first?.contains("⌘⇧3") == true)
+            #expect(!MacHelpChat.answerNeedsGuide("Search with Spotlight (⌘ Space).",
+                                                  guides: MacHelpChat.guides(for: "how do I find a file")))
+        }
+    }
+
+    @Test func scamsAreRecognizedWhateverTheLanguage() {
+        // Pagina truffa in inglese, utente italiano: va riconosciuta lo stesso.
+        L.$taskLanguage.withValue("it") {
+            let f = MessageExplainer.findings(for: "WARNING! Your Mac is infected. Call Apple Support")
+            #expect(f.contains { $0.id == "scam" && $0.title.contains("TRUFFA") })
+        }
+        L.$taskLanguage.withValue("en") {
+            let f = MessageExplainer.findings(for: "Il tuo Mac è infetto! Chiama il supporto")
+            #expect(f.contains { $0.id == "scam" && $0.title.contains("SCAM") })
+        }
+    }
+}

@@ -7,7 +7,8 @@
 ## Italiano
 
 **Assistente Mac** è un'app open source che vive nella barra dei menu del Mac.
-Fai una domanda in italiano sul tuo Mac e ricevi una risposta chiara e veloce.
+Fai una domanda sul tuo Mac e ricevi una risposta chiara e veloce, **nella tua
+lingua** (oggi italiano e inglese; altre lingue sono benvenute, vedi sotto).
 
 - 🔒 **Tutto resta sul tuo Mac**: usa il modello AI on-device di Apple
   (Apple Intelligence). Nessun dato viene inviato in rete, niente telemetria.
@@ -68,7 +69,7 @@ swift run assistente-cli --voce domanda.m4a                      # trascrive un 
 swift run assistente-cli --guide "Come mando un file all'iPhone?"  # quale guida verificata si attiva
 ASSISTENTE_AVVISI_RAPIDI=1 swift run AssistenteMac  # avvisi con tempi di pochi secondi, per provarli
 ./scripts/test.sh                               # esegue i test (veloci, senza AI)
-swift run assistente-cli --eval Evals/casi.json # prove di qualità con il modello vero (~5 min)
+swift run assistente-cli --eval Evals/it.json # prove di qualità con il modello vero (~5 min; anche Evals/en.json)
 ```
 
 Con Xcode: apri la cartella (o `Package.swift`) e scegli lo schema `AssistenteMac`.
@@ -122,9 +123,9 @@ Regole:
 - nessun dato deve lasciare il Mac in modalità locale; niente telemetria;
 - mai committare chiavi, token o URL privati;
 - prima di aprire una pull request: `./scripts/test.sh`; se tocchi la chat, le guide
-  o lo smistamento delle domande, anche `swift run assistente-cli --eval Evals/casi.json`
+  o lo smistamento delle domande, anche `swift run assistente-cli --eval Evals/it.json`
   (servono Apple Intelligence attiva). Se trovi una domanda a cui l'app risponde
-  male, aggiungila a `Evals/casi.json`: è il modo migliore per non farla più sbagliare.
+  male, aggiungila a `Evals/it.json`: è il modo migliore per non farla più sbagliare.
 
 ### Limiti noti
 
@@ -148,6 +149,29 @@ Regole:
   permessi di amministratore: il suo carico rientra comunque nel totale del
   processore e nella temperatura.
 
+### Lingue
+
+L'app usa la lingua del Mac (si può cambiare dall'ingranaggio → Lingua); se
+non è disponibile usa l'inglese. Tutto ciò che dipende dalla lingua sta in un
+file per lingua: `Sources/AssistenteCore/Languages/<codice>.json` (testi,
+parole chiave per capire le domande, guide verificate, spiegazioni dei
+processi, messaggi noti di macOS e schemi delle truffe).
+
+**Aggiungere una lingua** (serve un madrelingua: una guida tradotta male fa
+più danni di nessuna guida):
+
+1. copia `en.json` in `<codice>.json` (es. `fr.json`) e cambia `code`, `name`, `locale`;
+2. traduci `strings` (lascia uguali i segnaposto `{0}`, `{1}`…);
+3. riscrivi `router` e le `keywords` delle guide **per quella lingua** (radici
+   delle parole, forme verbali, sinonimi), non tradurle alla lettera;
+4. nelle guide usa i nomi **esatti** dei menu di macOS in quella lingua;
+5. `./scripts/test.sh` controlla che le chiavi e i segnaposto coincidano con l'inglese;
+6. crea `Evals/<codice>.json` (vedi `it.json` ed `en.json`) e fai girare
+   `swift run assistente-cli --eval Evals/<codice>.json`.
+
+Il modello AI sul Mac supporta circa 15 lingue (Apple Intelligence): per lingue
+fuori da questo elenco servirebbe un modello diverso.
+
 ### Licenza
 
 [MIT](LICENSE)
@@ -157,8 +181,8 @@ Regole:
 ## English
 
 **Assistente Mac** is an open source macOS menu bar app. Ask a question about
-your Mac in Italian and get a clear, quick answer. (The app's interface and
-answers are in Italian by design.)
+your Mac and get a clear, quick answer **in your language** (Italian and English
+today; more languages welcome — see “Languages”).
 
 - 🔒 **Everything stays on your Mac**: it uses Apple's on-device model
   (Foundation Models / Apple Intelligence). No network, no telemetry.
@@ -197,7 +221,7 @@ open build/AssistenteMac.app
 swift run AssistenteMac        # run the menu bar app
 swift run assistente-cli       # try features from the terminal (--prompt shows the model prompt)
 ./scripts/test.sh              # run unit tests (fast, no AI)
-swift run assistente-cli --eval Evals/casi.json   # quality evals with the real on-device model
+swift run assistente-cli --eval Evals/it.json   # quality evals with the real on-device model
 ```
 
 ### Architecture
@@ -215,6 +239,16 @@ swift run assistente-cli --eval Evals/casi.json   # quality evals with the real 
 PRs welcome. Keep user-facing text in plain Italian, never quit processes or
 delete files without explicit user confirmation, never send data off-device in
 local mode, never commit secrets. Run `./scripts/test.sh` before opening a PR.
+
+### Languages
+
+The app follows the Mac's language (changeable from the gear → Language),
+falling back to English. Everything language-dependent lives in one file per
+language: `Sources/AssistenteCore/Languages/<code>.json`. To add a language,
+copy `en.json`, translate `strings` (keep `{0}` placeholders), rewrite the
+`router` and guide keywords natively for that language, use the exact macOS
+menu names, then run `./scripts/test.sh` and add `Evals/<code>.json`. A native
+speaker is required: a badly translated guide is worse than no guide.
 
 ### License
 

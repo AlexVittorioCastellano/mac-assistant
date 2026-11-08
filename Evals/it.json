@@ -351,7 +351,8 @@
     "solo per il mac",
     "solo sul mac",
     "non posso",
-    "non e possibile"
+    "non e possibile",
+    "soltanto con il mac"
    ],
    "notContains": [
     "italia"
@@ -366,7 +367,8 @@
     "solo per il mac",
     "solo sul mac",
     "non posso",
-    "non e possibile"
+    "non e possibile",
+    "soltanto con il mac"
    ]
   },
   {
@@ -603,7 +605,8 @@
    "intent": "chat",
    "contains": [
     "terminale"
-   ]
+   ],
+   "guide": true
   },
   {
    "question": "Come faccio a tornare indietro dopo un errore di scrittura?",
@@ -674,7 +677,8 @@
     "solo per il mac",
     "solo sul mac",
     "non posso",
-    "non e possibile"
+    "non e possibile",
+    "soltanto con il mac"
    ],
    "notContains": [
     "guanciale"
@@ -853,7 +857,8 @@
     "solo per il mac",
     "solo sul mac",
     "non posso",
-    "non e possibile"
+    "non e possibile",
+    "soltanto con il mac"
    ],
    "notContains": [
     "parigi"
@@ -997,7 +1002,8 @@
     "solo per il mac",
     "solo sul mac",
     "non posso",
-    "non e possibile"
+    "non e possibile",
+    "soltanto con il mac"
    ]
   },
   {
@@ -1154,5 +1160,6 @@
    "question": "Aiutami a fare spazio",
    "intent": "cleanup"
   }
- ]
+ ],
+ "language": "it"
 }

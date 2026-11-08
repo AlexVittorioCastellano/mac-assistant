@@ -1,0 +1,414 @@
+{
+ "language": "en",
+ "info": "Quality evals in English. Same format as it.json.",
+ "cases": [
+  {
+   "question": "How do I take a screenshot?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘⇧3"
+   ],
+   "notContains": [
+    "⌘3"
+   ]
+  },
+  {
+   "question": "How do I capture just one window?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘⇧4",
+    "space"
+   ]
+  },
+  {
+   "question": "How do I record my screen?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘⇧5"
+   ]
+  },
+  {
+   "question": "How do I send a file to my iPhone?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "airdrop"
+   ],
+   "notContains": [
+    "trash"
+   ]
+  },
+  {
+   "question": "How can I move photos to my phone?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "airdrop"
+   ]
+  },
+  {
+   "question": "Where are my downloaded files?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "downloads"
+   ]
+  },
+  {
+   "question": "An app is not responding, what do I do?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌥⌘Esc"
+   ]
+  },
+  {
+   "question": "How do I force quit a frozen app?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌥⌘Esc"
+   ]
+  },
+  {
+   "question": "How do I uninstall an app?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "applications",
+    "trash"
+   ]
+  },
+  {
+   "question": "How do I turn on dark mode?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "appearance"
+   ]
+  },
+  {
+   "question": "How do I change my wallpaper?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "wallpaper"
+   ]
+  },
+  {
+   "question": "How do I see the Wi-Fi password?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "copy password"
+   ]
+  },
+  {
+   "question": "How do I connect my AirPods?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "bluetooth"
+   ]
+  },
+  {
+   "question": "How do I back up my Mac?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "time machine"
+   ]
+  },
+  {
+   "question": "How do I print a document?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘P"
+   ]
+  },
+  {
+   "question": "How do I type an emoji?",
+   "intent": "chat",
+   "guide": true,
+   "containsAny": [
+    "⌃⌘space",
+    "🌐",
+    "fn"
+   ]
+  },
+  {
+   "question": "How do I put two windows side by side?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "green"
+   ]
+  },
+  {
+   "question": "The text is too small, how do I make it bigger?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "displays"
+   ]
+  },
+  {
+   "question": "How do I zip a folder?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "compress"
+   ]
+  },
+  {
+   "question": "How do I find a file?",
+   "intent": "chat",
+   "guide": true,
+   "containsAny": [
+    "⌘ space",
+    "spotlight"
+   ]
+  },
+  {
+   "question": "How do I update macOS?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "software update"
+   ]
+  },
+  {
+   "question": "How do I show hidden files?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘⇧."
+   ]
+  },
+  {
+   "question": "How do I stop apps from opening at startup?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "login items"
+   ]
+  },
+  {
+   "question": "How do I empty the trash?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "empty trash"
+   ]
+  },
+  {
+   "question": "How do I connect a second monitor?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "displays"
+   ],
+   "notContains": [
+    "add display"
+   ]
+  },
+  {
+   "question": "How do I lock my Mac?",
+   "intent": "chat",
+   "guide": true,
+   "containsAny": [
+    "⌃⌘Q",
+    "lock screen"
+   ]
+  },
+  {
+   "question": "How do I shut down the Mac?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "shut down"
+   ]
+  },
+  {
+   "question": "How do I undo something?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘Z"
+   ]
+  },
+  {
+   "question": "How do I change the brightness?",
+   "intent": "chat",
+   "guide": true,
+   "containsAny": [
+    "f1",
+    "f2",
+    "control center",
+    "displays"
+   ]
+  },
+  {
+   "question": "How do I change the language of my Mac?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "language & region"
+   ]
+  },
+  {
+   "question": "Who won the 2006 World Cup?",
+   "intent": "chat",
+   "guide": false,
+   "containsAny": [
+    "only help with the mac",
+    "only help with your mac",
+    "can't",
+    "cannot",
+    "only with the mac"
+   ],
+   "notContains": [
+    "italy"
+   ]
+  },
+  {
+   "turns": [
+    "How do I take a screenshot?",
+    "And what if I only want one window?"
+   ],
+   "intent": "chat",
+   "lastGuide": true,
+   "contains": [
+    "⌘⇧4"
+   ]
+  },
+  {
+   "turns": [
+    "How do I type an emoji?",
+    "How do I create a new user?"
+   ],
+   "intent": "chat",
+   "lastGuide": false
+  },
+  {
+   "question": "Why is my Mac so slow?",
+   "intent": "slowMac",
+   "notContains": [
+    "quit windowserver",
+    "quit kernel_task"
+   ]
+  },
+  {
+   "question": "My computer is really sluggish",
+   "intent": "slowMac"
+  },
+  {
+   "question": "The fan is very loud",
+   "intent": "slowMac"
+  },
+  {
+   "question": "What is WindowServer?",
+   "intent": "process",
+   "contains": [
+    "screen"
+   ],
+   "notContains": [
+    "you can quit it"
+   ]
+  },
+  {
+   "question": "Can I quit the Finder?",
+   "intent": "process"
+  },
+  {
+   "question": "What is this process?",
+   "intent": "processPicker"
+  },
+  {
+   "question": "Where did my disk space go?",
+   "intent": "diskSpace",
+   "contains": [
+    "apple intelligence"
+   ]
+  },
+  {
+   "question": "What is System Data?",
+   "intent": "diskSpace",
+   "contains": [
+    "system data"
+   ]
+  },
+  {
+   "question": "How much free space do I have?",
+   "intent": "diskSpace"
+  },
+  {
+   "question": "Clean up my Mac",
+   "intent": "cleanup"
+  },
+  {
+   "question": "Check my Mac",
+   "intent": "healthCheck"
+  },
+  {
+   "question": "Is my Mac safe?",
+   "intent": "healthCheck"
+  },
+  {
+   "question": "Are there any suspicious apps?",
+   "intent": "securityScan"
+  },
+  {
+   "question": "Do I have a virus?",
+   "intent": "securityScan"
+  },
+  {
+   "message": "Your Mac is infected with 3 viruses! Call Apple Support now at +1-888-555-0199",
+   "intent": "message",
+   "contains": [
+    "scam"
+   ]
+  },
+  {
+   "message": "“Setup.app” is damaged and can't be opened. You should move it to the Trash.",
+   "intent": "message",
+   "contains": [
+    "damaged"
+   ],
+   "notContains": [
+    "terminal",
+    "xattr",
+    "sudo"
+   ]
+  },
+  {
+   "message": "“Zoom” would like to access the camera.",
+   "intent": "message",
+   "contains": [
+    "permission"
+   ],
+   "notContains": [
+    "scam"
+   ]
+  },
+  {
+   "message": "Il tuo Mac è infetto! Chiama il supporto Apple al numero verde",
+   "intent": "message",
+   "contains": [
+    "scam"
+   ]
+  },
+  {
+   "question": "How do I open Terminal?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "terminal"
+   ]
+  }
+ ]
+}

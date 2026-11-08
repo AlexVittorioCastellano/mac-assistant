@@ -1,4 +1,5 @@
 import AppKit
+import AssistenteCore
 import SwiftUI
 
 /// Benvenuto al primo avvio: tre pagine brevi (cosa fa, dove trovarla,
@@ -33,9 +34,9 @@ struct WelcomeView: View {
                 }
                 Spacer()
                 if state.page > 0 {
-                    Button("Indietro") { state.page -= 1 }
+                    Button(L.t("ui.welcome.back")) { state.page -= 1 }
                 }
-                Button(state.page < 2 ? "Avanti" : "Inizia") {
+                Button(state.page < 2 ? L.t("ui.welcome.next") : L.t("ui.welcome.start")) {
                     if state.page < 2 { state.page += 1 } else { onDone() }
                 }
                 .keyboardShortcut(.defaultAction)
@@ -51,11 +52,11 @@ struct WelcomeView: View {
             Image(systemName: "questionmark.bubble.fill")
                 .font(.system(size: 44))
                 .foregroundStyle(Color.accentColor)
-            Text("Ciao! Sono il tuo assistente per il Mac")
+            Text(L.t("ui.welcome.hello"))
                 .font(.title2.weight(.semibold))
-            Text("Fammi domande in italiano sul tuo Mac: perché è lento, cos'è un processo, dove è finito lo spazio, come si fa qualcosa. Posso anche controllarlo in un clic, spiegarti un messaggio strano e avvisarti se qualcosa non va.")
+            Text(L.t("ui.welcome.what"))
                 .fixedSize(horizontal: false, vertical: true)
-            Label("Tutto resta sul tuo Mac: niente dati inviati, niente pubblicità, niente account.",
+            Label(L.t("ui.welcome.privacy"),
                   systemImage: "lock.fill")
                 .font(.callout)
                 .foregroundStyle(.secondary)
@@ -68,14 +69,14 @@ struct WelcomeView: View {
             Image(systemName: "menubar.arrow.up.rectangle")
                 .font(.system(size: 44))
                 .foregroundStyle(Color.accentColor)
-            Text("Dove trovarmi")
+            Text(L.t("ui.welcome.where"))
                 .font(.title2.weight(.semibold))
-            Label("Clicca l'icona con il fumetto in alto a destra, nella barra dei menu.", systemImage: "questionmark.bubble")
+            Label(L.t("ui.welcome.menubar"), systemImage: "questionmark.bubble")
                 .fixedSize(horizontal: false, vertical: true)
             if hotKeyWorks {
-                Label("Oppure premi \(GlobalHotKey.label) da qualunque app.", systemImage: "keyboard")
+                Label(L.t("ui.welcome.hotkey", GlobalHotKey.label), systemImage: "keyboard")
             }
-            Label("Puoi anche parlare: premi il microfono accanto al campo di testo.", systemImage: "mic")
+            Label(L.t("ui.welcome.voice"), systemImage: "mic")
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -85,22 +86,22 @@ struct WelcomeView: View {
             Image(systemName: "gearshape.fill")
                 .font(.system(size: 44))
                 .foregroundStyle(Color.accentColor)
-            Text("Due preferenze")
+            Text(L.t("ui.welcome.prefs"))
                 .font(.title2.weight(.semibold))
             Toggle(isOn: Binding(get: { state.launchAtLogin }, set: { state.launchAtLogin = $0 })) {
                 VStack(alignment: .leading) {
-                    Text("Apri all'accensione del Mac")
-                    Text("Così gli avvisi funzionano sempre.").font(.caption).foregroundStyle(.secondary)
+                    Text(L.t("ui.welcome.launch"))
+                    Text(L.t("ui.welcome.launch.note")).font(.caption).foregroundStyle(.secondary)
                 }
             }
             .disabled(!LaunchAtLogin.isAvailable)
             Toggle(isOn: Binding(get: { alerts.enabled }, set: { alerts.enabled = $0 })) {
                 VStack(alignment: .leading) {
-                    Text("Avvisami se qualcosa non va")
-                    Text("macOS ti chiederà il permesso per le notifiche.").font(.caption).foregroundStyle(.secondary)
+                    Text(L.t("ui.welcome.alerts"))
+                    Text(L.t("ui.welcome.alerts.note")).font(.caption).foregroundStyle(.secondary)
                 }
             }
-            Text("Puoi cambiarle quando vuoi dall'ingranaggio in basso nel riquadro.")
+            Text(L.t("ui.welcome.change"))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -135,7 +136,7 @@ final class WelcomeWindow {
             self?.close()
         }, state: state)
         let window = NSWindow(contentViewController: NSHostingController(rootView: view))
-        window.title = "Benvenuto in Assistente Mac"
+        window.title = L.t("ui.welcome.title")
         window.styleMask = [.titled, .closable]
         window.isReleasedWhenClosed = false
         window.center()

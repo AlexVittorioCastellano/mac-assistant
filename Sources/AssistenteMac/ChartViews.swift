@@ -64,7 +64,7 @@ struct DiskChartView: View {
                         .font(.callout.weight(.medium))
                         .fixedSize(horizontal: false, vertical: true)
                     CapacityMeter(fraction: Double(chart.totalBytes) / Double(max(capacity, 1)), level: chart.level)
-                    Text("Il grafico mostra come è diviso lo spazio usato. Passa il mouse sulle fette per i dettagli.")
+                    Text(L.t("ui.chart.caption"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -110,7 +110,7 @@ struct DiskChartView: View {
         }
         .frame(width: 132, height: 132)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Spazio usato: " + chart.segments.map(chart.description).joined(separator: ", "))
+        .accessibilityLabel(L.t("ui.chart.a11y", chart.segments.map(chart.description).joined(separator: ", ")))
     }
 
     /// Centro della ciambella: il totale, oppure la fetta sotto il mouse.
@@ -131,7 +131,7 @@ struct DiskChartView: View {
                     .font(.title3.weight(.semibold))
                     .monospacedDigit()
                     .minimumScaleFactor(0.7)
-                Text("usati")
+                Text(L.t("ui.chart.used"))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }

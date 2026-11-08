@@ -1,7 +1,7 @@
 // Strumento per sviluppatori: prova le funzioni dal terminale.
 // Uso:  swift run assistente-cli "Perché il Mac è lento?"
 //       swift run assistente-cli --chat "Come faccio uno screenshot?"   (poi altre domande, una per riga)
-//       swift run assistente-cli --eval Evals/casi.json   (prove di qualità con il modello vero)
+//       swift run assistente-cli --eval Evals/it.json   (prove di qualità con il modello vero)
 //       swift run assistente-cli --messaggio screenshot.png   (o il testo del messaggio)
 //       swift run assistente-cli --voce domanda.m4a   (trascrive un file audio, sul Mac)
 //       swift run assistente-cli --guide "Come mando un file all'iPhone?"  (quale guida verificata si attiva)
@@ -31,9 +31,9 @@ func printStream(_ stream: AsyncThrowingStream<String, Error>) async throws {
 }
 let question = args.isEmpty ? Assistant.slowMacQuestion : args.joined(separator: " ")
 
-// --eval <file>: prove di qualità (vedi Evals/casi.json).
+// --eval <file>: prove di qualità (vedi Evals/it.json).
 if let i = CommandLine.arguments.firstIndex(of: "--eval") {
-    let path = CommandLine.arguments.indices.contains(i + 1) ? CommandLine.arguments[i + 1] : "Evals/casi.json"
+    let path = CommandLine.arguments.indices.contains(i + 1) ? CommandLine.arguments[i + 1] : "Evals/it.json"
     exit(await Eval.run(path: path) ? 0 : 1)
 }
 

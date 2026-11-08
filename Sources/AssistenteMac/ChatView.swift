@@ -29,14 +29,14 @@ struct ChatView: View {
                 }
             }
             HStack {
-                Text("Le risposte sono generate sul Mac e possono contenere errori.")
+                Text(L.t("ui.chat.disclaimer"))
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
                 Spacer()
                 Button {
                     model.newConversation()
                 } label: {
-                    Label("Nuova conversazione", systemImage: "square.and.pencil")
+                    Label(L.t("ui.chat.new"), systemImage: "square.and.pencil")
                 }
                 .buttonStyle(.borderless)
                 .font(.caption)
@@ -63,7 +63,7 @@ private struct Bubble: View {
         if message.role == .assistant && message.text.isEmpty {
             HStack(spacing: 6) {
                 ProgressView().controlSize(.small)
-                Text("Sto pensando…").foregroundStyle(.secondary)
+                Text(L.t("ui.chat.thinking")).foregroundStyle(.secondary)
             }
         } else if message.isError {
             Label(message.text, systemImage: "exclamationmark.triangle")
@@ -80,17 +80,17 @@ private struct Bubble: View {
                 } else if message.basedOnGuide {
                     // "Basata su", non "verificata": la guida copre l'argomento,
                     // ma il modello può aggiungere passaggi suoi.
-                    Label("Basata su una guida dell'app", systemImage: "checkmark.seal.fill")
+                    Label(L.t("ui.chat.guided"), systemImage: "checkmark.seal.fill")
                         .font(.caption2)
                         .foregroundStyle(.green)
-                        .help("La risposta usa una guida controllata inclusa nell'app.")
+                        .help(L.t("ui.chat.guided.help"))
                 } else if message.role == .assistant {
                     // Senza guida il modello piccolo sbaglia più spesso nomi di
                     // menu e pulsanti: lo diciamo con discrezione.
-                    Label("Risposta senza guida: controlla i passaggi", systemImage: "questionmark.circle")
+                    Label(L.t("ui.chat.unguided"), systemImage: "questionmark.circle")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
-                        .help("Per questa domanda l'app non ha una guida controllata: la risposta è del solo modello sul Mac.")
+                        .help(L.t("ui.chat.unguided.help"))
                 }
             }
         }
@@ -108,7 +108,7 @@ private struct VerifiedGuideBox: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Label("Guida verificata", systemImage: "checkmark.seal.fill")
+            Label(L.t("ui.chat.verifiedGuide"), systemImage: "checkmark.seal.fill")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.green)
             ForEach(guides, id: \.self) { guide in

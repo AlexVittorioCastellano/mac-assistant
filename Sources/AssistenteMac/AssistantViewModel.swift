@@ -34,7 +34,7 @@ final class AssistantViewModel {
     var notice: String?
     var isWorking = false
     /// Testo della rotellina di attesa (dipende da cosa stiamo facendo).
-    var workingLabel = "Controllo il Mac…"
+    var workingLabel = L.t("ui.working.check")
     private var lastPrewarm = Date.distantPast
 
     /// Pulizia guidata: file proposti, quelli spuntati, conferma e annulla.
@@ -70,8 +70,20 @@ final class AssistantViewModel {
         didSet { LaunchAtLogin.isEnabled = launchAtLogin; launchAtLogin = LaunchAtLogin.isEnabled }
     }
 
+    /// Lingua scelta nelle impostazioni (`nil` = automatica, come il Mac).
+    /// Cambiandola, l'interfaccia si ridisegna e la chat riparte (il modello
+    /// deve ricevere le istruzioni nella nuova lingua).
+    var languageCode: String? = UserDefaults.standard.string(forKey: "lingua") {
+        didSet {
+            UserDefaults.standard.set(languageCode, forKey: "lingua")
+            L.override = languageCode
+            newConversation()
+        }
+    }
+
     /// Da chiamare una volta all'avvio dell'app.
     func appDidLaunch() {
+        L.override = languageCode
         alerts.start()
         prewarmTextRecognition()
         hotKey = GlobalHotKey { [weak self] in
@@ -117,27 +129,25 @@ final class AssistantViewModel {
             explainImage(data)
         } else if let text = pasteboard.string(forType: .string), !text.isEmpty {
             question = Assistant.messageQuestion
-            run(label: "Leggo il messaggio…") { [assistant] in assistant.explainMessage(text) }
+            run(label: L.t("ui.working.message")) { [assistant] in assistant.explainMessage(text) }
         } else {
             question = Assistant.messageQuestion
             endChat()
             clearResults()
-            notice = "Negli appunti non c'è nessun messaggio. Fai uno screenshot del messaggio con ⌃⇧⌘4 "
-                + "(tieni premuti Controllo, Maiuscole e Comando, poi premi 4 e seleziona il messaggio) "
-                + "e premi di nuovo «Spiega un messaggio». Puoi anche trascinare un'immagine qui."
+            notice = L.t("ui.message.clipboardEmpty")
         }
     }
 
     /// Immagine trascinata sul riquadro o presa dagli appunti.
     func explainImage(_ data: Data) {
         question = Assistant.messageQuestion
-        run(label: "Leggo il messaggio…") { [assistant] in try await assistant.explainMessage(imageData: data) }
+        run(label: L.t("ui.working.message")) { [assistant] in try await assistant.explainMessage(imageData: data) }
         // Se dopo qualche secondo stiamo ancora leggendo, è il primo avvio del
         // riconoscimento del testo: lo diciamo, così l'attesa non sembra un blocco.
         Task {
             try? await Task.sleep(for: .seconds(4))
             if isWorking && findings.isEmpty && notice == nil {
-                workingLabel = "Leggo il messaggio… la prima volta può volerci una ventina di secondi"
+                workingLabel = L.t("ui.working.message.slow")
             }
         }
     }
@@ -153,16 +163,16 @@ final class AssistantViewModel {
         // Il microfono richiede l'app vera (con la descrizione del permesso
         // nell'Info.plist): con `swift run` macOS chiuderebbe l'app.
         guard Bundle.main.bundleIdentifier != nil else {
-            notice = "La domanda a voce funziona solo nell'app vera: creala con ./scripts/crea-app.sh."
+            notice = L.t("ui.voice.needsApp")
             return
         }
         Task {
             guard await AVCaptureDevice.requestAccess(for: .audio) else {
-                notice = "Per fare domande a voce consenti il microfono in Impostazioni di Sistema → Privacy e sicurezza → Microfono."
+                notice = L.t("ui.voice.micDenied")
                 return
             }
             guard await VoiceTranscriber.isAvailable() else {
-                notice = "Il riconoscimento vocale in italiano non è disponibile su questo Mac."
+                notice = L.t("ui.voice.noLanguage")
                 return
             }
             task?.cancel()
@@ -201,7 +211,7 @@ final class AssistantViewModel {
             let text = await dictation.stop()
             question = text
             if text.isEmpty {
-                notice = "Non ho sentito niente. Premi il microfono e parla vicino al Mac."
+                notice = L.t("ui.voice.nothingHeard")
             } else {
                 ask(text)  // la domanda parte; resta visibile nel campo per correggerla
             }
@@ -216,7 +226,7 @@ final class AssistantViewModel {
     }
 
     /// Esegue una richiesta e mostra la risposta (comune a domande e messaggi).
-    private func run(label: String = "Controllo il Mac…",
+    private func run(label: String = L.t("ui.working.check"),
                      _ produce: @escaping @Sendable () async throws -> AssistantReply) {
         task?.cancel()
         clearResults()
@@ -258,7 +268,7 @@ final class AssistantViewModel {
                     cleanupItems = items
                     cleanupSelected = Set(items.filter(\.preselected).map(\.id))
                     if items.isEmpty {
-                        notice = "Non ho trovato file da proporti: i Download sono in ordine e non ci sono file enormi dimenticati."
+                        notice = L.t("ui.cleanup.none")
                     }
                 case .chat:
                     break  // gestito sopra
@@ -328,11 +338,9 @@ final class AssistantViewModel {
         let moved = Set(result.moved.map(\.original))
         cleanupItems.removeAll { moved.contains($0.path) }
         cleanupSelected.subtract(moved)
-        var text = "Ho spostato \(result.moved.count) file nel Cestino (\(sizeText(result.bytes))). "
-            + "Se ti serve qualcosa, lo ritrovi lì. Per liberare davvero lo spazio, svuota il Cestino: "
-            + "clic destro sul Cestino nel Dock → «Svuota il Cestino»."
+        var text = L.t("ui.cleanup.done", result.moved.count, sizeText(result.bytes))
         if !result.refused.isEmpty {
-            text += " Non ho toccato: \(result.refused.joined(separator: ", "))."
+            text += L.t("ui.cleanup.refused", result.refused.joined(separator: ", "))
         }
         notice = text
         log.info("pulizia: \(result.moved.count) file nel Cestino")
@@ -342,9 +350,9 @@ final class AssistantViewModel {
         guard let lastTrash else { return }
         let restored = Cleanup.undo(lastTrash)
         self.lastTrash = nil
-        notice = "Ho rimesso a posto \(restored) file."
+        notice = L.t("ui.cleanup.restored", restored)
         // Ricarica le proposte, così i file tornano nell'elenco.
-        run(label: "Cerco file da proporti…") { [assistant] in try await assistant.prepare(question: Assistant.cleanupQuestion) }
+        run(label: L.t("ui.working.cleanup")) { [assistant] in try await assistant.prepare(question: Assistant.cleanupQuestion) }
     }
 
     func sizeText(_ bytes: UInt64) -> String {

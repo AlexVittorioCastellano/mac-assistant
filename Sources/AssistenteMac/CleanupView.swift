@@ -9,7 +9,7 @@ struct CleanupView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("Ho trovato \(model.cleanupItems.count) file che potresti togliere. Spunta quelli che non ti servono.",
+            Label(L.t("ui.cleanup.found", model.cleanupItems.count),
                   systemImage: "sparkles")
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -35,32 +35,32 @@ struct CleanupView: View {
                 .buttonStyle(.plain)
                 .help(item.path)
                 .contextMenu {
-                    Button("Mostra nel Finder") { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: item.path)]) }
+                    Button(L.t("ui.cleanup.showInFinder")) { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: item.path)]) }
                 }
             }
 
             Button {
                 model.confirmCleanup = true
             } label: {
-                Label(model.cleanupSelected.isEmpty ? "Spunta i file da togliere"
-                      : "Sposta nel Cestino (\(model.sizeText(model.selectedCleanupBytes)))",
+                Label(model.cleanupSelected.isEmpty ? L.t("ui.cleanup.tick")
+                      : L.t("ui.cleanup.move", model.sizeText(model.selectedCleanupBytes)),
                       systemImage: "trash")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
             .disabled(model.cleanupSelected.isEmpty)
-            Text("I file vanno nel Cestino: puoi recuperarli finché non lo svuoti. Clic destro su un file per vederlo nel Finder.")
+            Text(L.t("ui.cleanup.note"))
                 .font(.caption2)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .alert("Spostare \(model.selectedCleanupItems.count) file nel Cestino?", isPresented: $model.confirmCleanup) {
-            Button("Sposta nel Cestino", role: .destructive) { model.performCleanup() }
-            Button("Annulla", role: .cancel) {}
+        .alert(L.t("ui.cleanup.confirm.title", model.selectedCleanupItems.count), isPresented: $model.confirmCleanup) {
+            Button(L.t("ui.cleanup.confirm.button"), role: .destructive) { model.performCleanup() }
+            Button(L.t("ui.cleanup.confirm.cancel"), role: .cancel) {}
         } message: {
             Text(model.selectedCleanupItems.prefix(8).map(\.name).joined(separator: "\n")
                  + (model.selectedCleanupItems.count > 8 ? "\n…" : "")
-                 + "\n\nPotrai recuperarli dal Cestino finché non lo svuoti.")
+                 + "\n\n" + L.t("ui.cleanup.confirm.note"))
         }
     }
 }

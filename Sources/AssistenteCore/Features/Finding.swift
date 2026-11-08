@@ -76,7 +76,7 @@ public struct SegmentedChart: Sendable, Equatable {
     public var capacitySummary: String? {
         guard let capacityBytes, capacityBytes > 0 else { return nil }
         let share = Double(totalBytes) / Double(capacityBytes) * 100
-        return "Usati \(Fmt.size(totalBytes)) su \(Fmt.size(capacityBytes)) (\(Fmt.percent(share)))"
+        return L.t("ui.chart.capacity", Fmt.size(totalBytes), Fmt.size(capacityBytes), Fmt.percent(share))
     }
 
     /// "104,3 GB": il totale, per il centro del grafico.

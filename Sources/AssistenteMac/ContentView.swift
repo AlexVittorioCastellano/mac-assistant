@@ -38,6 +38,8 @@ struct ContentView: View {
         }
         .padding(14)
         .frame(width: 400)
+        // Cambiando lingua tutto si ridisegna con i nuovi testi.
+        .id(model.languageCode ?? "auto")
         // Trascinando un'immagine (es. lo screenshot di un errore) sul riquadro
         // l'app ne legge il testo e lo spiega.
         .dropDestination(for: URL.self) { urls, _ in
@@ -71,8 +73,8 @@ struct ContentView: View {
 
     private var inputRow: some View {
         HStack {
-            TextField(model.isListening ? "Ti ascolto… premi di nuovo il microfono quando hai finito"
-                      : model.isChatting ? "Scrivi un altro messaggio…" : "Fai una domanda sul tuo Mac…",
+            TextField(model.isListening ? L.t("ui.field.listening")
+                      : model.isChatting ? L.t("ui.field.chat") : L.t("ui.field.ask"),
                       text: $model.question)
                 .textFieldStyle(.roundedBorder)
                 .focused($fieldFocused)
@@ -87,8 +89,8 @@ struct ContentView: View {
                     .symbolEffect(.pulse, isActive: model.isListening)
             }
             .buttonStyle(.plain)
-            .help(model.isListening ? "Ho finito: fai la domanda" : "Fai la domanda a voce (resta tutto sul Mac)")
-            .accessibilityLabel(model.isListening ? "Ferma l'ascolto e chiedi" : "Fai una domanda a voce")
+            .help(model.isListening ? L.t("ui.mic.stop.help") : L.t("ui.mic.start.help"))
+            .accessibilityLabel(model.isListening ? L.t("ui.mic.stop.a11y") : L.t("ui.mic.start.a11y"))
             Button {
                 model.ask()
             } label: {
@@ -96,7 +98,7 @@ struct ContentView: View {
             }
             .buttonStyle(.plain)
             .disabled(model.question.trimmingCharacters(in: .whitespaces).isEmpty)
-            .help("Invia")
+            .help(L.t("ui.send"))
         }
     }
 
@@ -108,34 +110,34 @@ struct ContentView: View {
             Button {
                 model.ask(Assistant.healthQuestion)
             } label: {
-                Label("Controlla il mio Mac", systemImage: "stethoscope")
+                Label(L.t("ui.button.health"), systemImage: "stethoscope")
                     .font(.body.weight(.semibold))
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .help("Velocità, spazio, backup, sicurezza, aggiornamenti e batteria in un colpo solo")
+            .help(L.t("ui.button.health.help"))
 
             // Griglia 2×2: pulsanti grandi e facili da colpire.
             Grid(horizontalSpacing: 8, verticalSpacing: 8) {
                 GridRow {
-                    quickButton("Mac lento", question: Assistant.slowMacQuestion, icon: "tortoise")
-                    quickButton("Processi", question: Assistant.processQuestion, icon: "questionmark.app")
+                    quickButton(L.t("ui.button.slow"), question: Assistant.slowMacQuestion, icon: "tortoise")
+                    quickButton(L.t("ui.button.processes"), question: Assistant.processQuestion, icon: "questionmark.app")
                 }
                 GridRow {
-                    quickButton("Spazio disco", question: Assistant.diskQuestion, icon: "internaldrive")
+                    quickButton(L.t("ui.button.disk"), question: Assistant.diskQuestion, icon: "internaldrive")
                     Button {
                         model.explainClipboard()
                     } label: {
-                        Label("Spiega un messaggio", systemImage: "text.viewfinder")
+                        Label(L.t("ui.button.message"), systemImage: "text.viewfinder")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
-                    .help("Fai uno screenshot di un avviso con ⌃⇧⌘4 e premi qui: ti spiego cosa significa")
+                    .help(L.t("ui.button.message.help"))
                 }
                 GridRow {
-                    quickButton("App sospette", question: Assistant.securityQuestion, icon: "exclamationmark.shield")
-                    quickButton("Pulizia", question: Assistant.cleanupQuestion, icon: "sparkles")
+                    quickButton(L.t("ui.button.security"), question: Assistant.securityQuestion, icon: "exclamationmark.shield")
+                    quickButton(L.t("ui.button.cleanup"), question: Assistant.cleanupQuestion, icon: "sparkles")
                 }
             }
             .controlSize(.regular)
@@ -171,7 +173,7 @@ struct ContentView: View {
             let advice = Finding.advice(from: model.findings)
             if !advice.isEmpty && !model.isWorking {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Cosa puoi fare").font(.subheadline.bold())
+                    Text(L.t("ui.advice.header")).font(.subheadline.bold())
                     ForEach(advice, id: \.self) { item in
                         Label(item, systemImage: "arrow.right.circle")
                             .fixedSize(horizontal: false, vertical: true)
@@ -186,7 +188,7 @@ struct ContentView: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if model.lastTrash != nil {
-                    Button("Annulla: rimetti i file a posto") { model.undoCleanup() }
+                    Button(L.t("ui.cleanup.undo")) { model.undoCleanup() }
                         .controlSize(.small)
                 }
             }
@@ -209,7 +211,7 @@ struct ContentView: View {
             if model.isWorking {
                 HStack(spacing: 6) {
                     ProgressView().controlSize(.small)
-                    Text(model.findings.isEmpty ? model.workingLabel : "Preparo la spiegazione…")
+                    Text(model.findings.isEmpty ? model.workingLabel : L.t("ui.working.explain"))
                         .foregroundStyle(.secondary)
                 }
             }
@@ -219,30 +221,37 @@ struct ContentView: View {
     private var footer: some View {
         HStack {
             if model.isOnDevice {
-                Label("Tutto resta sul tuo Mac", systemImage: "lock.fill")
+                Label(L.t("ui.footer.private"), systemImage: "lock.fill")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             Spacer()
             // Impostazioni in un menu, così il piè di pagina resta pulito.
             Menu {
-                Toggle("Avvisi automatici", isOn: Binding(get: { model.alerts.enabled },
+                Toggle(L.t("ui.settings.alerts"), isOn: Binding(get: { model.alerts.enabled },
                                                           set: { model.alerts.enabled = $0 }))
-                Toggle("Apri all'accensione del Mac", isOn: $model.launchAtLogin)
+                Toggle(L.t("ui.settings.launch"), isOn: $model.launchAtLogin)
                     .disabled(!LaunchAtLogin.isAvailable)
                 Divider()
-                Text(model.hotKey != nil ? "Scorciatoia: \(GlobalHotKey.label)"
-                                         : "Scorciatoia \(GlobalHotKey.label) già usata da un'altra app")
-                Button("Rivedi il benvenuto…") { model.showWelcome() }
+                Text(model.hotKey != nil ? L.t("ui.settings.hotkey", GlobalHotKey.label)
+                                         : L.t("ui.settings.hotkey.taken", GlobalHotKey.label))
+                // Lingua: automatica o una di quelle disponibili.
+                Picker(L.t("ui.settings.language"), selection: $model.languageCode) {
+                    Text(L.t("ui.settings.language.auto")).tag(String?.none)
+                    ForEach(L.available, id: \.code) { pack in
+                        Text(pack.name).tag(String?.some(pack.code))
+                    }
+                }
+                Button(L.t("ui.settings.welcome")) { model.showWelcome() }
                 Divider()
-                Button("Esci da Assistente Mac") { NSApplication.shared.terminate(nil) }
+                Button(L.t("ui.settings.quit")) { NSApplication.shared.terminate(nil) }
             } label: {
                 Image(systemName: "gearshape")
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
             .fixedSize()
-            .help("Impostazioni")
+            .help(L.t("ui.settings"))
         }
     }
 
@@ -358,7 +367,7 @@ private struct AlertBanner: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 4)
-            Button("Vedi", action: action)
+            Button(L.t("ui.alert.see"), action: action)
                 .controlSize(.small)
         }
         .padding(8)
