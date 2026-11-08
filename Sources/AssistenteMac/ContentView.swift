@@ -8,6 +8,9 @@ struct ContentView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             header
+            ForEach(model.alerts.active) { alert in
+                AlertBanner(alert: alert) { model.ask(alert.question) }
+            }
             inputRow
             quickActions
             if model.isChatting {
@@ -172,6 +175,12 @@ struct ContentView: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
+            Toggle(isOn: Binding(get: { model.alerts.enabled }, set: { model.alerts.enabled = $0 })) {
+                Text("Avvisi").font(.caption)
+            }
+            .toggleStyle(.switch)
+            .controlSize(.mini)
+            .help("Avvisi automatici: l'app ti avvisa se il Mac ha un problema che dura (es. spazio quasi finito)")
             Button("Esci") { NSApplication.shared.terminate(nil) }
                 .buttonStyle(.borderless)
                 .font(.caption)
@@ -271,5 +280,29 @@ struct ItemIcon: View {
             }
         }
         .frame(width: 20, height: 20)
+    }
+}
+
+/// Banner in cima al riquadro per un avviso attivo, con "Vedi" che apre la
+/// funzione giusta.
+private struct AlertBanner: View {
+    let alert: MacAlert
+    let action: () -> Void
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(.orange)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(alert.title).font(.callout.weight(.semibold))
+                Text(alert.body).font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 4)
+            Button("Vedi", action: action)
+                .controlSize(.small)
+        }
+        .padding(8)
+        .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
     }
 }

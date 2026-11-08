@@ -12,11 +12,16 @@ struct AssistenteMacApp: App {
         // Niente icona nel Dock, anche quando si avvia con `swift run`.
         // (Il bundle .app lo indica anche con LSUIElement nell'Info.plist.)
         NSApplication.shared.setActivationPolicy(.accessory)
+        model.alerts.start()
     }
 
     var body: some Scene {
-        MenuBarExtra("Assistente Mac", systemImage: "questionmark.bubble") {
+        MenuBarExtra {
             ContentView(model: model)
+        } label: {
+            // Con un avviso attivo l'icona cambia: si capisce senza aprire nulla.
+            Image(systemName: model.alerts.active.isEmpty ? "questionmark.bubble" : "exclamationmark.bubble.fill")
+                .accessibilityLabel(model.alerts.active.isEmpty ? "Assistente Mac" : "Assistente Mac: c'è un avviso")
         }
         .menuBarExtraStyle(.window)
     }

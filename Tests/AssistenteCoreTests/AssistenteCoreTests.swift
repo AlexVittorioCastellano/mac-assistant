@@ -418,3 +418,76 @@ import Testing
         #expect(IntentRouter.route("Come apro il Centro di Controllo?") == .chat)
     }
 }
+
+@Suite struct AlertMonitorTests {
+    let t0 = Date(timeIntervalSince1970: 1_000_000)
+
+    func snap(hog: Double = 0, systemHog: Double = 0, pressure: MemoryPressure = .normal,
+              thermal: ThermalLevel = .nominal) -> SystemSnapshot {
+        SystemSnapshot(
+            cpuUsagePercent: 50, coreCount: 8,
+            memory: MemoryInfo(totalBytes: 16 << 30, usedBytes: 8 << 30, cachedBytes: 0, compressedBytes: 0,
+                               swapUsedBytes: 0, pressure: pressure),
+            thermal: thermal, uptime: 3600,
+            processes: [
+                ProcessGroup(name: "Spotify", instanceCount: 1, cpuPercent: hog, residentBytes: 1 << 30, isSystem: false, pids: [1]),
+                ProcessGroup(name: "kernel_task", instanceCount: 1, cpuPercent: systemHog, residentBytes: 1 << 20, isSystem: true, pids: [0]),
+            ])
+    }
+
+    /// Una misura al minuto per `minutes` minuti; restituisce tutti gli avvisi mandati.
+    func run(_ m: inout AlertMonitor, minutes: Int, startingAt start: Int = 0,
+             _ s: SystemSnapshot, free: UInt64 = 300 << 30) -> [MacAlert] {
+        (start..<(start + minutes)).flatMap { i in
+            m.update(snapshot: s, diskFree: free, diskTotal: 500 << 30, now: t0.addingTimeInterval(Double(i) * 60))
+        }
+    }
+
+    @Test func shortSpikesDoNotAlert() {
+        var m = AlertMonitor()
+        #expect(run(&m, minutes: 9, snap(hog: 150)).isEmpty)
+        #expect(m.active.isEmpty)
+    }
+
+    @Test func longCpuUseAlertsOnceThenWaits() {
+        var m = AlertMonitor()
+        let sent = run(&m, minutes: 30, snap(hog: 150))
+        #expect(sent.map(\.id) == ["cpuHog:Spotify"])     // una volta sola, non ogni minuto
+        #expect(m.active.map(\.id) == ["cpuHog:Spotify"])  // ma resta attivo per il banner
+        #expect(sent.first?.title == "«Spotify» lavora molto da 10 minuti")
+        // Il banner dice da quanto dura davvero, non il minimo richiesto.
+        #expect(m.active.first?.title == "«Spotify» lavora molto da 29 minuti")
+    }
+
+    @Test func repeatsOnlyAfterTheQuietPeriod() {
+        var m = AlertMonitor()
+        let sent = run(&m, minutes: 7 * 60, snap(hog: 150))   // 7 ore di fila
+        #expect(sent.count == 2)
+    }
+
+    @Test func conditionThatStopsResetsTheTimer() {
+        var m = AlertMonitor()
+        _ = run(&m, minutes: 8, snap(hog: 150))
+        _ = run(&m, minutes: 1, startingAt: 8, snap(hog: 0))     // si calma
+        #expect(run(&m, minutes: 8, startingAt: 9, snap(hog: 150)).isEmpty)  // riparte da zero
+    }
+
+    @Test func neverAlertsAboutSystemProcesses() {
+        var m = AlertMonitor()
+        #expect(run(&m, minutes: 30, snap(systemHog: 300)).isEmpty)
+    }
+
+    @Test func diskAlertIsImmediate() {
+        var m = AlertMonitor()
+        let sent = run(&m, minutes: 1, snap(), free: 5 << 30)
+        #expect(sent.map(\.kind) == [.disk])
+        #expect(sent.first?.question == Assistant.diskQuestion)
+    }
+
+    @Test func memoryAndHeatNeedFiveMinutes() {
+        var m = AlertMonitor()
+        let s = snap(pressure: .critical, thermal: .serious)
+        #expect(run(&m, minutes: 4, s).isEmpty)
+        #expect(Set(run(&m, minutes: 2, startingAt: 4, s).map(\.kind)) == [.memory, .heat])
+    }
+}

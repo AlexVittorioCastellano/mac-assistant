@@ -39,6 +39,9 @@ final class AssistantViewModel {
     private var chatGuides: [String] = []
     var isChatting: Bool { !messages.isEmpty }
 
+    /// Avvisi automatici in background.
+    let alerts = AlertService()
+
     private let assistant = Assistant()
     private let log = Logger(subsystem: "AssistenteMac", category: "ui")
     private var task: Task<Void, Never>?
