@@ -85,7 +85,7 @@ finds, and suggests what *you* can do. It never quits apps or deletes files on i
 You only need the **Command Line Tools** (`xcode-select --install`); Xcode is optional.
 
 ```sh
-git clone https://github.com/alexvittorioc/assistente-mac.git
+git clone https://github.com/MigatteNoAlecs/assistente-mac.git
 cd assistente-mac
 ./scripts/crea-app.sh                 # builds build/AssistenteMac.app
 open build/AssistenteMac.app
@@ -229,7 +229,7 @@ macOS 27 o successivo con Apple Silicon e Apple Intelligence attiva (senza, rest
 controlli e i consigli, ma non la spiegazione scritta dall'AI). Bastano i Command Line Tools:
 
 ```sh
-git clone https://github.com/alexvittorioc/assistente-mac.git
+git clone https://github.com/MigatteNoAlecs/assistente-mac.git
 cd assistente-mac
 ./scripts/crea-app.sh && open build/AssistenteMac.app
 ```
