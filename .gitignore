@@ -1,0 +1,25 @@
+# macOS
+.DS_Store
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# Xcode
+DerivedData/
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.moved-aside
+
+# Bundle .app generato da scripts/crea-app.sh
+build/
+
+# Configurazioni sensibili: MAI nel repository
+# (es. URL del backend cloud, chiavi di sviluppo, profili di firma)
+*.local.xcconfig
+Secrets.xcconfig
+Config/Secrets*
+.env
+.env.*
