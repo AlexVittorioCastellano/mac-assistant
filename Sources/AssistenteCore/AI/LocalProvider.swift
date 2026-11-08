@@ -114,7 +114,7 @@ actor LocalChatSession: AIChatSession {
             // "Greedy": sceglie sempre la parola più probabile. Nelle prove copiava
             // le scorciatoie dalla guida senza errori (6/6, contro 5/6 con
             // temperatura 0.3) e dà la stessa risposta alla stessa domanda.
-            let options = GenerationOptions(sampling: .greedy)
+            let options = GenerationOptions(samplingMode: .greedy)
             for try await snapshot in session.streamResponse(to: prompt, options: options) {
                 continuation.yield(snapshot.content)
             }
