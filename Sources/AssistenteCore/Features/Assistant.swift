@@ -48,11 +48,22 @@ public struct Assistant: Sendable {
     public static let processQuestion = "Cos'è questo processo?"
     public static let diskQuestion = "Dove è finito lo spazio?"
 
-    public func prepare(question: String) async throws -> AssistantReply {
+    /// - Parameter conversationGuides: guide usate nel turno precedente della
+    ///   chat. Una domanda di seguito ("E se non compare?") senza guide proprie
+    ///   le eredita, così il modello resta ancorato alle informazioni corrette.
+    public func prepare(question: String, conversationGuides: [String] = []) async throws -> AssistantReply {
         let samples = try ProcessLister.list()
         let names = Array(Set(samples.map(\.name) + samples.map { ProcessLister.logicalName($0.name) }))
 
-        switch IntentRouter.route(question, runningNames: names) {
+        var intent = IntentRouter.route(question, runningNames: names)
+        // "Come chiudo un programma bloccato?" contiene "bloccato" (lentezza), ma
+        // è una domanda pratica con una guida pronta: risponde la chat.
+        if intent == .slowMac || intent == .diskSpace,
+           IntentRouter.isHowTo(question), !MacHelpChat.guides(for: question).isEmpty {
+            intent = .chat
+        }
+
+        switch intent {
         case .slowMac:
             let snapshot = try await monitor.snapshot()
             let findings = SlowMacDiagnosis.findings(for: snapshot)
@@ -82,7 +93,7 @@ public struct Assistant: Sendable {
             let saysProcess = IntentRouter.normalize(question).contains("process")
             let details = ProcessExplainer.find(name, in: samples)
             if !saysProcess && KnownProcesses.note(for: name) == nil && details?.isExactMatch != true {
-                return .chat(prompt: MacHelpChat.prompt(for: question), guides: MacHelpChat.guides(for: question))
+                return chatReply(question, conversationGuides)
             }
             guard let details else {
                 return .message(ProcessExplainer.notFoundMessage(for: name))
@@ -94,8 +105,14 @@ public struct Assistant: Sendable {
             if case .unavailable(let reason) = provider.availability {
                 return .message(reason)
             }
-            return .chat(prompt: MacHelpChat.prompt(for: question), guides: MacHelpChat.guides(for: question))
+            return chatReply(question, conversationGuides)
         }
+    }
+
+    private func chatReply(_ question: String, _ conversationGuides: [String]) -> AssistantReply {
+        var guides = MacHelpChat.guides(for: question)
+        if guides.isEmpty && IntentRouter.isFollowUp(question) { guides = conversationGuides }
+        return .chat(prompt: MacHelpChat.prompt(for: question, guides: guides), guides: guides)
     }
 
     /// Nuova conversazione per la chat libera.

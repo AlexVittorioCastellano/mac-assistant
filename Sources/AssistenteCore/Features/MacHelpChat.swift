@@ -31,8 +31,22 @@ public enum MacHelpChat {
 
     /// Il messaggio da inviare al modello: la domanda, più le guide pertinenti.
     public static func prompt(for question: String) -> String {
-        let guides = guides(for: question)
-        guard !guides.isEmpty else { return question }
+        prompt(for: question, guides: guides(for: question))
+    }
+
+    /// Come sopra, con guide già scelte (es. ereditate dal turno precedente).
+    public static func prompt(for question: String, guides: [String]) -> String {
+        guard !guides.isEmpty else {
+            // Senza guida il modello piccolo tende a inventare menu e pulsanti
+            // con sicurezza: gli chiediamo di essere prudente.
+            return question + """
+
+
+            (Nota: per questa domanda non c'è una guida verificata. Non inventare nomi di menu, \
+            pulsanti o icone. Se non conosci con certezza i passaggi, spiega in una frase dove \
+            cercare: il campo di ricerca in alto in Impostazioni di Sistema, oppure il menu Aiuto dell'app.)
+            """
+        }
         return question + "\n\nGuida verificata (usala se è pertinente):\n"
             + guides.map { "- \($0)" }.joined(separator: "\n")
     }
@@ -44,7 +58,12 @@ extension MacHelpChat {
     /// "⌘⇧3"). In quel caso l'interfaccia mostra anche la guida esatta.
     public static func answerNeedsGuide(_ answer: String, guides: [String]) -> Bool {
         guard !guides.isEmpty else { return false }
-        let allowed = Set(guides.flatMap(shortcuts))
+        // Ammesse: le scorciatoie delle guide e quelle delle istruzioni (Spotlight).
+        // Un simbolo da solo ("⌘" senza tasto) di norma non è una scorciatoia valida.
+        let modifiers: Set<Character> = ["⌘", "⇧", "⌥", "⌃"]
+        // Eccezione: se la guida stessa lo scrive da solo ("tieni premuto ⌘ e premi Tab").
+        let allowed = Set(guides.flatMap(shortcuts)
+            + shortcuts(in: instructions).filter { !$0.allSatisfy(modifiers.contains) })
         return shortcuts(in: answer).contains { !allowed.contains($0) }
     }
 
@@ -58,7 +77,20 @@ extension MacHelpChat {
         while i < text.endIndex {
             guard modifiers.contains(text[i]) else { i = text.index(after: i); continue }
             var j = i
+            while j < text.endIndex, modifiers.contains(text[j]) { j = text.index(after: j) }
+            // Il primo carattere dopo i simboli è il tasto, anche se è un segno
+            // di punteggiatura (es. "⌘⇧." per i file nascosti). Ma dopo un solo
+            // simbolo la punteggiatura è la fine della frase ("premi il tasto ⌘.").
+            let modifierCount = text.distance(from: i, to: j)
+            if j < text.endIndex, !text[j].isWhitespace,
+               !(modifierCount == 1 && stops.contains(text[j])) {
+                j = text.index(after: j)
+            }
             while j < text.endIndex, !stops.contains(text[j]) { j = text.index(after: j) }
+            // "⌘ Spazio": il tasto può essere scritto dopo uno spazio.
+            if text[i..<j].allSatisfy(modifiers.contains), text[j...].hasPrefix(" Spazio") {
+                j = text.index(j, offsetBy: " Spazio".count)
+            }
             result.append(String(text[i..<j]))
             i = j
         }
@@ -77,13 +109,13 @@ public enum MacHowTo {
     }
 
     static let entries: [Entry] = [
-        .init(keywords: ["screenshot", "schermata", "catturare lo schermo", "foto dello schermo"],
+        .init(keywords: ["screenshot", "screen", "schermat", "cattur", "foto+schermo", "fotograf+schermo"],
               text: "Screenshot: ⌘⇧3 cattura tutto lo schermo; ⌘⇧4 una parte (trascina per selezionare); ⌘⇧4 e poi Spazio cattura una finestra; ⌘⇧5 apre il pannello con tutte le opzioni. Le immagini vanno sulla Scrivania."),
         .init(keywords: ["registr+schermo", "video dello schermo"],
               text: "Registrare lo schermo: premi ⌘⇧5 e scegli «Registra tutto lo schermo» o «Registra parte selezionata». Per fermare, clicca il pulsante di stop nella barra dei menu."),
-        .init(keywords: ["non risponde", "uscita forzata", "forza", "bloccat+app", "bloccat+programma", "impallat"],
+        .init(keywords: ["non risponde", "non si chiud", "uscita forzata", "forza", "bloccat+app", "bloccat+programma", "impallat"],
               text: "App che non risponde: premi ⌥⌘Esc, scegli l'app e clicca «Uscita forzata». Le modifiche non salvate in quell'app si perdono."),
-        .init(keywords: ["spotlight", "cercare un file", "trovare un file", "cerco un file", "trovare un'app"],
+        .init(keywords: ["spotlight", "cerc+file", "trov+file", "pers+file", "ritrov+file", "non trovo", "trovare un'app"],
               text: "Cercare: premi ⌘ Spazio per aprire Spotlight e scrivi il nome del file, dell'app o dell'impostazione."),
         .init(keywords: ["disinstall", "elimin+app", "rimuov+app", "cancell+app", "togl+app", "tolg+app", "elimin+programma", "rimuov+programma", "cancell+programma", "togl+programma", "tolg+programma"],
               text: "Disinstallare un'app: apri la cartella Applicazioni nel Finder e trascina l'app nel Cestino (o clic destro → Sposta nel Cestino), poi svuota il Cestino."),
@@ -108,14 +140,14 @@ public enum MacHowTo {
         .init(keywords: ["modalita scura", "tema scuro", "dark mode", "modalita chiara"],
               text: "Modalità scura: Impostazioni di Sistema → Aspetto → Chiaro, Scuro o Automatico."),
         .init(keywords: ["ingrand+testo", "ingrand+scritt", "ingrandi+caratter", "scritte piccole", "testo piccolo", "piu grand+testo", "piu grand+scritt"],
-              text: "Testo più grande: Impostazioni di Sistema → Monitor → scegli una risoluzione «più grande». Nel browser: ⌘+ ingrandisce, ⌘− rimpicciolisce."),
+              text: "Testo più grande: Impostazioni di Sistema → Monitor → scegli una risoluzione «più grande». Nel browser e in molte app premi ⌘+ (Comando e più) per ingrandire e ⌘− (Comando e meno) per rimpicciolire."),
         .init(keywords: ["affianc", "dividere lo schermo", "split view", "due finestre", "meta schermo"],
               text: "Affiancare finestre: passa il mouse sul pulsante verde in alto a sinistra della finestra e scegli una disposizione, oppure trascina la finestra verso il bordo dello schermo."),
         .init(keywords: ["elementi login", "app+avvio", "app+accension", "programm+avvio", "programm+accension", "si apre da sola", "si aprono da sole", "partono da sole"],
               text: "App all'avvio: Impostazioni di Sistema → Generali → Elementi login; togli con «−» le app che non vuoi all'accensione."),
-        .init(keywords: ["app predefinita", "programma predefinito", "aprire sempre con", "apri con"],
+        .init(keywords: ["predefinit", "aprire sempre con", "apri con", "app che apre", "programma che apre", "apr+pdf"],
               text: "Cambiare l'app che apre un tipo di file: clic destro sul file → Ottieni informazioni → «Apri con» → scegli l'app → «Cambia tutto…»."),
-        .init(keywords: ["airdrop", "iphone+file", "iphone+foto", "iphone+video", "ipad+file", "ipad+foto", "ipad+video", "telefono+file"],
+        .init(keywords: ["airdrop", "iphone+file", "iphone+foto", "iphone+video", "iphone+document", "ipad+file", "ipad+foto", "ipad+video", "ipad+document", "telefon+file", "telefon+foto", "telefon+video", "telefon+document", "telefon+pdf", "iphone+pdf", "ipad+pdf", "cellular+pdf", "cellular+file", "cellular+foto", "cellular+video", "cellular+document"],
               text: "AirDrop: clic destro sul file → Condividi → AirDrop, poi scegli il dispositivo. Sul dispositivo vicino servono Wi‑Fi e Bluetooth attivi."),
         .init(keywords: ["bluetooth", "cuffie", "airpods", "collegare il mouse", "collegare la tastiera"],
               text: "Collegare un dispositivo Bluetooth: mettilo in modalità di abbinamento, poi Impostazioni di Sistema → Bluetooth → «Collega» accanto al dispositivo."),
@@ -125,7 +157,7 @@ public enum MacHowTo {
               text: "Più scrivanie: apri Mission Control (F3 o scorri in alto con tre dita) e clicca «+» in alto a destra."),
         .init(keywords: ["stamp"],
               text: "Stampare: ⌘P. Aggiungere una stampante: Impostazioni di Sistema → Stampanti e scanner → «Aggiungi stampante, scanner o fax…»."),
-        .init(keywords: ["sfondo"],
+        .init(keywords: ["sfondo", "immagine+scrivania", "immagine+desktop", "wallpaper"],
               text: "Cambiare lo sfondo: Impostazioni di Sistema → Sfondo, poi scegli un'immagine. Puoi anche fare clic destro su una foto nel Finder → «Imposta immagine scrivania»."),
         .init(keywords: ["salvaschermo", "screensaver", "salva schermo"],
               text: "Salvaschermo: Impostazioni di Sistema → Salvaschermo."),
@@ -139,6 +171,20 @@ public enum MacHowTo {
               text: "Nome del Mac: Impostazioni di Sistema → Generali → Info, poi modifica il campo «Nome»."),
         .init(keywords: ["monitor", "secondo schermo", "schermo esterno", "proiettore"],
               text: "Secondo monitor: collega il cavo (USB‑C/Thunderbolt o HDMI) e il Mac lo riconosce da solo. Per disporre gli schermi o scegliere quello principale: Impostazioni di Sistema → Monitor."),
+        .init(keywords: ["wi-fi", "wifi", "wi‑fi", "rete wireless", "collegar+internet", "connett+internet"],
+              text: "Collegarsi al Wi‑Fi: clicca l'icona del Wi‑Fi nella barra dei menu (o nel Centro di Controllo), scegli la rete e inserisci la password. Le reti si gestiscono in Impostazioni di Sistema → Wi‑Fi."),
+        .init(keywords: ["password del mac", "password di accesso", "password+utente", "cambi+password+mac"],
+              text: "Password del Mac: Impostazioni di Sistema → Utenti e gruppi → clicca il pulsante «i» accanto al tuo nome, poi usa il pulsante accanto a «Password». Serve la password attuale."),
+        .init(keywords: ["blocc+schermo", "blocco il mac", "bloccare il mac", "allontan"],
+              text: "Bloccare lo schermo: premi ⌃⌘Q, oppure menu Apple () in alto a sinistra → «Blocca schermo». Per rientrare serve la password."),
+        .init(keywords: ["speg", "spen", "stop", "riavvi", "sospension"],
+              text: "Spegnere, riavviare o mettere in stop: menu Apple () in alto a sinistra → «Spegni…», «Riavvia…» o «Stop»."),
+        .init(keywords: ["chiocciola", "@", "cancellett", "#", "simbolo dell'euro", "euro", "tilde", "simboli+tastiera"],
+              text: "Simboli sulla tastiera italiana del Mac: tieni premuto il tasto Opzione (⌥) e premi un secondo tasto. Chiocciola @: Opzione e ò (⌥ò). Cancelletto #: Opzione e à (⌥à). Euro €: Opzione ed e (⌥e). Tilde ~: Opzione e 5 (⌥5)."),
+        .init(keywords: ["annull", "torna+indietro", "errore di scrittura", "selezion+tutto", "chiud+finestr", "app all'altra", "tra le app", "passa+app", "scorciatoi"],
+              text: "Scorciatoie essenziali: ⌘Z annulla l'ultima azione (⌘⇧Z la ripete); ⌘A seleziona tutto; ⌘W chiude la finestra; ⌘Q chiude l'app; ⌘Tab passa da un'app all'altra (tieni premuto ⌘ e premi Tab più volte). Il pulsante rosso per chiudere una finestra è in alto a sinistra."),
+        .init(keywords: ["luminosit"],
+              text: "Luminosità dello schermo: usa i tasti con il sole sulla tastiera (F1 e F2), oppure Centro di Controllo nella barra dei menu → Schermo, oppure Impostazioni di Sistema → Monitor."),
         .init(keywords: ["lingua"],
               text: "Lingua del Mac: Impostazioni di Sistema → Generali → Lingua e Zona; aggiungi la lingua con «+» e trascinala in cima alla lista. Serve un riavvio per applicarla ovunque."),
         .init(keywords: ["svuot+cestino"],
@@ -149,7 +195,7 @@ public enum MacHowTo {
     static func matching(_ question: String) -> [String] {
         let text = IntentRouter.normalize(question)
         func matches(_ keyword: String) -> Bool {
-            keyword.split(separator: "+").allSatisfy { text.contains($0) }
+            keyword.split(separator: "+").allSatisfy { IntentRouter.hasStem(text, String($0)) }
         }
         return Array(entries.filter { $0.keywords.contains(where: matches) }.prefix(2).map(\.text))
     }

@@ -35,6 +35,8 @@ final class AssistantViewModel {
     /// Chat libera: messaggi e conversazione in corso (che ricorda il contesto).
     var messages: [ChatMessage] = []
     private var chat: (any AIChatSession)?
+    /// Guide del turno precedente, ereditate dalle domande di seguito.
+    private var chatGuides: [String] = []
     var isChatting: Bool { !messages.isEmpty }
 
     private let assistant = Assistant()
@@ -56,7 +58,7 @@ final class AssistantViewModel {
         task = Task {
             defer { isWorking = false }
             do {
-                let reply = try await assistant.prepare(question: q)
+                let reply = try await assistant.prepare(question: q, conversationGuides: isChatting ? chatGuides : [])
                 log.info("prepare completato")
                 if case .chat(let prompt, let guides) = reply {
                     try await sendToChat(q, prompt: prompt, guides: guides)
@@ -113,6 +115,7 @@ final class AssistantViewModel {
     private func sendToChat(_ text: String, prompt: String, guides: [String]) async throws {
         let session = chat ?? assistant.makeChatSession()
         chat = session
+        chatGuides = guides
         question = ""  // come nelle app di messaggi: il campo si svuota
         messages.append(ChatMessage(role: .user, text: text))
         messages.append(ChatMessage(role: .assistant, text: "", basedOnGuide: !guides.isEmpty))
@@ -131,6 +134,7 @@ final class AssistantViewModel {
     private func endChat() {
         messages = []
         chat = nil
+        chatGuides = []
     }
 
     private func clearResults() {

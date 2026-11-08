@@ -14,7 +14,7 @@ public enum Intent: Sendable, Equatable {
 /// Le domande che non riguardano lentezza, processi o disco vanno alla chat.
 public enum IntentRouter {
     static let slowKeywords = [
-        "lento", "lenta", "lentezza", "rallent", "bloccat", "si blocca", "impalla",
+        "lent", "rilent", "rallent", "bloccat", "si blocca", "impalla", "lagg",
         "ventol", "scalda", "caldo", "cpu", "processore", "ram", "memoria", "pesante",
         "girella", "rotella", "pallina",
     ]
@@ -30,7 +30,7 @@ public enum IntentRouter {
     /// Anche "RAM", "CPU" e "processore" indicano la lentezza: "quale app occupa
     /// più RAM" non riguarda il disco. "Memoria" invece è ambigua in italiano
     /// ("memoria piena" di solito vuol dire disco pieno).
-    static let strongSlowKeywords = ["lento", "lenta", "lentezza", "rallent", "bloccat", "si blocca",
+    static let strongSlowKeywords = ["lent", "rilent", "rallent", "bloccat", "si blocca",
                                      "ventol", "scalda", "caldo", "ram", "cpu", "processore"]
 
     /// Frasi che indicano una domanda su un processo.
@@ -54,7 +54,7 @@ public enum IntentRouter {
         // 1. Nome tra virgolette: «kernel_task», "bird", “mds”.
         if let quoted = quotedName(in: question) { return .process(quoted) }
 
-        let asksAboutProcess = processTriggers.contains { text.contains($0) }
+        let asksAboutProcess = processTriggers.contains { hasStem(text, $0) }
         if asksAboutProcess {
             // 2. Un processo attivo nominato nella frase (il nome più lungo vince).
             if let name = runningName(in: text, among: runningNames) {
@@ -76,16 +76,45 @@ public enum IntentRouter {
         return topic(of: text) ?? .chat
     }
 
+    /// Domanda di seguito in una conversazione ("E se non compare?", "Ma dove
+    /// lo trovo?", "Non funziona"): continua l'argomento precedente.
+    /// "Come creo un nuovo utente?" invece è una domanda nuova.
+    public static func isFollowUp(_ question: String) -> Bool {
+        let t = normalize(question).trimmingCharacters(in: .whitespaces)
+        let starts = ["e ", "e,", "ma ", "pero", "allora", "ok", "anche", "invece", "e poi", "non ", "se ", "quindi", "e invece"]
+        return starts.contains { t.hasPrefix($0) }
+    }
+
+    /// Domanda pratica del tipo "come faccio a…", "cosa faccio se…".
+    public static func isHowTo(_ question: String) -> Bool {
+        let t = normalize(question)
+        return ["come ", "cosa faccio", "cosa devo fare", "che faccio"].contains { hasStem(t, $0) }
+    }
+
     /// Lentezza o spazio su disco (o nessuno dei due).
     static func topic(of normalized: String) -> Intent? {
-        let strongSlow = strongSlowKeywords.contains { normalized.contains($0) }
-        let disk = diskKeywords.contains { normalized.contains($0) }
+        let strongSlow = strongSlowKeywords.contains { hasStem(normalized, $0) }
+        let disk = diskKeywords.contains { hasStem(normalized, $0) }
         if disk && !strongSlow { return .diskSpace }
         return isAboutSlowness(normalized) ? .slowMac : nil
     }
 
     static func isAboutSlowness(_ normalized: String) -> Bool {
-        slowKeywords.contains { normalized.contains($0) }
+        slowKeywords.contains { hasStem(normalized, $0) }
+    }
+
+    /// `true` se `stem` compare all'INIZIO di una parola di `text`.
+    /// Così "lent" trova "lentissimo", ma "disco" non scatta dentro
+    /// "ingrandisco" e "ram" non scatta dentro "programma".
+    public static func hasStem(_ text: String, _ stem: String) -> Bool {
+        var searchRange = text.startIndex..<text.endIndex
+        while let r = text.range(of: stem, range: searchRange) {
+            if r.lowerBound == text.startIndex { return true }
+            let before = text[text.index(before: r.lowerBound)]
+            if !(before.isLetter || before.isNumber || before == "_") { return true }
+            searchRange = r.upperBound..<text.endIndex
+        }
+        return false
     }
 
     static func normalize(_ s: String) -> String {

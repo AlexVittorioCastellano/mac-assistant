@@ -84,6 +84,13 @@ private struct Bubble: View {
                         .font(.caption2)
                         .foregroundStyle(.green)
                         .help("La risposta usa una guida controllata inclusa nell'app.")
+                } else if message.role == .assistant {
+                    // Senza guida il modello piccolo sbaglia più spesso nomi di
+                    // menu e pulsanti: lo diciamo con discrezione.
+                    Label("Risposta senza guida: controlla i passaggi", systemImage: "questionmark.circle")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .help("Per questa domanda l'app non ha una guida controllata: la risposta è del solo modello sul Mac.")
                 }
             }
         }

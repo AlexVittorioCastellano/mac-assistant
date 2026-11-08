@@ -49,7 +49,8 @@ swift run assistente-cli "Perché il Mac è lento?"   # prova dal terminale
 swift run assistente-cli --prompt               # mostra anche il prompt inviato al modello
 swift run assistente-cli --chat "Come faccio uno screenshot?"   # chat (altre domande una per riga)
 swift run assistente-cli --guide "Come mando un file all'iPhone?"  # quale guida verificata si attiva
-./scripts/test.sh                               # esegue i test
+./scripts/test.sh                               # esegue i test (veloci, senza AI)
+swift run assistente-cli --eval Evals/casi.json # prove di qualità con il modello vero (~5 min)
 ```
 
 Con Xcode: apri la cartella (o `Package.swift`) e scegli lo schema `AssistenteMac`.
@@ -101,7 +102,10 @@ Regole:
 - l'app non deve mai chiudere processi o cancellare file senza conferma esplicita;
 - nessun dato deve lasciare il Mac in modalità locale; niente telemetria;
 - mai committare chiavi, token o URL privati;
-- prima di aprire una pull request: `./scripts/test.sh`.
+- prima di aprire una pull request: `./scripts/test.sh`; se tocchi la chat, le guide
+  o lo smistamento delle domande, anche `swift run assistente-cli --eval Evals/casi.json`
+  (servono Apple Intelligence attiva). Se trovi una domanda a cui l'app risponde
+  male, aggiungila a `Evals/casi.json`: è il modo migliore per non farla più sbagliare.
 
 ### Limiti noti
 
@@ -159,7 +163,8 @@ open build/AssistenteMac.app
 
 swift run AssistenteMac        # run the menu bar app
 swift run assistente-cli       # try features from the terminal (--prompt shows the model prompt)
-./scripts/test.sh              # run tests
+./scripts/test.sh              # run unit tests (fast, no AI)
+swift run assistente-cli --eval Evals/casi.json   # quality evals with the real on-device model
 ```
 
 ### Architecture

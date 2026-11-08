@@ -197,9 +197,24 @@ import Testing
         #expect(IntentRouter.route(q, runningNames: running) == .diskSpace)
     }
 
+    @Test func keywordsMatchOnlyAtWordStart() {
+        // "ingrandisco" non è "disco", "programma" non è "RAM".
+        #expect(IntentRouter.route("Come ingrandisco le scritte?", runningNames: running) == .chat)
+        #expect(IntentRouter.route("Come tolgo un programma?", runningNames: running) == .chat)
+        #expect(IntentRouter.route("Il computer è lentissimo", runningNames: running) == .slowMac)
+    }
+
     @Test func slownessWinsOverDiskWords() {
         #expect(IntentRouter.route("Il disco è lento", runningNames: running) == .slowMac)
         #expect(IntentRouter.route("Quale app occupa più RAM?", runningNames: running) == .slowMac)
+    }
+
+    @Test func followUpDetection() {
+        #expect(IntentRouter.isFollowUp("E se il mio iPhone non compare?"))
+        #expect(IntentRouter.isFollowUp("Ma dove lo trovo?"))
+        #expect(IntentRouter.isFollowUp("Non funziona"))
+        #expect(!IntentRouter.isFollowUp("Come creo un nuovo utente?"))
+        #expect(!IntentRouter.isFollowUp("Emoji: come le scrivo?"))
     }
 
     @Test func otherQuestionsGoToChat() {
@@ -295,8 +310,10 @@ import Testing
         #expect(p.contains("⌘⇧4"))
     }
 
-    @Test func noGuideForUnknownTopics() {
-        #expect(MacHelpChat.prompt(for: "Come cambio la suoneria degli avvisi?") == "Come cambio la suoneria degli avvisi?")
+    @Test func noGuideForUnknownTopicsAsksForCaution() {
+        let p = MacHelpChat.prompt(for: "Come creo un nuovo utente?")
+        #expect(MacHelpChat.guides(for: "Come creo un nuovo utente?").isEmpty)
+        #expect(p.contains("Non inventare"))
     }
 
     @Test(arguments: ["Come mando un file al mio iPhone?", "come passo le foto sull'iphone", "Posso inviare un video all'iPad?"])
@@ -312,6 +329,9 @@ import Testing
     @Test func safetyNetCatchesWrongShortcuts() {
         let guides = MacHelpChat.guides(for: "screenshot")
         #expect(MacHelpChat.shortcuts(in: "Premi **⌘⇧3**, poi ⌥⌘Esc.") == ["⌘⇧3", "⌥⌘Esc"])
+        #expect(MacHelpChat.shortcuts(in: "Nel Finder premi ⌘⇧.") == ["⌘⇧."])
+        #expect(MacHelpChat.shortcuts(in: "Tieni premuto il tasto ⌘.") == ["⌘"])
+        #expect(!MacHelpChat.answerNeedsGuide("2. Premi ⌘⇧.", guides: MacHelpChat.guides(for: "file nascosti")))
         // Corretta: nessun riquadro.
         #expect(!MacHelpChat.answerNeedsGuide("1. Premi **⌘⇧3** per tutto lo schermo.", guides: guides))
         // Manca ⇧: serve il riquadro.
@@ -319,6 +339,11 @@ import Testing
         #expect(MacHelpChat.answerNeedsGuide("Premi ⌘3.", guides: guides))
         // Senza guide non si può verificare nulla.
         #expect(!MacHelpChat.answerNeedsGuide("Premi ⌘3.", guides: []))
+    }
+
+    @Test func spotlightShortcutFromInstructionsIsAllowed() {
+        let guides = MacHelpChat.guides(for: "modalita scura")
+        #expect(!MacHelpChat.answerNeedsGuide("Cerca «Aspetto» con Spotlight (⌘ Spazio).", guides: guides))
     }
 
     @Test func instructionsNameTheMacOSVersion() {

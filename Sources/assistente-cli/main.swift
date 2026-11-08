@@ -1,6 +1,7 @@
 // Strumento per sviluppatori: prova le funzioni dal terminale.
 // Uso:  swift run assistente-cli "Perché il Mac è lento?"
 //       swift run assistente-cli --chat "Come faccio uno screenshot?"   (poi altre domande, una per riga)
+//       swift run assistente-cli --eval Evals/casi.json   (prove di qualità con il modello vero)
 //       swift run assistente-cli --guide "Come mando un file all'iPhone?"  (quale guida verificata si attiva)
 //       swift run assistente-cli --prompt "..."   (mostra anche il prompt inviato al modello)
 import AssistenteCore
@@ -27,6 +28,12 @@ func printStream(_ stream: AsyncThrowingStream<String, Error>) async throws {
 }
 let question = args.isEmpty ? Assistant.slowMacQuestion : args.joined(separator: " ")
 
+// --eval <file>: prove di qualità (vedi Evals/casi.json).
+if let i = CommandLine.arguments.firstIndex(of: "--eval") {
+    let path = CommandLine.arguments.indices.contains(i + 1) ? CommandLine.arguments[i + 1] : "Evals/casi.json"
+    exit(await Eval.run(path: path) ? 0 : 1)
+}
+
 // --guide: mostra solo quale guida verificata si attiva (utile per chi
 // aggiunge voci a MacHowTo). Nessuna AI.
 if guideOnly {
@@ -42,14 +49,18 @@ do {
     switch try await assistant.prepare(question: question) {
     case .message(let text):
         print(text)
-    case .chat(let prompt, _):
+    case .chat(let prompt, let firstGuides):
         let chat = assistant.makeChatSession()
+        var guides = firstGuides
         try await printStream(chat.send(prompt))
         // Con --chat si continua a conversare: una domanda per riga (Ctrl-D per uscire).
         if chatMode {
             while let line = readLine(), !line.isEmpty {
                 print("\n❓ \(line)\n")
-                try await printStream(chat.send(MacHelpChat.prompt(for: line)))
+                var lineGuides = MacHelpChat.guides(for: line)
+                if lineGuides.isEmpty && IntentRouter.isFollowUp(line) { lineGuides = guides }  // domanda di seguito
+                guides = lineGuides
+                try await printStream(chat.send(MacHelpChat.prompt(for: line, guides: lineGuides)))
             }
         }
     case .choices(let message, let options):

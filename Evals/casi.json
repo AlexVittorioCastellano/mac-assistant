@@ -1,0 +1,1023 @@
+{
+ "info": "Prove di qualità con il modello vero (servono Apple Intelligence attiva). Uso: swift run assistente-cli --eval Evals/casi.json. Campi: question (o turns per più turni), intent atteso (chat, slowMac, process, processPicker, diskSpace, message; più valori separati da |), guide (true se deve attivarsi una guida verificata), contains (tutte), containsAny (almeno una), notContains (nessuna). Confronti senza maiuscole/accenti, tranne i simboli dei tasti.",
+ "cases": [
+  {
+   "question": "Come faccio uno screenshot?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘⇧3"
+   ],
+   "notContains": [
+    "⌘3",
+    "⌘4"
+   ]
+  },
+  {
+   "question": "come si fa una foto dello schermo",
+   "intent": "chat",
+   "guide": true,
+   "containsAny": [
+    "⌘⇧3",
+    "⌘⇧4",
+    "⌘⇧5"
+   ]
+  },
+  {
+   "question": "Come catturo solo una finestra?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘⇧4",
+    "spazio"
+   ]
+  },
+  {
+   "question": "Come registro lo schermo?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘⇧5"
+   ]
+  },
+  {
+   "question": "Come mando un file al mio iPhone?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "airdrop"
+   ],
+   "notContains": [
+    "cestino"
+   ]
+  },
+  {
+   "question": "Come passo le foto dal Mac all'iPhone?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "airdrop"
+   ],
+   "notContains": [
+    "cestino"
+   ]
+  },
+  {
+   "question": "Dove trovo i file che ho scaricato?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "download"
+   ]
+  },
+  {
+   "question": "Un'app non risponde, cosa faccio?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌥⌘Esc"
+   ]
+  },
+  {
+   "question": "Come chiudo un programma bloccato?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌥⌘Esc"
+   ]
+  },
+  {
+   "question": "Come disinstallo un'app?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "applicazioni",
+    "cestino"
+   ]
+  },
+  {
+   "question": "Come tolgo un programma che non uso?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "applicazioni",
+    "cestino"
+   ]
+  },
+  {
+   "question": "Come metto la modalità scura?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "aspetto"
+   ]
+  },
+  {
+   "question": "Come cambio lo sfondo?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "sfondo"
+   ],
+   "notContains": [
+    "tema"
+   ]
+  },
+  {
+   "question": "Come vedo la password del wifi?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "copia password"
+   ]
+  },
+  {
+   "question": "Come collego le cuffie bluetooth?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "bluetooth"
+   ]
+  },
+  {
+   "question": "Come collego le AirPods al Mac?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "bluetooth"
+   ]
+  },
+  {
+   "question": "Come faccio il backup del Mac?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "time machine"
+   ]
+  },
+  {
+   "question": "Come cambio il nome del Mac?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "info"
+   ]
+  },
+  {
+   "question": "Come stampo un documento?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘P"
+   ]
+  },
+  {
+   "question": "Come faccio le emoji?",
+   "intent": "chat",
+   "guide": true,
+   "containsAny": [
+    "⌃⌘spazio",
+    "🌐",
+    "fn"
+   ]
+  },
+  {
+   "question": "Come affianco due finestre?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "verde"
+   ]
+  },
+  {
+   "question": "Le scritte sono troppo piccole, come le ingrandisco?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "monitor"
+   ]
+  },
+  {
+   "question": "Come comprimo una cartella?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "comprimi"
+   ]
+  },
+  {
+   "question": "Come cerco un file?",
+   "intent": "chat",
+   "guide": true,
+   "containsAny": [
+    "⌘ spazio",
+    "spotlight"
+   ]
+  },
+  {
+   "question": "Come aggiorno il Mac?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "aggiornamento software"
+   ]
+  },
+  {
+   "question": "Come detto un testo con la voce?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "dettatura"
+   ]
+  },
+  {
+   "question": "Come cambio la lingua del Mac?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "lingua e zona"
+   ]
+  },
+  {
+   "question": "Come vedo i file nascosti?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘⇧."
+   ]
+  },
+  {
+   "question": "Come evito che le app si aprano all'accensione?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "elementi login"
+   ]
+  },
+  {
+   "question": "Come svuoto il cestino?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "svuota"
+   ]
+  },
+  {
+   "question": "Come collego un secondo monitor?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "monitor"
+   ],
+   "notContains": [
+    "aggiungi display",
+    "aggiungi monitor"
+   ]
+  },
+  {
+   "question": "Come copio un file in un'altra cartella?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘C"
+   ]
+  },
+  {
+   "question": "Come rinomino un file?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "invio"
+   ]
+  },
+  {
+   "question": "Come scelgo l'app che apre i PDF?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "apri con"
+   ]
+  },
+  {
+   "question": "Come uso più scrivanie?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "mission control"
+   ]
+  },
+  {
+   "question": "Come vedo lo stato della batteria?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "batteria"
+   ]
+  },
+  {
+   "question": "Come alzo il volume?",
+   "intent": "chat",
+   "guide": true,
+   "containsAny": [
+    "suono",
+    "centro di controllo"
+   ]
+  },
+  {
+   "question": "Come disattivo le notifiche di un'app?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "notifiche"
+   ]
+  },
+  {
+   "question": "Cos'è AirDrop?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "airdrop"
+   ],
+   "notContains": [
+    "non chiuderlo"
+   ]
+  },
+  {
+   "question": "Chi ha vinto i mondiali del 2006?",
+   "intent": "chat",
+   "guide": false,
+   "containsAny": [
+    "solo con il mac",
+    "solo per il mac",
+    "solo sul mac",
+    "non posso",
+    "non e possibile"
+   ],
+   "notContains": [
+    "italia"
+   ]
+  },
+  {
+   "question": "Scrivimi una poesia sull'autunno",
+   "intent": "chat",
+   "guide": false,
+   "containsAny": [
+    "solo con il mac",
+    "solo per il mac",
+    "solo sul mac",
+    "non posso",
+    "non e possibile"
+   ]
+  },
+  {
+   "turns": [
+    "Come faccio uno screenshot?",
+    "E se voglio solo una finestra?"
+   ],
+   "intent": "chat",
+   "contains": [
+    "⌘⇧4",
+    "spazio"
+   ]
+  },
+  {
+   "turns": [
+    "Come mando un file al mio iPhone?",
+    "E se il mio iPhone non compare?"
+   ],
+   "intent": "chat",
+   "containsAny": [
+    "bluetooth",
+    "wi-fi",
+    "wi‑fi"
+   ],
+   "notContains": [
+    "cestino"
+   ],
+   "lastGuide": true
+  },
+  {
+   "question": "Perché il Mac è lento?",
+   "intent": "slowMac",
+   "notContains": [
+    "chiudi windowserver",
+    "chiudere windowserver",
+    "chiudi kernel_task"
+   ]
+  },
+  {
+   "question": "Il computer è lentissimo",
+   "intent": "slowMac"
+  },
+  {
+   "question": "La ventola fa un sacco di rumore",
+   "intent": "slowMac"
+  },
+  {
+   "question": "Quale app usa più RAM?",
+   "intent": "slowMac"
+  },
+  {
+   "question": "Cos'è WindowServer?",
+   "intent": "process",
+   "contains": [
+    "schermo"
+   ],
+   "notContains": [
+    "puoi chiuderlo"
+   ]
+  },
+  {
+   "question": "Posso chiudere il Finder?",
+   "intent": "process"
+  },
+  {
+   "question": "Cos'è kernel_task?",
+   "intent": "process|message",
+   "contains": [
+    "macos"
+   ]
+  },
+  {
+   "question": "Cos'è questo processo?",
+   "intent": "processPicker"
+  },
+  {
+   "question": "Dove è finito lo spazio?",
+   "intent": "diskSpace",
+   "contains": [
+    "apple intelligence"
+   ]
+  },
+  {
+   "question": "Ho il disco pieno",
+   "intent": "diskSpace"
+  },
+  {
+   "question": "Cosa sono i Dati di sistema?",
+   "intent": "diskSpace",
+   "contains": [
+    "dati di sistema"
+   ]
+  },
+  {
+   "question": "Come libero spazio sul disco?",
+   "intent": "diskSpace"
+  },
+  {
+   "question": "Il Mac si blocca, come chiudo un'app che non risponde?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌥⌘Esc"
+   ]
+  },
+  {
+   "question": "come si fanno gli screenshot sul mac",
+   "intent": "chat",
+   "guide": true,
+   "containsAny": [
+    "⌘⇧3",
+    "⌘⇧4",
+    "⌘⇧5"
+   ]
+  },
+  {
+   "question": "Voglio fotografare solo una parte dello schermo",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘⇧4"
+   ]
+  },
+  {
+   "question": "Dove finiscono gli screenshot?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "scrivania"
+   ]
+  },
+  {
+   "question": "Come incollo un testo?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘V"
+   ]
+  },
+  {
+   "question": "Come si chiude un'app che si è impallata?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌥⌘Esc"
+   ]
+  },
+  {
+   "question": "Come trasferisco dei file sull'iPad?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "airdrop"
+   ],
+   "notContains": [
+    "cestino"
+   ]
+  },
+  {
+   "question": "Come mi collego al wifi?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "wi"
+   ],
+   "notContains": [
+    "copia password"
+   ]
+  },
+  {
+   "question": "Come cambio la password del Mac?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "utenti e gruppi"
+   ]
+  },
+  {
+   "question": "Come blocco lo schermo quando mi allontano?",
+   "intent": "chat",
+   "guide": true,
+   "containsAny": [
+    "⌃⌘Q",
+    "blocca schermo"
+   ]
+  },
+  {
+   "question": "Come spengo il Mac?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "spegni"
+   ],
+   "notContains": [
+    "non e possibile",
+    "chiudi lo schermo"
+   ]
+  },
+  {
+   "question": "Come metto il Mac in stop?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "stop"
+   ]
+  },
+  {
+   "question": "Come scrivo la chiocciola?",
+   "intent": "chat",
+   "guide": true,
+   "containsAny": [
+    "⌥ò",
+    "opzione"
+   ],
+   "notContains": [
+    "⌃",
+    "non posso"
+   ]
+  },
+  {
+   "question": "Come faccio il cancelletto sulla tastiera?",
+   "intent": "chat",
+   "guide": true,
+   "containsAny": [
+    "⌥à",
+    "opzione"
+   ],
+   "notContains": [
+    "⌃"
+   ]
+  },
+  {
+   "question": "Come apro il Terminale?",
+   "intent": "chat",
+   "contains": [
+    "terminale"
+   ]
+  },
+  {
+   "question": "Come faccio a tornare indietro dopo un errore di scrittura?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘Z"
+   ]
+  },
+  {
+   "question": "Come seleziono tutto?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘A"
+   ]
+  },
+  {
+   "question": "Come chiudo una finestra?",
+   "intent": "chat",
+   "guide": true,
+   "containsAny": [
+    "⌘W",
+    "pulsante rosso"
+   ],
+   "notContains": [
+    "in alto a destra"
+   ]
+  },
+  {
+   "question": "Come passo da un'app all'altra velocemente?",
+   "intent": "chat",
+   "guide": true,
+   "containsAny": [
+    "⌘Tab",
+    "tab"
+   ]
+  },
+  {
+   "question": "Il mac scalda tantissimo",
+   "intent": "slowMac"
+  },
+  {
+   "question": "Il disco è lento",
+   "intent": "slowMac"
+  },
+  {
+   "question": "Cosa occupa tutto lo spazio?",
+   "intent": "diskSpace"
+  },
+  {
+   "question": "Quanto spazio libero ho?",
+   "intent": "diskSpace"
+  },
+  {
+   "question": "Posso chiudere WindowServer?",
+   "intent": "process",
+   "notContains": [
+    "puoi chiuderlo"
+   ]
+  },
+  {
+   "question": "Dammi una ricetta per la carbonara",
+   "intent": "chat",
+   "guide": false,
+   "containsAny": [
+    "solo con il mac",
+    "solo per il mac",
+    "solo sul mac",
+    "non posso",
+    "non e possibile"
+   ],
+   "notContains": [
+    "guanciale"
+   ]
+  },
+  {
+   "turns": [
+    "Come vedo la password del wifi?",
+    "E se non vedo il pulsante Dettagli?"
+   ],
+   "intent": "chat",
+   "notContains": [
+    "cestino"
+   ]
+  },
+  {
+   "question": "Mi dici come faccio una schermata?",
+   "intent": "chat",
+   "guide": true,
+   "containsAny": [
+    "⌘⇧3",
+    "⌘⇧4",
+    "⌘⇧5"
+   ]
+  },
+  {
+   "question": "Dove vanno a finire le foto dello schermo?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "scrivania"
+   ]
+  },
+  {
+   "question": "Ho cancellato un file per sbaglio, come lo recupero?",
+   "intent": "chat",
+   "contains": [
+    "cestino"
+   ]
+  },
+  {
+   "question": "Come faccio a riavviare il computer?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "riavvia"
+   ]
+  },
+  {
+   "question": "Come si scrive la @ sul Mac?",
+   "intent": "chat",
+   "guide": true,
+   "containsAny": [
+    "⌥ò",
+    "opzione"
+   ],
+   "notContains": [
+    "⌃"
+   ]
+  },
+  {
+   "question": "Come mando delle foto al telefono?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "airdrop"
+   ],
+   "notContains": [
+    "cestino"
+   ]
+  },
+  {
+   "question": "Come cambio la luminosità dello schermo?",
+   "intent": "chat",
+   "containsAny": [
+    "monitor",
+    "centro di controllo",
+    "f1",
+    "f2"
+   ]
+  },
+  {
+   "question": "Come chiudo tutte le finestre di un'app?",
+   "intent": "chat",
+   "guide": true,
+   "containsAny": [
+    "⌘Q",
+    "⌘W"
+   ]
+  },
+  {
+   "question": "Il programma non si chiude, che faccio?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌥⌘Esc"
+   ]
+  },
+  {
+   "question": "Come rimuovo un'applicazione dal Mac?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "cestino"
+   ]
+  },
+  {
+   "question": "Come faccio a scrivere con la voce?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "dettatura"
+   ]
+  },
+  {
+   "question": "Come trovo le app che partono all'avvio?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "elementi login"
+   ]
+  },
+  {
+   "question": "Come si annulla un'azione?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘Z"
+   ]
+  },
+  {
+   "question": "Come stampo una pagina web?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘P"
+   ]
+  },
+  {
+   "question": "Come faccio a sapere quanta batteria mi resta?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "batteria"
+   ]
+  },
+  {
+   "question": "Il Mac va a rilento da stamattina",
+   "intent": "slowMac"
+  },
+  {
+   "question": "Perché la ventola gira sempre?",
+   "intent": "slowMac"
+  },
+  {
+   "question": "Ho poco spazio, cosa posso cancellare?",
+   "intent": "diskSpace"
+  },
+  {
+   "question": "Quanto pesa macOS sul disco?",
+   "intent": "diskSpace"
+  },
+  {
+   "question": "Cos'è il processo bird?",
+   "intent": "process|message",
+   "contains": [
+    "icloud"
+   ]
+  },
+  {
+   "question": "Qual è la capitale della Francia?",
+   "intent": "chat",
+   "guide": false,
+   "containsAny": [
+    "solo con il mac",
+    "solo per il mac",
+    "solo sul mac",
+    "non posso",
+    "non e possibile"
+   ],
+   "notContains": [
+    "parigi"
+   ]
+  },
+  {
+   "question": "Come faccio a fare uno screen di una finestra sola?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘⇧4"
+   ]
+  },
+  {
+   "question": "Come incollo un file sulla scrivania?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘V"
+   ]
+  },
+  {
+   "question": "Come si svuota il cestino del Mac?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "svuota"
+   ]
+  },
+  {
+   "question": "Come faccio a vedere i file nascosti nel Finder?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘⇧."
+   ]
+  },
+  {
+   "question": "Come metto il Mac in modalità scura?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "aspetto"
+   ]
+  },
+  {
+   "question": "Come cambio l'immagine della scrivania?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "sfondo"
+   ]
+  },
+  {
+   "question": "Come mando un PDF all'iPad?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "airdrop"
+   ]
+  },
+  {
+   "question": "Come registro un video dello schermo?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "⌘⇧5"
+   ]
+  },
+  {
+   "question": "Come collego il mouse bluetooth?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "bluetooth"
+   ]
+  },
+  {
+   "question": "Come scrivo il simbolo #?",
+   "intent": "chat",
+   "guide": true,
+   "containsAny": [
+    "⌥à",
+    "opzione"
+   ],
+   "notContains": [
+    "⌃"
+   ]
+  },
+  {
+   "question": "Come cerco un'app che non trovo?",
+   "intent": "chat",
+   "guide": true,
+   "containsAny": [
+    "⌘ spazio",
+    "spotlight"
+   ]
+  },
+  {
+   "question": "Come zippo una cartella?",
+   "intent": "chat",
+   "guide": true,
+   "contains": [
+    "comprimi"
+   ]
+  },
+  {
+   "question": "Come blocco il Mac?",
+   "intent": "chat",
+   "guide": true,
+   "containsAny": [
+    "⌃⌘Q",
+    "blocca schermo"
+   ]
+  },
+  {
+   "question": "Il Mac è diventato lentissimo dopo l'aggiornamento",
+   "intent": "slowMac"
+  },
+  {
+   "question": "Mi serve spazio per installare un gioco",
+   "intent": "diskSpace"
+  },
+  {
+   "question": "Cos'è il processo WindowServer e posso chiuderlo?",
+   "intent": "process",
+   "notContains": [
+    "puoi chiuderlo"
+   ]
+  },
+  {
+   "question": "Come si chiama il tasto per cancellare in avanti?",
+   "intent": "chat"
+  },
+  {
+   "question": "Raccontami una barzelletta",
+   "intent": "chat",
+   "guide": false,
+   "containsAny": [
+    "solo con il mac",
+    "solo per il mac",
+    "solo sul mac",
+    "non posso",
+    "non e possibile"
+   ]
+  },
+  {
+   "turns": [
+    "Come scrivo la chiocciola?",
+    "Come creo un nuovo utente?"
+   ],
+   "intent": "chat",
+   "lastGuide": false
+  },
+  {
+   "turns": [
+    "Come mando un file al mio iPhone?",
+    "Ma se non lo vedo nell'elenco?"
+   ],
+   "intent": "chat",
+   "lastGuide": true,
+   "notContains": [
+    "cestino"
+   ]
+  }
+ ]
+}
