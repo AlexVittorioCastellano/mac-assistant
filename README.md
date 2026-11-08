@@ -1,255 +1,261 @@
-# Assistente Mac
+<p align="center">
+  <img src="docs/icona.png" width="128" alt="Assistente Mac icon">
+</p>
 
-🇮🇹 [Italiano](#italiano) · 🇬🇧 [English](#english)
+<h1 align="center">Assistente Mac</h1>
+
+<p align="center">
+  <b>A friendly Mac assistant that lives in your menu bar.</b><br>
+  Ask about your Mac in your own language and get a clear answer — <b>100% on-device</b>.
+</p>
+
+<p align="center">
+  <img alt="macOS 27+" src="https://img.shields.io/badge/macOS-27%2B-blue">
+  <img alt="Apple Silicon" src="https://img.shields.io/badge/Apple%20Silicon-only-lightgrey">
+  <img alt="Swift 6.2" src="https://img.shields.io/badge/Swift-6.2-orange">
+  <img alt="On-device AI" src="https://img.shields.io/badge/AI-on--device-brightgreen">
+  <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green">
+</p>
+
+<p align="center">
+  🇬🇧 <a href="#english">English</a> · 🇮🇹 <a href="#italiano">Italiano</a>
+</p>
+
+<p align="center">
+  <img src="docs/immagini/controllo-en.png" width="260" alt="Check my Mac">
+  <img src="docs/immagini/spazio-en-scuro.png" width="260" alt="Where did my disk space go">
+  <img src="docs/immagini/messaggio-en.png" width="260" alt="Explain a message: scam detected">
+</p>
 
 ---
 
-## Italiano
+<a id="english"></a>
 
-**Assistente Mac** è un'app open source che vive nella barra dei menu del Mac.
-Fai una domanda sul tuo Mac e ricevi una risposta chiara e veloce, **nella tua
-lingua** (oggi italiano e inglese; altre lingue sono benvenute, vedi sotto).
+## Why
 
-- 🔒 **Tutto resta sul tuo Mac**: usa il modello AI on-device di Apple
-  (Apple Intelligence). Nessun dato viene inviato in rete, niente telemetria.
-- 🆓 **Gratis e senza chiavi API.**
-- 🛡️ **Non tocca nulla da solo**: legge i dati del sistema e non chiude
-  programmi. L'unica funzione che sposta file è la pulizia guidata, e solo
-  dopo la tua conferma: i file vanno nel Cestino e puoi annullare.
-- ⌨️ **Sempre a portata di mano**: icona nella barra dei menu o ⌥Spazio da
-  qualunque app; si apre da sola all'accensione (se vuoi).
+Most people don't know why their Mac is slow, what `kernel_task` is, where 60 GB of
+"System Data" came from, or whether that scary pop-up is real. Assistente Mac answers
+those questions in plain language, **without sending anything off your Mac**, without an
+account and without API keys.
 
-### Cosa sa fare
+It's built for non-experts — and it's careful: it reads your system, explains what it
+finds, and suggests what *you* can do. It never quits apps or deletes files on its own.
 
-| Funzione | Stato |
+## What it does
+
+| | |
 |---|---|
-| **"Controlla il mio Mac"**: un semaforo in un clic su velocità, spazio, backup di Time Machine, cifratura (FileVault), Gatekeeper, SIP, firewall, aggiornamenti e batteria | ✅ |
-| **Avvisi automatici**: se un problema dura (un'app che occupa il processore da 10 minuti, memoria esaurita, Mac caldo, disco quasi pieno) arriva una notifica in italiano e l'icona nella barra dei menu cambia. Si spengono con l'interruttore «Avvisi» | ✅ |
-| **"Spiega un messaggio"**: fai uno screenshot di un avviso o di un errore (⌃⇧⌘4) e l'app legge il testo sul Mac e lo spiega; riconosce i messaggi più comuni di macOS e **smaschera le truffe** ("Il tuo Mac è infetto, chiama il supporto") | ✅ |
-| **Domanda a voce**: premi il microfono, parla in italiano, premi di nuovo; la voce diventa testo sul Mac (riconoscimento vocale di Apple, l'audio non esce dal Mac) | ✅ |
-| **Caccia alle app sospette**: controlla i programmi che partono da soli e le firme digitali delle app (sviluppatore verificato, non verificato, firma rotta) e riconosce software indesiderato noto; spiega come toglierli, senza eliminare nulla | ✅ |
-| **Pulizia guidata**: propone installer già usati, file nei Download non aperti da mesi e file molto grandi; tu spunti e confermi, i file vanno nel **Cestino** (recuperabili) e l'ultima pulizia si può annullare | ✅ |
-| "Perché il Mac è lento?": legge processore, memoria, temperatura e processi e spiega cosa succede | ✅ |
-| "Cos'è questo processo?": dice cos'è, se fa parte di macOS o di un'app e se si può chiudere | ✅ |
-| "Dove è finito lo spazio?": divide lo spazio occupato in voci (modelli di Apple Intelligence, app, Download, cache…) e spiega i "Dati di sistema" | ✅ |
-| Chat libera su come fare cose sul Mac, con guide verificate per le domande più comuni | ✅ |
+| 🩺 **Check My Mac** | One-click traffic light: speed, disk space, Time Machine backup, FileVault, Gatekeeper, SIP, firewall, updates, battery health, suspicious apps. Copy or share a plain summary with whoever helps you. |
+| 🐢 **Slow Mac** | Reads CPU, memory pressure, temperature and processes, then explains what's going on. Never suggests quitting macOS processes. |
+| ❓ **What is this process?** | Tells you what a process is, whether it belongs to macOS or an app (verified via its code signature) and whether it's safe to quit — with app icons. |
+| 💾 **Where did my space go?** | Donut chart of used space: Apple Intelligence models, apps, Photos, Downloads, caches… and what "System Data" really is. |
+| ✨ **Guided cleanup** | Suggests used installers, forgotten downloads and huge files. You tick and confirm; files go to the **Trash** (recoverable) and you can undo. |
+| 🛡️ **Suspicious apps** | Checks background items and app signatures (verified developer, unsigned, broken signature) and known unwanted software, and explains how to remove them. |
+| 📸 **Explain a message** | Screenshot any alert (⌃⇧⌘4) and press the button: the text is read on-device and explained. **Tech-support scams are flagged** in any language. |
+| 💬 **Free chat** | "How do I…?" questions, backed by ~40 verified guides per language so shortcuts and menu names are right. |
+| 🔔 **Alerts before it's too late** | A notification when a problem *lasts* (an app hogging the CPU for 10 minutes, memory exhausted, overheating, disk almost full). |
+| 🎤 **Ask by voice · 🔊 read aloud** | On-device speech recognition and speech synthesis. |
+| ⌨️ **Always at hand** | Menu bar icon or **⌥Space** from any app; opens at login if you want. |
 
-### Requisiti
+<p align="center">
+  <img src="docs/immagini/chat-en.png" width="260" alt="Chat with verified guides">
+  <img src="docs/immagini/pulizia-en.png" width="260" alt="Guided cleanup">
+  <img src="docs/immagini/controllo-en-scuro.png" width="260" alt="Dark mode">
+</p>
 
-- macOS 27 o successivo, Mac con Apple Silicon
-- Apple Intelligence attiva (Impostazioni di Sistema → Apple Intelligence e Siri).
-  Senza, l'app mostra comunque i problemi trovati e i consigli, ma non la spiegazione.
+## Privacy
 
-### Compilare
+- **Everything runs on your Mac**: Apple's on-device Foundation Models (Apple Intelligence),
+  Vision for reading screenshots, SpeechAnalyzer for your voice.
+- **No network, no telemetry, no account, no API keys.** System checks use read-only tools
+  and never contact any server (we deliberately skip `softwareupdate` and notarization
+  checks because they would).
+- The only feature that touches files is the guided cleanup, and only after you confirm:
+  files go to the Trash, inside your home folder only, and the last cleanup can be undone.
 
-Bastano i **Command Line Tools** (`xcode-select --install`); Xcode è facoltativo.
+## Requirements
+
+- macOS 27 or later on Apple Silicon
+- Apple Intelligence turned on (System Settings → Apple Intelligence & Siri).
+  Without it you still get every check, chart and piece of advice — just not the
+  AI-written explanation.
+
+## Build and run
+
+You only need the **Command Line Tools** (`xcode-select --install`); Xcode is optional.
 
 ```sh
-git clone <url-del-repository>
-cd AssistenteMac
-./scripts/crea-app.sh          # crea build/AssistenteMac.app
+git clone https://github.com/alexvittorioc/assistente-mac.git
+cd assistente-mac
+./scripts/crea-app.sh                 # builds build/AssistenteMac.app
 open build/AssistenteMac.app
 ```
 
-Consiglio: sposta `AssistenteMac.app` nella cartella **Applicazioni** prima di
-attivare "Apri all'accensione", così l'avvio automatico punta al posto giusto.
+Tip: move `AssistenteMac.app` to **Applications** before turning on "Open when the Mac starts".
+The app is ad-hoc signed (not notarized yet): the first time, open it with right-click → Open.
 
-Una volta aperta: clicca l'icona con il fumetto nella barra dei menu, oppure
-premi **⌥Spazio** da qualunque app.
-
-Per sviluppare:
+For development:
 
 ```sh
-swift run AssistenteMac                         # avvia l'app nella barra dei menu
-swift run assistente-cli "Perché il Mac è lento?"   # prova dal terminale
-swift run assistente-cli --prompt               # mostra anche il prompt inviato al modello
-swift run assistente-cli --chat "Come faccio uno screenshot?"   # chat (altre domande una per riga)
-swift run assistente-cli --messaggio screenshot.png             # spiega un messaggio (immagine o testo)
-swift run assistente-cli --voce domanda.m4a                      # trascrive un file audio (sul Mac)
-swift run assistente-cli --guide "Come mando un file all'iPhone?"  # quale guida verificata si attiva
-ASSISTENTE_AVVISI_RAPIDI=1 swift run AssistenteMac  # avvisi con tempi di pochi secondi, per provarli
-./scripts/test.sh                               # esegue i test (veloci, senza AI)
-swift run assistente-cli --eval Evals/it.json # prove di qualità con il modello vero (~5 min; anche Evals/en.json)
+swift run AssistenteMac                          # run the menu bar app
+swift run assistente-cli "Why is my Mac slow?"   # try any feature from the terminal
+swift run assistente-cli --chat "How do I take a screenshot?"
+./scripts/test.sh                                # unit tests (fast, no AI)
+swift run assistente-cli --eval Evals/en.json    # quality evals with the real model
+./scripts/screenshot.sh                          # regenerate README images (fake demo data)
 ```
 
-Con Xcode: apri la cartella (o `Package.swift`) e scegli lo schema `AssistenteMac`.
+## How it works
 
-### Come è fatto
+```mermaid
+flowchart LR
+    Q[Question, button,<br>voice or screenshot] --> R[IntentRouter<br><i>language pack keywords</i>]
+    R --> F[Feature<br><i>rules decide facts & advice</i>]
+    S[System readers<br><i>read-only, no network</i>] --> F
+    F --> UI[Findings, chart,<br>verified advice]
+    F --> P[AIProvider]
+    P --> M[On-device model<br><i>explains in plain words</i>]
+    M --> UI
+```
+
+**The code computes the facts; the AI only explains them.** The on-device model is small,
+so numbers, verdicts ("can I quit this?"), advice and keyboard shortcuts come from
+deterministic, tested rules and verified guides. The model turns them into friendly
+sentences — and a safety net checks that it didn't change a shortcut.
 
 ```
 Sources/
-  AssistenteCore/          logica, senza interfaccia (testabile)
-    System/                raccolta dati di sistema (solo lettura)
-    AI/                    protocollo AIProvider + LocalProvider (on-device)
-    Features/              le funzioni: regole, prompt, smistamento domande
-  AssistenteMac/           interfaccia SwiftUI (MenuBarExtra)
-  assistente-cli/          strumento da terminale per sviluppatori
-Tests/AssistenteCoreTests/ test (Swift Testing)
+  AssistenteCore/      logic, no UI (testable)
+    System/            read-only system data: processes, disk, signatures, security status, OCR, voice
+    AI/                AIProvider protocol + LocalProvider (on-device)
+    Features/          one file per feature: rules, prompts, routing
+    Languages/         one JSON language pack per language
+  AssistenteMac/       SwiftUI menu bar app
+  assistente-cli/      terminal tool for developers (+ quality evals)
+Tests/                 unit tests (Swift Testing)
+Evals/                 quality evals with the real model, per language
 ```
 
-Principi:
+The AI sits behind the `AIProvider` protocol, so an optional cloud provider could be added
+later through a separate backend — the client would never contain API keys.
 
-1. **Dati, AI e interfaccia sono separati.** L'interfaccia parla solo con
-   `Assistant`; l'AI sta dietro il protocollo `AIProvider`.
-2. **I fatti li calcola il codice, l'AI li spiega.** Numeri, problemi e
-   consigli sono prodotti da regole deterministiche (`SlowMacDiagnosis`).
-   Il modello on-device è piccolo: gli chiediamo solo di spiegare in italiano
-   semplice. Così non può inventare dati né suggerire azioni pericolose
-   (per esempio chiudere processi di macOS).
-   Se un processo fa parte di macOS lo decidono il percorso e la firma digitale
-   di Apple (`ProcessKind`), non il modello.
-3. **Pronto per il cloud, senza segreti nel codice.** In futuro potrà esistere
-   un `CloudProvider` opzionale che parla con un backend separato dopo il login
-   dell'utente. Il client non conterrà mai chiavi: autenticazione e limiti li
-   verifica il server. Configurazioni sensibili → file esclusi da git
-   (vedi `.gitignore`).
+## Languages
 
-### Contribuire
+The app follows your Mac's language (or pick one from the gear → Language), falling back to
+English. **Italian and English** are available today. The on-device model supports about 15
+languages, so many more are possible.
 
-I contributi sono benvenuti! Alcune idee semplici per iniziare:
+Everything language-dependent lives in `Sources/AssistenteCore/Languages/<code>.json`:
+UI texts, the keywords used to understand questions, verified guides, process notes,
+known macOS messages and scam patterns. **To add a language** (a native speaker is needed —
+a badly translated guide is worse than no guide):
 
-- aggiungere spiegazioni in `Features/KnownProcesses.swift` (una frase semplice, solo cose certe);
-- aggiungere messaggi noti di macOS (e schemi di truffa) in `Features/MessageExplainer.swift`;
-- aggiungere guide in `Features/MacHelpChat.swift` (`MacHowTo`): istruzioni brevi e
-  verificate che la chat usa per non sbagliare scorciatoie e menu. Controlla le
-  parole chiave con `swift run assistente-cli --guide "la tua domanda"`;
-- migliorare le parole chiave in `Features/IntentRouter.swift`;
-- aggiungere test in `Tests/`.
+1. copy `en.json` to `<code>.json` and set `code`, `name`, `locale`;
+2. translate `strings`, keeping `{0}`, `{1}` placeholders;
+3. rewrite the `router` and guide `keywords` natively (word stems, verb forms, synonyms);
+4. use the **exact** macOS menu names in that language;
+5. run `./scripts/test.sh` (it checks keys and placeholders match English);
+6. add `Evals/<code>.json` and run `swift run assistente-cli --eval Evals/<code>.json`.
 
-Regole:
+## Quality
 
-- risposte all'utente sempre in italiano, brevi e senza gergo;
-- l'app non deve mai chiudere processi o cancellare file senza conferma esplicita;
-- nessun dato deve lasciare il Mac in modalità locale; niente telemetria;
-- mai committare chiavi, token o URL privati;
-- prima di aprire una pull request: `./scripts/test.sh`; se tocchi la chat, le guide
-  o lo smistamento delle domande, anche `swift run assistente-cli --eval Evals/it.json`
-  (servono Apple Intelligence attiva). Se trovi una domanda a cui l'app risponde
-  male, aggiungila a `Evals/it.json`: è il modo migliore per non farla più sbagliare.
+- **79 unit tests**, including real on-device OCR, speech transcription and moving files to
+  the Trash and back.
+- **Quality evals with the real model**: 144/144 cases in Italian, 52/52 in English —
+  routing, verified guides, exact shortcuts, follow-up questions, off-topic questions,
+  scams. Many cases were written as "unseen" questions to measure generalization.
+- Ideas that were measured and rejected are documented in the git history (e.g. letting
+  the model pick the guide: 4/12; sentence embeddings: 11/20).
 
-### Limiti noti
+## Contributing
 
-- La domanda a voce funziona solo nell'app creata con `./scripts/crea-app.sh`
-  (con `swift run` macOS non concede il microfono). I nomi tecnici inglesi
-  (es. "WindowServer") a voce possono essere capiti male: il testo riconosciuto
-  resta nel campo, così puoi correggerlo e reinviarlo.
-- La prima lettura di un'immagine dopo l'installazione (o un aggiornamento)
-  dell'app può richiedere una ventina di secondi: macOS prepara il modello di
-  riconoscimento del testo. L'app lo prepara in anticipo all'avvio; dopo basta
-  meno di un secondo.
-- La chat usa un modello piccolo che lavora sul Mac: per gli argomenti coperti
-  dalle guide verificate le risposte sono molto più affidabili (etichetta verde «Basata su una guida dell'app»);
-  per gli altri può sbagliare nomi di menu o pulsanti. Se una risposta contiene
-  una scorciatoia diversa da quella della guida, l'app mostra la guida esatta.
-- La prima volta che misuri lo spazio, macOS può chiedere il permesso di
-  leggere le cartelle Download, Documenti e Scrivania. Se lo neghi, quelle voci
-  vengono saltate. Le cartelle dei dati di altre app (`~/Library/Containers`)
-  non vengono lette: finiscono nella voce "Dati di altre app e file sparsi".
-- `kernel_task` (e pochi altri processi del kernel) non è leggibile senza
-  permessi di amministratore: il suo carico rientra comunque nel totale del
-  processore e nella temperatura.
+Contributions are very welcome — no Swift needed for many of them:
 
-### Lingue
+- add or improve **verified guides** (`guides` in a language pack) — check your keywords with
+  `swift run assistente-cli --guide "your question"`;
+- add **process notes** (`processes`) or **known macOS messages / scam patterns** (`messages`);
+- **add a language** (see above);
+- found a question the app answers badly? Add it to `Evals/<code>.json` — that's the best way
+  to make sure it never gets it wrong again.
 
-L'app usa la lingua del Mac (si può cambiare dall'ingranaggio → Lingua); se
-non è disponibile usa l'inglese. Tutto ciò che dipende dalla lingua sta in un
-file per lingua: `Sources/AssistenteCore/Languages/<codice>.json` (testi,
-parole chiave per capire le domande, guide verificate, spiegazioni dei
-processi, messaggi noti di macOS e schemi delle truffe).
+Rules of the project: plain language, no jargon; never quit processes or delete files without
+explicit confirmation; nothing leaves the Mac in local mode; no telemetry; never commit keys,
+tokens or private URLs. Run `./scripts/test.sh` before opening a pull request.
 
-**Aggiungere una lingua** (serve un madrelingua: una guida tradotta male fa
-più danni di nessuna guida):
+## Roadmap
 
-1. copia `en.json` in `<codice>.json` (es. `fr.json`) e cambia `code`, `name`, `locale`;
-2. traduci `strings` (lascia uguali i segnaposto `{0}`, `{1}`…);
-3. riscrivi `router` e le `keywords` delle guide **per quella lingua** (radici
-   delle parole, forme verbali, sinonimi), non tradurle alla lettera;
-4. nelle guide usa i nomi **esatti** dei menu di macOS in quella lingua;
-5. `./scripts/test.sh` controlla che le chiavi e i segnaposto coincidano con l'inglese;
-6. crea `Evals/<codice>.json` (vedi `it.json` ed `en.json`) e fai girare
-   `swift run assistente-cli --eval Evals/<codice>.json`.
+- More languages (community)
+- Developer ID signing and notarization, downloadable releases
+- Optional cloud plan through a separate backend (sign in with Apple; no keys in the client)
 
-Il modello AI sul Mac supporta circa 15 lingue (Apple Intelligence): per lingue
-fuori da questo elenco servirebbe un modello diverso.
+## License
 
-### Licenza
-
-[MIT](LICENSE)
+[MIT](LICENSE) © 2026 Alex Castellano
 
 ---
 
-## English
+<a id="italiano"></a>
 
-**Assistente Mac** is an open source macOS menu bar app. Ask a question about
-your Mac and get a clear, quick answer **in your language** (Italian and English
-today; more languages welcome — see “Languages”).
+## 🇮🇹 Italiano
 
-- 🔒 **Everything stays on your Mac**: it uses Apple's on-device model
-  (Foundation Models / Apple Intelligence). No network, no telemetry.
-- 🆓 **Free, no API keys.**
-- 🛡️ **Read-only**: it never quits processes or deletes files on its own.
+**Assistente Mac** è un assistente per il Mac che vive nella barra dei menu. Fai una domanda
+sul tuo Mac **nella tua lingua** e ricevi una risposta chiara, **tutto sul Mac**: niente dati
+inviati, niente account, niente chiavi API. È pensato per chi non è esperto e non tocca nulla
+da solo: legge, spiega e suggerisce.
 
-### Features
+<p align="center">
+  <img src="docs/immagini/controllo-it.png" width="260" alt="Controlla il mio Mac">
+  <img src="docs/immagini/spazio-it.png" width="260" alt="Dove è finito lo spazio">
+  <img src="docs/immagini/chat-it-scuro.png" width="260" alt="Chat con guide verificate">
+</p>
 
-| Feature | Status |
-|---|---|
-| **"Check my Mac"**: one-click traffic light for speed, disk space, Time Machine backup, FileVault, Gatekeeper, SIP, firewall, updates and battery health | ✅ |
-| **Automatic alerts**: a notification (and a different menu bar icon) when a problem lasts — an app hogging the CPU for 10 minutes, memory exhausted, Mac overheating, disk almost full. Toggle with «Avvisi» | ✅ |
-| **"Explain a message"**: screenshot an alert or error (⌃⇧⌘4); the app reads the text on-device (Vision), explains it, recognizes common macOS messages and **flags tech-support scams** | ✅ |
-| **Ask by voice**: tap the mic, speak Italian, tap again; on-device speech recognition (Apple SpeechAnalyzer), audio never leaves the Mac | ✅ |
-| **Suspicious apps scan**: background items and app code signatures (verified developer, unverified, broken signature) plus known unwanted software; explains how to remove, never deletes | ✅ |
-| **Guided cleanup**: suggests used installers, Downloads untouched for months and very large files; you tick and confirm, files go to the **Trash** (recoverable), last cleanup can be undone | ✅ |
-| "Why is my Mac slow?": reads CPU, memory, thermal state and processes, and explains | ✅ |
-| "What is this process?": what it is, whether it belongs to macOS or an app, and whether it's safe to quit | ✅ |
-| "Where did my disk space go?": breaks down used space (Apple Intelligence models, apps, Downloads, caches…) and explains "System Data" | ✅ |
-| Free-form chat about using the Mac, backed by verified guides for common questions | ✅ |
+### Cosa fa
 
-### Requirements
+- 🩺 **Controlla il mio Mac**: un semaforo su velocità, spazio, backup, FileVault, Gatekeeper,
+  SIP, firewall, aggiornamenti, batteria e app sospette; riepilogo da copiare o condividere
+  con chi ti aiuta.
+- 🐢 **Mac lento**, ❓ **cos'è questo processo** (e se si può chiudere, verificato con la firma
+  digitale), 💾 **dove è finito lo spazio** (con grafico e i "Dati di sistema" spiegati).
+- ✨ **Pulizia guidata**: proposte, tu confermi, i file vanno nel **Cestino** e puoi annullare.
+- 🛡️ **App sospette**: programmi in background, firme, software indesiderato noto.
+- 📸 **Spiega un messaggio**: screenshot con ⌃⇧⌘4 → spiegazione; **le truffe vengono
+  smascherate** in qualunque lingua.
+- 💬 **Chat** con ~40 guide verificate per lingua, 🔔 **avvisi** quando un problema dura,
+  🎤 **domanda a voce**, 🔊 **lettura ad alta voce**, ⌨️ **⌥Spazio** da qualunque app.
 
-- macOS 27+, Apple Silicon
-- Apple Intelligence enabled (without it, the app still shows the detected issues
-  and the advice, but not the AI explanation).
+### Requisiti e installazione
 
-### Building
-
-Only the **Command Line Tools** are required; Xcode is optional.
+macOS 27 o successivo con Apple Silicon e Apple Intelligence attiva (senza, restano tutti i
+controlli e i consigli, ma non la spiegazione scritta dall'AI). Bastano i Command Line Tools:
 
 ```sh
-./scripts/crea-app.sh          # builds build/AssistenteMac.app
-open build/AssistenteMac.app
-
-swift run AssistenteMac        # run the menu bar app
-swift run assistente-cli       # try features from the terminal (--prompt shows the model prompt)
-./scripts/test.sh              # run unit tests (fast, no AI)
-swift run assistente-cli --eval Evals/it.json   # quality evals with the real on-device model
+git clone https://github.com/alexvittorioc/assistente-mac.git
+cd assistente-mac
+./scripts/crea-app.sh && open build/AssistenteMac.app
 ```
 
-### Architecture
+Sposta l'app in **Applicazioni** prima di attivare "Apri all'accensione". L'app non è ancora
+notarizzata: la prima volta aprila con clic destro → Apri.
 
-- `AssistenteCore/System`: system data collection (read-only)
-- `AssistenteCore/AI`: `AIProvider` protocol + `LocalProvider` (on-device).
-  A future optional `CloudProvider` will talk to a separate backend via user
-  sign-in; the client will never ship keys or secrets.
-- `AssistenteCore/Features`: deterministic rules, prompt building, intent routing.
-  **Code computes the facts and the advice; the model only explains them.**
-- `AssistenteMac`: SwiftUI `MenuBarExtra` UI.
+### Privacy
 
-### Contributing
+Il modello AI (Apple Intelligence), la lettura degli screenshot (Vision) e la voce
+(SpeechAnalyzer) lavorano sul Mac. Nessuna rete, nessuna telemetria. L'unica funzione che
+sposta file è la pulizia, solo dopo la tua conferma, solo nel Cestino e solo nella tua
+cartella utente.
 
-PRs welcome. Keep user-facing text in plain Italian, never quit processes or
-delete files without explicit user confirmation, never send data off-device in
-local mode, never commit secrets. Run `./scripts/test.sh` before opening a PR.
+### Come contribuire
 
-### Languages
+Guide verificate, note sui processi, messaggi noti di macOS e nuove lingue si aggiungono nei
+file `Sources/AssistenteCore/Languages/<codice>.json`, senza toccare il codice (vedi
+[Languages](#languages)). Prima di una pull request: `./scripts/test.sh` e, se tocchi chat o
+guide, `swift run assistente-cli --eval Evals/it.json`. Se trovi una domanda a cui l'app
+risponde male, aggiungila alle prove: è il modo migliore perché non sbagli più.
 
-The app follows the Mac's language (changeable from the gear → Language),
-falling back to English. Everything language-dependent lives in one file per
-language: `Sources/AssistenteCore/Languages/<code>.json`. To add a language,
-copy `en.json`, translate `strings` (keep `{0}` placeholders), rewrite the
-`router` and guide keywords natively for that language, use the exact macOS
-menu names, then run `./scripts/test.sh` and add `Evals/<code>.json`. A native
-speaker is required: a badly translated guide is worse than no guide.
+Regole: linguaggio semplice e senza gergo; mai chiudere processi o cancellare file senza
+conferma esplicita; nessun dato lascia il Mac; niente telemetria; mai chiavi o segreti nel
+repository.
 
-### License
+### Licenza
 
-[MIT](LICENSE)
+[MIT](LICENSE) © 2026 Alex Castellano

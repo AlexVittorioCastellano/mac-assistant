@@ -49,9 +49,10 @@ struct WelcomeView: View {
 
     private var page1: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Image(systemName: "questionmark.bubble.fill")
-                .font(.system(size: 44))
-                .foregroundStyle(Color.accentColor)
+            // L'icona dell'app (nel pacchetto .app; con swift run è quella generica).
+            Image(nsImage: NSApp.applicationIconImage)
+                .resizable()
+                .frame(width: 64, height: 64)
             Text(L.t("ui.welcome.hello"))
                 .font(.title2.weight(.semibold))
             Text(L.t("ui.welcome.what"))

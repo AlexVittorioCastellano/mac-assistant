@@ -16,6 +16,8 @@ BIN=$(swift build -c "$CONFIG" --show-bin-path)/AssistenteMac
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/AssistenteMac"
+# Icona (rigenerabile con: swift scripts/crea-icona.swift).
+cp Risorse/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 # Risorse del nucleo (pacchetti lingua).
 cp -R "$(dirname "$BIN")/AssistenteMac_AssistenteCore.bundle" "$APP/Contents/Resources/"
 
@@ -28,6 +30,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>CFBundleDisplayName</key><string>Assistente Mac</string>
     <key>CFBundleIdentifier</key><string>${BUNDLE_ID}</string>
     <key>CFBundleExecutable</key><string>AssistenteMac</string>
+    <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>${VERSION}</string>
     <key>CFBundleVersion</key><string>${VERSION}</string>

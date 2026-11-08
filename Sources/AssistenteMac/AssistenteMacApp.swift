@@ -14,6 +14,7 @@ struct AssistenteMacApp: App {
         // (Il bundle .app lo indica anche con LSUIElement nell'Info.plist.)
         NSApplication.shared.setActivationPolicy(.accessory)
         model.appDidLaunch()
+        DemoScreenshots.runIfRequested()  // solo per sviluppatori (immagini del README)
     }
 
     var body: some Scene {

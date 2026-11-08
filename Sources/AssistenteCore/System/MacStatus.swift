@@ -41,6 +41,11 @@ public struct BatteryHealth: Sendable, Equatable {
     /// Capacità attuale rispetto a quella da nuova (100 = come nuova).
     public var healthPercent: Int
     public var cycleCount: Int
+
+    public init(healthPercent: Int, cycleCount: Int) {
+        self.healthPercent = healthPercent
+        self.cycleCount = cycleCount
+    }
 }
 
 public struct MacStatusMonitor: Sendable {

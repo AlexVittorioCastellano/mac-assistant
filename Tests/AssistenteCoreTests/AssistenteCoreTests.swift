@@ -784,3 +784,33 @@ import Testing
         }
     }
 }
+
+@Suite struct ReadAloudAndReportTests {
+    @Test func shortcutsBecomeWords() {
+        L.$taskLanguage.withValue("it") {
+            #expect(ReadAloud.speakable("Premi **⌥⌘Esc** poi «Uscita forzata»") == "Premi Opzione Comando Esc poi Uscita forzata")
+            #expect(ReadAloud.speakable("Impostazioni di Sistema → Generali").contains("poi"))
+        }
+        L.$taskLanguage.withValue("en") {
+            #expect(ReadAloud.speakable("Press ⌘⇧4") == "Press Command Shift 4")
+        }
+    }
+
+    @Test func reportListsStatusWithoutPersonalData() {
+        L.$taskLanguage.withValue("it") {
+            let findings = [
+                Finding(id: "overall", severity: .warning, title: "C'è 1 cosa da sistemare"),
+                Finding(id: "backup", severity: .warning, title: "Nessun backup configurato"),
+                Finding(id: "filevault", severity: .ok, title: "Il disco è cifrato (FileVault)"),
+            ]
+            let text = HelperReport.text(findings: findings,
+                                         info: .init(chip: "Apple M3", memory: "16 GB", macOS: "27.2"),
+                                         date: Date(timeIntervalSince1970: 1_794_000_000))
+            #expect(text.contains("Stato: C'è 1 cosa da sistemare"))
+            #expect(text.contains("⚠️ Nessun backup configurato"))
+            #expect(text.contains("✅ Il disco è cifrato (FileVault)"))
+            #expect(text.contains("Apple M3 · 16 GB di memoria · macOS 27.2"))
+            #expect(!text.contains("/Users/"))
+        }
+    }
+}

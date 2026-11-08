@@ -317,7 +317,22 @@
   "ui.welcome.change": "Puoi cambiarle quando vuoi dall'ingranaggio in basso nel riquadro.",
   "ui.welcome.back": "Indietro",
   "ui.welcome.next": "Avanti",
-  "ui.welcome.start": "Inizia"
+  "ui.welcome.start": "Inizia",
+  "speech.cmd": "Comando",
+  "speech.shift": "Maiuscole",
+  "speech.option": "Opzione",
+  "speech.control": "Controllo",
+  "speech.then": ", poi, ",
+  "report.title": "Riepilogo del Mac ({0})",
+  "report.mac": "Mac: {0} · {1} di memoria · macOS {2}",
+  "report.status": "Stato: {0}",
+  "report.footer": "Preparato con Assistente Mac: tutto è stato controllato sul Mac e questo testo non è stato inviato a nessuno.",
+  "ui.readAloud": "Leggi ad alta voce",
+  "ui.stopReading": "Smetti di leggere",
+  "ui.report.copy": "Copia riepilogo per chi ti aiuta",
+  "ui.report.share": "Condividi…",
+  "ui.report.copied": "Riepilogo copiato. Incollalo in un messaggio o in una mail a chi ti aiuta (⌘V).",
+  "ui.report.copyShort": "Copia riepilogo"
  },
  "guides": [
   {

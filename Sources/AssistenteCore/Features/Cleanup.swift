@@ -20,6 +20,14 @@ public struct CleanupItem: Sendable, Equatable, Identifiable {
     /// Proposto già spuntato (solo gli installer: quasi sempre inutili).
     public var preselected: Bool
 
+    public init(name: String, path: String, bytes: UInt64, reason: Reason, preselected: Bool) {
+        self.name = name
+        self.path = path
+        self.bytes = bytes
+        self.reason = reason
+        self.preselected = preselected
+    }
+
     public var explanation: String {
         switch reason {
         case .installer: L.t("cleanup.reason.installer")

@@ -60,6 +60,25 @@ final class AssistantViewModel {
 
     /// Avvisi automatici in background.
     let alerts = AlertService()
+    /// "Leggi ad alta voce".
+    let speech = SpeechService()
+
+    /// Il risultato mostrato è il controllo generale (per il riepilogo).
+    var isHealthResult: Bool {
+        findings.first?.id == "overall" && findings.contains { $0.id == "speed" }
+    }
+
+    /// Riepilogo per chi ti aiuta (solo per il controllo generale).
+    var helperReport: String? {
+        isHealthResult ? HelperReport.text(findings: findings) : nil
+    }
+
+    func copyHelperReport() {
+        guard let text = helperReport else { return }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        notice = L.t("ui.report.copied")
+    }
 
     /// Scorciatoia ⌥Spazio (`nil` se un'altra app la usa già).
     private(set) var hotKey: GlobalHotKey?
@@ -360,6 +379,7 @@ final class AssistantViewModel {
     }
 
     private func clearResults() {
+        speech.stop()
         findings = []
         choices = []
         chart = nil

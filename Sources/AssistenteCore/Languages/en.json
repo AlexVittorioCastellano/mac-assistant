@@ -317,7 +317,22 @@
   "ui.welcome.change": "You can change them anytime from the gear at the bottom of the panel.",
   "ui.welcome.back": "Back",
   "ui.welcome.next": "Next",
-  "ui.welcome.start": "Get Started"
+  "ui.welcome.start": "Get Started",
+  "speech.cmd": "Command",
+  "speech.shift": "Shift",
+  "speech.option": "Option",
+  "speech.control": "Control",
+  "speech.then": ", then, ",
+  "report.title": "Mac summary ({0})",
+  "report.mac": "Mac: {0} · {1} of memory · macOS {2}",
+  "report.status": "Status: {0}",
+  "report.footer": "Prepared with Assistente Mac: everything was checked on the Mac and this text wasn't sent to anyone.",
+  "ui.readAloud": "Read aloud",
+  "ui.stopReading": "Stop reading",
+  "ui.report.copy": "Copy summary for whoever helps you",
+  "ui.report.share": "Share…",
+  "ui.report.copied": "Summary copied. Paste it into a message or an email to whoever helps you (⌘V).",
+  "ui.report.copyShort": "Copy summary"
  },
  "guides": [
   {

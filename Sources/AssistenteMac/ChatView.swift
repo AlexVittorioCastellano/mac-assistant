@@ -14,7 +14,7 @@ struct ChatView: View {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 10) {
                         ForEach(model.messages) { message in
-                            Bubble(message: message).id(message.id)
+                            Bubble(message: message, speech: model.speech).id(message.id)
                         }
                     }
                     .padding(.vertical, 4)
@@ -47,6 +47,7 @@ struct ChatView: View {
 
 private struct Bubble: View {
     let message: ChatMessage
+    let speech: SpeechService
 
     var body: some View {
         HStack {
@@ -84,6 +85,21 @@ private struct Bubble: View {
                         .font(.caption2)
                         .foregroundStyle(.green)
                         .help(L.t("ui.chat.guided.help"))
+                }
+                if message.role == .assistant && !message.isError {
+                    // Leggi ad alta voce questa risposta.
+                    let reading = speech.speakingID == message.id.uuidString
+                    Button {
+                        speech.toggle(ReadAloud.speakable(message.text), id: message.id.uuidString)
+                    } label: {
+                        Label(reading ? L.t("ui.stopReading") : L.t("ui.readAloud"),
+                              systemImage: reading ? "stop.circle" : "speaker.wave.2")
+                            .font(.caption2)
+                    }
+                    .buttonStyle(.borderless)
+                }
+                if !message.verifiedGuides.isEmpty || message.basedOnGuide {
+                    EmptyView()
                 } else if message.role == .assistant {
                     // Senza guida il modello piccolo sbaglia più spesso nomi di
                     // menu e pulsanti: lo diciamo con discrezione.

@@ -28,7 +28,7 @@ struct ContentView: View {
                     ScrollView {
                         results.frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .frame(height: scrollHeight)
+                    .frame(height: min(scrollHeight, estimatedResultsHeight))
                 } else {
                     results.frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -53,10 +53,46 @@ struct ContentView: View {
         }
     }
 
+    /// Sotto un risultato: leggi ad alta voce e, per il controllo generale,
+    /// il riepilogo da copiare o condividere con chi ti aiuta.
+    @ViewBuilder private func resultActions(advice: [String]) -> some View {
+        HStack(spacing: 8) {
+            let reading = model.speech.speakingID == "result"
+            Button {
+                model.speech.toggle(ReadAloud.text(findings: model.findings, answer: model.answer), id: "result")
+            } label: {
+                Label(reading ? L.t("ui.stopReading") : L.t("ui.readAloud"),
+                      systemImage: reading ? "stop.circle" : "speaker.wave.2")
+            }
+            if let report = model.helperReport {
+                Button { model.copyHelperReport() } label: {
+                    Label(L.t("ui.report.copyShort"), systemImage: "doc.on.doc")
+                }
+                .help(L.t("ui.report.copy"))
+                ShareLink(item: report) { Label(L.t("ui.report.share"), systemImage: "square.and.arrow.up") }
+            }
+        }
+        .controlSize(.small)
+        .buttonStyle(.bordered)
+    }
+
     /// Stima prudente: molte righe (o il grafico) = risultato lungo.
     private var isLongResult: Bool {
         let rows = model.findings.count + Finding.advice(from: model.findings).count + model.cleanupItems.count * 2
         return rows + (model.chart != nil ? 5 : 0) > 11
+    }
+
+    /// Stima dell'altezza dei risultati, per non lasciare spazio vuoto sotto
+    /// (se la stima è bassa, il contenuto scorre: nessun problema).
+    private var estimatedResultsHeight: CGFloat {
+        let advice = Finding.advice(from: model.findings)
+        var h: CGFloat = 50  // pulsanti sotto il risultato e margini
+        h += CGFloat(model.findings.count) * 30
+        h += advice.reduce(0) { $0 + 22 * CGFloat(1 + $1.count / 55) } + (advice.isEmpty ? 0 : 30)
+        h += model.answer.isEmpty ? 0 : 22 * CGFloat(1 + model.answer.count / 55)
+        h += model.chart != nil ? 170 : 0
+        h += CGFloat(model.cleanupItems.count) * 48 + (model.cleanupItems.isEmpty ? 0 : 140)
+        return h
     }
 
     /// Altezza dell'area a scorrimento: quanto resta sullo schermo tolta la
@@ -171,6 +207,9 @@ struct ContentView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             let advice = Finding.advice(from: model.findings)
+            if !model.isWorking && (!model.findings.isEmpty || !model.answer.isEmpty) {
+                resultActions(advice: advice)
+            }
             if !advice.isEmpty && !model.isWorking {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(L.t("ui.advice.header")).font(.subheadline.bold())
