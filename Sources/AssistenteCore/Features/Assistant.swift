@@ -14,16 +14,16 @@ public enum AssistantReply: Sendable {
 public struct Choice: Sendable, Equatable, Hashable {
     public var label: String
     public var question: String
-    /// Bundle `.app` da cui prendere l'icona (l'app stessa o quella di cui
-    /// il processo fa parte). `nil` = nessuna icona: l'interfaccia usa un simbolo.
-    public var iconBundlePath: String?
-    public var isSystem: Bool
+    /// File o cartella da cui prendere l'icona (es. l'app di cui il processo
+    /// fa parte). Se manca, si usa `symbol`.
+    public var iconPath: String?
+    public var symbol: String
 
-    public init(label: String, question: String, iconBundlePath: String? = nil, isSystem: Bool = false) {
+    public init(label: String, question: String, iconPath: String? = nil, symbol: String = "app.dashed") {
         self.label = label
         self.question = question
-        self.iconBundlePath = iconBundlePath
-        self.isSystem = isSystem
+        self.iconPath = iconPath
+        self.symbol = symbol
     }
 }
 
@@ -54,8 +54,8 @@ public struct Assistant: Sendable {
         case .process(nil):
             let options = ProcessExplainer.suggestions(from: samples).map {
                 Choice(label: $0.name, question: "Cos'è «\($0.name)»?",
-                       iconBundlePath: ProcessKind.outermostAppBundlePath(in: $0.path),
-                       isSystem: $0.isSystem)
+                       iconPath: ProcessKind.outermostAppBundlePath(in: $0.path),
+                       symbol: ProcessExplainer.symbol(for: $0))
             }
             return .choices(message: "Quale processo vuoi capire? Ecco quelli che lavorano di più adesso. "
                                 + "Puoi anche scrivere il nome, ad esempio: Cos'è mds_stores?",

@@ -96,7 +96,7 @@ struct ContentView: View {
                     ForEach(model.choices, id: \.self) { choice in
                         Button { model.ask(choice.question) } label: {
                             HStack(spacing: 8) {
-                                ProcessIcon(choice: choice)
+                                ItemIcon(path: choice.iconPath, symbol: choice.symbol, tint: .secondary)
                                 Text(choice.label).foregroundStyle(.link)
                             }
                             .contentShape(Rectangle())
@@ -141,10 +141,17 @@ private struct FindingRow: View {
     let finding: Finding
 
     var body: some View {
-        Label {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Group {
+                if finding.iconPath != nil || finding.symbol != nil {
+                    ItemIcon(path: finding.iconPath, symbol: finding.symbol ?? icon, tint: color)
+                        .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + 4 }
+                } else {
+                    Image(systemName: icon).foregroundStyle(color)
+                        .frame(width: 20)
+                }
+            }
             Text(finding.title).fixedSize(horizontal: false, vertical: true)
-        } icon: {
-            Image(systemName: icon).foregroundStyle(color)
         }
     }
 
@@ -167,22 +174,24 @@ private struct FindingRow: View {
     }
 }
 
-/// Icona di un processo: quella dell'app (o dell'app di cui fa parte),
-/// altrimenti un simbolo (ingranaggio per macOS, riquadro per il resto).
-private struct ProcessIcon: View {
-    let choice: Choice
+/// Icona di un elemento: quella del Finder per un file/cartella/app
+/// (come la mostra il Finder), altrimenti un simbolo SF.
+struct ItemIcon: View {
+    let path: String?
+    let symbol: String
+    var tint: Color = .secondary
 
     var body: some View {
         Group {
-            if let path = choice.iconBundlePath {
+            if let path {
                 Image(nsImage: NSWorkspace.shared.icon(forFile: path))
                     .resizable()
             } else {
-                Image(systemName: choice.isSystem ? "gearshape.fill" : "app.dashed")
+                Image(systemName: symbol)
                     .resizable()
                     .scaledToFit()
                     .padding(2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(tint)
             }
         }
         .frame(width: 20, height: 20)

@@ -64,31 +64,44 @@ public enum ProcessExplainer {
 
     // MARK: Cosa mostrare (deciso dal codice)
 
+    /// Simbolo per i processi senza un'app da cui prendere l'icona.
+    public static func symbol(for g: ProcessGroup) -> String {
+        g.isSystem ? "gearshape.fill" : "app.dashed"
+    }
+
     public static func findings(for d: Details) -> [Finding] {
         let g = d.group
         var result: [Finding] = []
+        // L'icona del processo accompagna la riga "che tipo è".
+        let icon = ProcessKind.outermostAppBundlePath(in: g.path)
+        let symbol = symbol(for: g)
 
         switch g.kind {
         case .macOS:
-            result.append(.init(id: "kind", severity: .info, title: "Fa parte di macOS"))
+            result.append(.init(id: "kind", severity: .info, title: "Fa parte di macOS",
+                                iconPath: icon, symbol: symbol))
             result.append(.init(id: "close", severity: .critical, title: "Non chiuderlo: serve al sistema",
                                 advice: g.cpuPercent >= 50
                                     ? "Se continua a usare tanto processore per ore, riavvia il Mac."
                                     : nil))
         case .app(let name):
-            result.append(.init(id: "kind", severity: .info, title: "È l'app «\(name)»"))
+            result.append(.init(id: "kind", severity: .info, title: "È l'app «\(name)»",
+                                iconPath: icon, symbol: symbol))
             result.append(.init(id: "close", severity: .ok, title: "Puoi chiuderla quando vuoi",
                                 advice: "Per chiuderla: salva il lavoro, poi premi ⌘Q mentre sei nell'app."))
         case .appComponent(let app):
-            result.append(.init(id: "kind", severity: .info, title: "Fa parte dell'app «\(app)»"))
+            result.append(.init(id: "kind", severity: .info, title: "Fa parte dell'app «\(app)»",
+                                iconPath: icon, symbol: symbol))
             result.append(.init(id: "close", severity: .info, title: "Non chiuderlo da solo: se serve, chiudi «\(app)»",
                                 advice: "Per chiudere «\(app)»: salva il lavoro, poi premi ⌘Q mentre sei nell'app."))
         case .background:
-            result.append(.init(id: "kind", severity: .info, title: "È un programma in background installato da un'altra app"))
+            result.append(.init(id: "kind", severity: .info, title: "È un programma in background installato da un'altra app",
+                                iconPath: icon, symbol: symbol))
             result.append(.init(id: "close", severity: .warning, title: "Chiudilo solo se sai a cosa serve: spesso si riavvia da solo",
                                 advice: "Puoi vedere e disattivare i programmi in background in Impostazioni di Sistema → Generali → Elementi login."))
         case .unknown:
-            result.append(.init(id: "kind", severity: .info, title: "Non riesco a capire da dove viene"))
+            result.append(.init(id: "kind", severity: .info, title: "Non riesco a capire da dove viene",
+                                iconPath: icon, symbol: symbol))
             result.append(.init(id: "close", severity: .warning, title: "Meglio non chiuderlo se non sai cos'è"))
         }
 
