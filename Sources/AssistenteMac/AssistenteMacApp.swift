@@ -23,7 +23,7 @@ struct AssistenteMacApp: App {
         } label: {
             // Con un avviso attivo l'icona cambia: si capisce senza aprire nulla.
             Image(systemName: model.alerts.active.isEmpty ? "questionmark.bubble" : "exclamationmark.bubble.fill")
-                .accessibilityLabel(model.alerts.active.isEmpty ? "Assistente Mac" : L.t("ui.menubar.alert.a11y"))
+                .accessibilityLabel(model.alerts.active.isEmpty ? "Mac Assistant" : L.t("ui.menubar.alert.a11y"))
         }
         .menuBarExtraStyle(.window)
     }

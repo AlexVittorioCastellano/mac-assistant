@@ -103,7 +103,7 @@ struct ContentView: View {
     }
 
     private var header: some View {
-        Label("Assistente Mac", systemImage: "questionmark.bubble.fill")
+        Label("Mac Assistant", systemImage: "questionmark.bubble.fill")
             .font(.headline)
     }
 

@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/icona.png" width="128" alt="Assistente Mac icon">
+  <img src="docs/icona.png" width="128" alt="Mac Assistant icon">
 </p>
 
-<h1 align="center">Assistente Mac</h1>
+<h1 align="center">Mac Assistant</h1>
 
 <p align="center">
   <b>A friendly Mac assistant that lives in your menu bar.</b><br>
@@ -34,7 +34,7 @@
 ## Why
 
 Most people don't know why their Mac is slow, what `kernel_task` is, where 60 GB of
-"System Data" came from, or whether that scary pop-up is real. Assistente Mac answers
+"System Data" came from, or whether that scary pop-up is real. Mac Assistant answers
 those questions in plain language, **without sending anything off your Mac**, without an
 account and without API keys.
 
@@ -85,13 +85,13 @@ finds, and suggests what *you* can do. It never quits apps or deletes files on i
 You only need the **Command Line Tools** (`xcode-select --install`); Xcode is optional.
 
 ```sh
-git clone https://github.com/MigatteNoAlecs/assistente-mac.git
-cd assistente-mac
-./scripts/crea-app.sh                 # builds build/AssistenteMac.app
-open build/AssistenteMac.app
+git clone https://github.com/MigatteNoAlecs/mac-assistant.git
+cd mac-assistant
+./scripts/crea-app.sh                 # builds "build/Mac Assistant.app"
+open "build/Mac Assistant.app"
 ```
 
-Tip: move `AssistenteMac.app` to **Applications** before turning on "Open when the Mac starts".
+Tip: move `Mac Assistant.app` to **Applications** before turning on "Open when the Mac starts".
 The app is ad-hoc signed (not notarized yet): the first time, open it with right-click → Open.
 
 For development:
@@ -198,7 +198,7 @@ tokens or private URLs. Run `./scripts/test.sh` before opening a pull request.
 
 ## 🇮🇹 Italiano
 
-**Assistente Mac** è un assistente per il Mac che vive nella barra dei menu. Fai una domanda
+**Mac Assistant** è un assistente per il Mac che vive nella barra dei menu. Fai una domanda
 sul tuo Mac **nella tua lingua** e ricevi una risposta chiara, **tutto sul Mac**: niente dati
 inviati, niente account, niente chiavi API. È pensato per chi non è esperto e non tocca nulla
 da solo: legge, spiega e suggerisce.
@@ -229,9 +229,9 @@ macOS 27 o successivo con Apple Silicon e Apple Intelligence attiva (senza, rest
 controlli e i consigli, ma non la spiegazione scritta dall'AI). Bastano i Command Line Tools:
 
 ```sh
-git clone https://github.com/MigatteNoAlecs/assistente-mac.git
-cd assistente-mac
-./scripts/crea-app.sh && open build/AssistenteMac.app
+git clone https://github.com/MigatteNoAlecs/mac-assistant.git
+cd mac-assistant
+./scripts/crea-app.sh && open "build/Mac Assistant.app"
 ```
 
 Sposta l'app in **Applicazioni** prima di attivare "Apri all'accensione". L'app non è ancora
